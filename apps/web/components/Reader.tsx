@@ -8,6 +8,7 @@ import { useSettings } from '@/lib/settings';
 import { mahrecSegments } from '@/lib/mahrec';
 import type { Ayah, ReaderGroup, Reciter } from '@/lib/types';
 import SettingsBar from './SettingsBar';
+import { AyahBadge, CommentsProvider, TargetButtons } from './Comments';
 
 const PALETTE = ['#1565c0', '#c62828', '#2e7d32', '#6a1b9a', '#ef6c00', '#00838f', '#ad1457', '#4e342e', '#33691e', '#283593'];
 const BASMALA = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
@@ -45,6 +46,7 @@ const AyahRow = memo(function AyahRow({ surahId, ayah, mode, activeWord, isActiv
         <button className="num" title={`${surahId}:${ayah.ayah} — bu ayetten dinle`} onClick={() => onPlay(gi, ai)}>
           {ayah.ayah}
         </button>
+        <AyahBadge surah={surahId} ayah={ayah.ayah} words={ayah.words.map((w) => ({ p: w.p, ar: w.ar }))} />
       </div>
       <div className="meal">
         <span className="mtr"><b>{ayah.key}</b> {ayah.meal.tr}</span>
@@ -54,8 +56,8 @@ const AyahRow = memo(function AyahRow({ surahId, ayah, mode, activeWord, isActiv
   );
 });
 
-export default function Reader({ groups, reciters, showPageMarkers = true }: {
-  groups: ReaderGroup[]; reciters: Reciter[]; showPageMarkers?: boolean;
+export default function Reader({ groups, reciters, showPageMarkers = true, pageNumber }: {
+  groups: ReaderGroup[]; reciters: Reciter[]; showPageMarkers?: boolean; pageNumber?: number;
 }) {
   const { settings } = useSettings();
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -165,7 +167,9 @@ export default function Reader({ groups, reciters, showPageMarkers = true }: {
 
   return (
     <div className={cls} style={{ ['--ar-scale' as string]: settings.fontScale }}>
+      <CommentsProvider groups={groups} pageNumber={pageNumber} enabled={settings.comments}>
       <SettingsBar reciters={reciters} onPlaySurah={() => (pos ? stop() : playAt(0, 0))} playing={pos !== null} />
+      <TargetButtons groups={groups} pageNumber={pageNumber} />
       {groups.map((group, gi) => {
         let prevPage = gi === 0 ? -1 : groups[gi - 1].ayahs.at(-1)?.page ?? -1;
         let prevJuz = -1;
@@ -224,6 +228,7 @@ export default function Reader({ groups, reciters, showPageMarkers = true }: {
           <button onClick={stop} title="Kapat">✕</button>
         </div>
       )}
+      </CommentsProvider>
     </div>
   );
 }

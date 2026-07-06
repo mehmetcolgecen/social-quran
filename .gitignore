@@ -7,6 +7,7 @@ dist/
 data/raw/
 data/audio/
 data/processed/
+data/.dev/
 
 # Ortam
 .env

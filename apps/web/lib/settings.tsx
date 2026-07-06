@@ -10,6 +10,7 @@ export type Settings = {
   meal: 'kapali' | 'tr' | 'en' | 'iki';
   fontScale: number;
   reciter: string;
+  comments: boolean; // yorum rozetleri/paneli tamamen kapatılabilir (GOAL gereksinimi)
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -19,6 +20,7 @@ export const DEFAULT_SETTINGS: Settings = {
   meal: 'tr',
   fontScale: 1,
   reciter: 'Husary_64kbps',
+  comments: true,
 };
 
 const STORAGE_KEY = 'sk-settings';

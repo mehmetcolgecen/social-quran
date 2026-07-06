@@ -17,6 +17,8 @@ Proje dokümanları: `GOAL.md` (hedefler + faz planı), `ON_HAZIRLIK.md` (doğru
 - Veri boru hattı: `npm run -w packages/quran-data download` / `validate` / `build-db` (detay: `packages/quran-data/README.md`).
 - Ses indirme (uzun sürer, resumable): `npm run -w packages/quran-data download-audio`.
 - Web uygulaması: `npm run dev -w apps/web` (http://localhost:3000) / `npm run typecheck -w apps/web` / `npm run build -w apps/web`.
+- Dev yığını (Faz 2+): `npm run -w packages/devstack db` (PG :5433) + `npm run -w packages/devstack oidc` (issuer :7788) + `npm run dev -w apps/api` (API :4000, OpenAPI /docs).
+- E2E kabul testi: `npm run -w apps/api test:e2e` (yığın çalışırken).
 - Komutları repo kökünden çalıştır (npm workspaces kökü burası).
 
 ## Teknik notlar

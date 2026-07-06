@@ -223,6 +223,78 @@ main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
 .player .now { font-weight: 600; }
 .player .repeat { display: flex; align-items: center; gap: .3rem; }
 
+/* ---------- Yorum katmanı ---------- */
+.user-menu { margin-inline-start: auto; display: flex; gap: .8rem; font-size: .85rem; align-items: center; }
+.user-menu a { text-decoration: none; }
+
+.cbadge {
+  align-self: center;
+  font-size: .7rem;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--accent);
+  cursor: pointer;
+  opacity: .25;
+  transition: opacity .15s;
+}
+.cbadge.has { opacity: .6; }
+.ayah:hover .cbadge, .cbadge:hover { opacity: 1; }
+
+.target-buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
+.target-buttons button {
+  font-size: .78rem; padding: .3rem .7rem; cursor: pointer;
+  background: var(--card); border: 1px solid var(--line); border-radius: 1rem;
+}
+.target-buttons button:hover { border-color: var(--accent); }
+
+.cpanel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(26rem, 100vw);
+  background: var(--card);
+  border-left: 2px solid var(--line);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 16px rgba(0,0,0,.08);
+}
+.cpanel-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .8rem 1rem; border-bottom: 1px solid var(--line);
+}
+.cpanel-head button { cursor: pointer; }
+.cword-select { margin: .6rem 1rem 0; padding: .3rem; font: inherit; }
+.clist { flex: 1; overflow-y: auto; padding: .6rem 1rem; }
+.citem { padding: .55rem 0; border-bottom: 1px solid #eee6d2; }
+.citem.reply { margin-inline-start: 1.2rem; border-inline-start: 2px solid var(--line); padding-inline-start: .6rem; border-bottom: none; }
+.chead { display: flex; justify-content: space-between; gap: .5rem; font-size: .75rem; color: #77705e; }
+.chead a { text-decoration: none; color: var(--ink); }
+.cbody { margin: .25rem 0; font-size: .88rem; white-space: pre-wrap; }
+.cquote { margin: .3rem 0; padding: .3rem .6rem; border-inline-start: 3px solid var(--accent); background: var(--accent-soft); font-size: .8rem; color: #5c5648; }
+.cactions { display: flex; gap: .6rem; }
+.cactions button { font-size: .72rem; background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; }
+.cform { border-top: 1px solid var(--line); padding: .7rem 1rem; }
+.cform textarea { width: 100%; font: inherit; padding: .4rem; resize: vertical; }
+.cform-row { display: flex; justify-content: space-between; gap: .5rem; margin-top: .4rem; }
+.cform-row select, .cform-row button { font: inherit; padding: .25rem .6rem; }
+.cnote { font-size: .75rem; color: var(--accent); margin-bottom: .3rem; }
+.cnote button { font-size: .72rem; background: none; border: none; color: #a33; cursor: pointer; }
+.cerror { color: #a33; font-size: .8rem; margin: .3rem 0 0; }
+.cmuted { color: #77705e; font-size: .85rem; }
+.clogin { display: block; text-align: center; padding: .4rem; }
+
+/* ---------- Profil ---------- */
+.profile-editor { display: flex; flex-direction: column; gap: .6rem; max-width: 28rem; margin-bottom: 1.5rem; }
+.profile-editor label { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; }
+.profile-editor input, .profile-editor textarea { font: inherit; padding: .35rem; }
+.profile-editor button { align-self: flex-start; font: inherit; padding: .3rem .9rem; cursor: pointer; }
+.profile-comments { list-style: none; padding: 0; display: flex; flex-direction: column; gap: .8rem; }
+.profile-comments li { background: var(--card); border: 1px solid var(--line); border-radius: .5rem; padding: .6rem .8rem; }
+.profile-comments p { margin: .3rem 0; }
+
 @media (max-width: 640px) {
   .w .ar { font-size: calc(1.7rem * var(--ar-scale, 1)); }
   .w small { max-width: 5.5rem; }

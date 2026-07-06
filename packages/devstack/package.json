@@ -1,0 +1,15 @@
+{
+  "name": "@sosyal-kuran/devstack",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db": "node scripts/dev-db.mjs",
+    "oidc": "node scripts/dev-oidc.mjs"
+  },
+  "dependencies": {
+    "embedded-postgres": "18.4.0-beta.17",
+    "jose": "^6.0.0",
+    "pg": "^8.16.0"
+  }
+}

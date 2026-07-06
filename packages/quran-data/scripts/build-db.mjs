@@ -57,6 +57,9 @@ const insAyah = db.prepare('INSERT INTO ayahs VALUES (?,?,?,?,?,?,?,?,?)');
 const insWord = db.prepare('INSERT INTO words VALUES (?,?,?,?,?,?,?,?,?,?,?)');
 const insTrans = db.prepare('INSERT INTO translations VALUES (?,?,?,?)');
 let ayahId = 0, wordId = 0;
+// Yorum hedefi doğrulaması için limitler (API kullanır): sure→ayet sayısı, ayet→kelime sayısı
+const targetLimits = { pages: 604, surahs: {}, ayahWords: {} };
+for (const c of chaptersEn) targetLimits.surahs[c.id] = c.verses_count;
 
 for (let ch = 1; ch <= 114; ch++) {
   const pad = String(ch).padStart(3, '0');
@@ -71,6 +74,7 @@ for (let ch = 1; ch <= 114; ch++) {
     const wordsEn = v.words.filter((w) => w.char_type_name === 'word');
     const wordsTr = vTr.words.filter((w) => w.char_type_name === 'word');
     if (wordsEn.length !== wordsTr.length) throw new Error(`kelime sayısı uyuşmuyor: ${v.verse_key}`);
+    targetLimits.ayahWords[v.verse_key] = wordsEn.length;
     const aVals = [++ayahId, v.verse_key, s, a, text, wordsEn[0].page_number, v.juz_number, v.hizb_number, v.sajdah_number ?? null];
     insAyah.run(...aVals); row('ayahs', aVals);
     wordsEn.forEach((w, i) => {
@@ -119,6 +123,7 @@ CREATE INDEX idx_ayahs_page ON ayahs(page);
 COMMIT;
 `;
 await writeFile(`${PROCESSED}seed.sql.gz`, gzipSync(pgSchema + copyBlocks + indexes));
+await writeFile(`${PROCESSED}target-limits.json`, JSON.stringify(targetLimits));
 
 console.log('Tablo satır sayıları:', JSON.stringify(counts));
-console.log(`Üretildi: ${DB_PATH} + ${PROCESSED}seed.sql.gz`);
+console.log(`Üretildi: ${DB_PATH} + ${PROCESSED}seed.sql.gz + target-limits.json`);

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Link from 'next/link';
 import { SettingsProvider } from '@/lib/settings';
+import UserMenu from '@/components/UserMenu';
 import './globals.css';
 
 const hafs = localFont({
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <header className="site-header">
             <Link href="/" className="brand">Sosyal Kur&rsquo;an</Link>
             <nav><Link href="/">Sureler</Link></nav>
+            <UserMenu />
           </header>
           {children}
           <footer className="site-footer">

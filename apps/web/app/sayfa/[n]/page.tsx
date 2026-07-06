@@ -23,7 +23,7 @@ export default async function SayfaPage({ params }: Props) {
         </div>
         <p className="meta">Sayfa sınırı ayet ortasından geçebilir; ayetler bütün olarak gösterilir.</p>
       </div>
-      <Reader groups={groups} reciters={getReciters()} showPageMarkers={false} />
+      <Reader groups={groups} reciters={getReciters()} showPageMarkers={false} pageNumber={n} />
     </main>
   );
 }

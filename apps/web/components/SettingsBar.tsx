@@ -40,6 +40,7 @@ export default function SettingsBar({ reciters, onPlaySurah, playing }: {
             {reciters.map((r) => <option key={r.slug} value={r.slug}>{r.name}</option>)}
           </select>
         </label>
+        <label><input type="checkbox" checked={settings.comments} onChange={(e) => update({ comments: e.target.checked })} /> Yorumlar</label>
         <button className="play-btn" onClick={onPlaySurah}>{playing ? '⏹ Durdur' : '▶ Dinle'}</button>
       </div>
       {settings.mode === 'mahrec' && (
