@@ -21,6 +21,7 @@ function WordPopover({ surah, ayah, word, words, count, onListen, onClose }: {
   count: number; onListen: () => void; onClose: () => void;
 }) {
   const { open } = useComments();
+  const { settings } = useSettings();
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!(e.target as HTMLElement).closest('.wpop')) onClose();
@@ -33,8 +34,9 @@ function WordPopover({ surah, ayah, word, words, count, onListen, onClose }: {
       <span className="wpop-ar" dir="rtl">{word.ar}</span>
       {word.tl && <i className="wpop-tl">{word.tl}</i>}
       <span className="wpop-meanings">
-        {word.tr && <span><b>TR</b> {word.tr}</span>}
-        {word.en && <span><b>EN</b> {word.en}</span>}
+        {settings.wordTr && word.tr && <span><b>TR</b> {word.tr}</span>}
+        {settings.wordEn && word.en && <span><b>EN</b> {word.en}</span>}
+        {!settings.wordTr && !settings.wordEn && <span className="cmuted">Kelime anlamı kapalı (ayarlardan açın)</span>}
       </span>
       <span className="wpop-actions">
         <button onClick={() => { onListen(); onClose(); }}>▶ Dinle</button>
@@ -52,7 +54,7 @@ function WordSpan({ word, wi, mode, active, count, onClick, popover }: {
 }) {
   const color = mode === 'renkli' ? `var(--w${wi % 10})` : undefined;
   return (
-    <span className={`w${active ? ' hl' : ''}`} style={color ? { color } : undefined}>
+    <span className={`w${active ? ' hl' : ''}${popover ? ' wopen' : ''}`} style={color ? { color } : undefined}>
       {count > 0 && <sup className="wcount" title={`${count} kelime yorumu`}>{count}</sup>}
       <button className="ar" dir="rtl" onClick={onClick} title="Kelime seçenekleri">
         {mode === 'mahrec'
@@ -80,7 +82,7 @@ const AyahRow = memo(function AyahRow({
 }) {
   const slimWords = useMemo(() => ayah.words.map((w) => ({ p: w.p, ar: w.ar })), [ayah.words]);
   return (
-    <div id={`ayet-${surahId}-${ayah.ayah}`} className={`ayah${isActive ? ' active' : ''}`}>
+    <div id={`ayet-${surahId}-${ayah.ayah}`} className={`ayah${isActive ? ' active' : ''}${openWord != null ? ' pop-open' : ''}`}>
       <div className="words" dir="rtl">
         {ayah.words.map((w, wi) => (
           <WordSpan
@@ -332,10 +334,14 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
   return (
     <div className={cls} style={{ ['--ar-scale' as string]: settings.fontScale }}>
       <CommentsProvider groups={groups} pageNumber={pageNumber} enabled={settings.comments}>
-        <SettingsBar reciters={reciters} onPlaySurah={() => (pos ? stop() : playAt(0, 0))} playing={pos !== null} />
+        <SettingsBar reciters={reciters} onPlaySurah={() => (pos ? stop() : playAt(0, 0))} playing={pos !== null} frameSelect={mushaf} />
         <TargetButtons groups={groups} pageNumber={pageNumber} />
         {mushaf ? (
-          <div className="mushaf-frame"><div className="mushaf-band"><div className="mushaf-inner">{body}</div></div></div>
+          <div className="mushaf-frame" data-frame={settings.frame}>
+            <div className="mushaf-band" data-frame={settings.frame}>
+              <div className="mushaf-inner">{body}</div>
+            </div>
+          </div>
         ) : body}
         <audio ref={audioRef} onTimeUpdate={onTimeUpdate} onEnded={onEnded} onLoadedMetadata={onLoadedMetadata} />
         {pos && (

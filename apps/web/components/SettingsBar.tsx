@@ -3,10 +3,21 @@ import { useSettings } from '@/lib/settings';
 import { MAHREC_GROUPS } from '@/lib/mahrec';
 import type { Reciter } from '@/lib/types';
 
-export default function SettingsBar({ reciters, onPlaySurah, playing }: {
-  reciters: Reciter[]; onPlaySurah: () => void; playing: boolean;
+const FRAMES = [
+  ['klasik', 'Klasik (lacivert)'],
+  ['zumrut', 'Zümrüt'],
+  ['gul', 'Gül kurusu'],
+  ['gece', 'Gece'],
+  ['firuze', 'Firuze'],
+  ['sade', 'Sade altın'],
+] as const;
+
+export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelect = false }: {
+  reciters: Reciter[]; onPlaySurah: () => void; playing: boolean; frameSelect?: boolean;
 }) {
   const { settings, update } = useSettings();
+  const wordLangLabel = settings.wordTr && settings.wordEn ? 'TR+EN'
+    : settings.wordTr ? 'TR' : settings.wordEn ? 'EN' : 'Kapalı';
   return (
     <>
       <div className="settings-bar">
@@ -17,8 +28,13 @@ export default function SettingsBar({ reciters, onPlaySurah, playing }: {
             <option value="mahrec">Mahreç</option>
           </select>
         </label>
-        <label><input type="checkbox" checked={settings.wordTr} onChange={(e) => update({ wordTr: e.target.checked })} /> TR kelime</label>
-        <label><input type="checkbox" checked={settings.wordEn} onChange={(e) => update({ wordEn: e.target.checked })} /> EN kelime</label>
+        <details className="dd">
+          <summary>Kelime anlamı: <b>{wordLangLabel}</b></summary>
+          <div className="dd-panel">
+            <label><input type="checkbox" checked={settings.wordTr} onChange={(e) => update({ wordTr: e.target.checked })} /> Türkçe</label>
+            <label><input type="checkbox" checked={settings.wordEn} onChange={(e) => update({ wordEn: e.target.checked })} /> English</label>
+          </div>
+        </details>
         <label>Meal
           <select value={settings.meal} onChange={(e) => update({ meal: e.target.value as typeof settings.meal })}>
             <option value="kapali">Kapalı</option>
@@ -43,6 +59,13 @@ export default function SettingsBar({ reciters, onPlaySurah, playing }: {
             <option value="noto">Noto Naskh</option>
           </select>
         </label>
+        {frameSelect && (
+          <label>Desen
+            <select value={settings.frame} onChange={(e) => update({ frame: e.target.value as typeof settings.frame })}>
+              {FRAMES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+        )}
         <label>Kâri
           <select value={settings.reciter} onChange={(e) => update({ reciter: e.target.value })}>
             {reciters.map((r) => <option key={r.slug} value={r.slug}>{r.name}</option>)}

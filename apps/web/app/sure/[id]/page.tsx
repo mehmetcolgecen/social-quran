@@ -27,8 +27,10 @@ export default async function SurePage({ params }: Props) {
         <p className="ar">{surah.name_arabic}</p>
         <p className="meta">
           {surah.id}. {surah.name_tr} Suresi ({surah.name_en}) · {surah.verses_count} ayet ·{' '}
-          {surah.revelation_place === 'makkah' ? 'Mekkî' : 'Medenî'} ·{' '}
-          <Link href={`/sayfa/${content.ayahs[0].page}`}>Sayfa {content.ayahs[0].page}</Link>
+          {surah.revelation_place === 'makkah' ? 'Mekkî' : 'Medenî'}
+        </p>
+        <p className="meta">
+          <Link className="view-toggle" href={`/sayfa/${content.ayahs[0].page}`}>🕮 Sayfa görünümüne geç</Link>
         </p>
       </div>
       <Reader groups={[content]} reciters={getReciters()} />

@@ -1,7 +1,7 @@
 'use client';
-// Yorum katmanı: rakam rozetleri (hover'da önizleme), ilgili ayetin ALTINDA inline yorum kutusu,
-// kelime/ayet/sayfa/sure hedefleri, public/private, yanıt + alıntı + beğeni (kalp animasyonlu).
-// Misafir okur; yazmak için giriş gerekir. "Yorumlar" ayarı tüm katmanı kapatır.
+// Yorum katmanı: rakam rozetleri (hover'da önizleme), ayetin ALTINDA inline yorum kutusu.
+// Ayet kutusu sekmelidir: "Ayet (n)" | "Kelimeler (m)" — kelime yorumları kelime bazında gruplanır.
+// Sayfa görünümünde "sayfadaki ayet & kelime yorumları" toplu listesi de vardır.
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode,
 } from 'react';
@@ -11,7 +11,8 @@ import type { ReaderGroup } from '@/lib/types';
 
 type Counts = { surah: number; ayahs: Record<string, number>; words: Record<string, number> };
 type Me = { username: string; name: string } | null;
-type PanelTarget = Target & { words?: { p: number; ar: string }[] };
+type SlimWord = { p: number; ar: string };
+type PanelTarget = Target & { words?: SlimWord[] };
 
 type CtxValue = {
   enabled: boolean;
@@ -80,27 +81,22 @@ export function CommentsProvider({ groups, pageNumber, enabled, children }: {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-// Hedefin bağlandığı ayet çapası ("2:255") — inline kutunun nerede açılacağını belirler
 function anchorOf(t: Target): string | null {
   if (t.type === 'ayah') return t.key;
   if (t.type === 'word') return t.key.split(':').slice(0, 2).join(':');
   return null;
 }
 
-// AyahRow içine yerleştirilir; açık hedef bu ayete aitse yorum kutusunu gösterir
 export function InlineComments({ anchor }: { anchor: string }) {
   const { enabled, target } = useComments();
   if (!enabled || !target || anchorOf(target) !== anchor) return null;
-  return <CommentsBox />;
+  return <AyahWordBox />;
 }
 
-// Ayet rozeti: ayet + o ayetin kelime yorumlarının toplamı; 0 ise soluk "+".
-// Hover'da ilk yorumların kısa önizlemesi gösterilir.
+// ---------- Rozet + hover önizleme ----------
 const previewCache = new Map<string, { display_name: string; body: string }[]>();
 
-export function AyahBadge({ surah, ayah, words }: {
-  surah: number; ayah: number; words: { p: number; ar: string }[];
-}) {
+export function AyahBadge({ surah, ayah, words }: { surah: number; ayah: number; words: SlimWord[] }) {
   const { enabled, counts, open } = useComments();
   const [preview, setPreview] = useState<{ display_name: string; body: string }[] | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -130,7 +126,7 @@ export function AyahBadge({ surah, ayah, words }: {
     <span className="cbadge-wrap" onMouseEnter={showPreview} onMouseLeave={hidePreview}>
       <button
         className={`cbadge${total ? ' has' : ''}`}
-        title={total ? `${total} yorum` : 'Yorum yaz'}
+        title={total ? `${total} yorum (ayet + kelime)` : 'Yorum yaz'}
         onClick={() => { hidePreview(); open({ type: 'ayah', key, words }); }}
       >
         {total || '+'}
@@ -147,30 +143,7 @@ export function AyahBadge({ surah, ayah, words }: {
   );
 }
 
-// Sure/sayfa hedef düğmeleri + bu hedefler için inline kutu
-export function TargetButtons({ groups, pageNumber }: { groups: ReaderGroup[]; pageNumber?: number }) {
-  const { enabled, counts, pageCount, target, open } = useComments();
-  if (!enabled) return null;
-  const boxHere = target && (target.type === 'surah' || target.type === 'page');
-  return (
-    <>
-      <div className="target-buttons">
-        {groups.map((g) => (
-          <button key={g.surah.id} onClick={() => open({ type: 'surah', key: String(g.surah.id) })}>
-            💬 {g.surah.name_tr} Suresi yorumları ({counts[g.surah.id]?.surah ?? 0})
-          </button>
-        ))}
-        {pageNumber && (
-          <button onClick={() => open({ type: 'page', key: String(pageNumber) })}>
-            💬 Sayfa {pageNumber} yorumları ({pageCount ?? 0})
-          </button>
-        )}
-      </div>
-      {boxHere && <CommentsBox />}
-    </>
-  );
-}
-
+// ---------- Ortak parçalar ----------
 type Comment = {
   id: string; target_type: string; target_key: string; body: string;
   visibility: 'public' | 'private'; parent_id: string | null; quote_id: string | null;
@@ -180,88 +153,47 @@ type Comment = {
 
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' });
-
 const initials = (name: string) => name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
-export function CommentsBox() {
-  const { me, target, close, refresh } = useComments();
-  const pathname = usePathname();
-  const [current, setCurrent] = useState<Target>({ type: target!.type, key: target!.key });
-  const [items, setItems] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [body, setBody] = useState('');
-  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
-  const [replyTo, setReplyTo] = useState<Comment | null>(null);
-  const [quote, setQuote] = useState<Comment | null>(null);
-  const [editing, setEditing] = useState<Comment | null>(null);
+function CommentItem({ c, me, quoted, isReply, replies, onChanged, onReply, onQuote }: {
+  c: Comment; me: Me; quoted?: Comment; isReply?: boolean; replies?: Comment[];
+  onChanged: () => void; onReply?: (c: Comment) => void; onQuote?: (c: Comment) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [editBody, setEditBody] = useState(c.body);
+  const [likeState, setLikeState] = useState({ count: c.like_count, liked: c.liked });
+  useEffect(() => setLikeState({ count: c.like_count, liked: c.liked }), [c.like_count, c.liked]);
 
-  useEffect(() => { setCurrent({ type: target!.type, key: target!.key }); }, [target]);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    const rows = await getJSON<Comment[]>(`/api/social/comments?type=${current.type}&key=${current.key}`);
-    setItems(rows ?? []);
-    setLoading(false);
-  }, [current]);
-
-  useEffect(() => { void load(); }, [load]);
-
-  async function submit() {
-    setError('');
-    const payload: Record<string, unknown> = editing
-      ? { body, visibility }
-      : {
-          target_type: current.type, target_key: current.key, body, visibility,
-          parent_id: replyTo ? Number(replyTo.id) : undefined,
-          quote_id: quote ? Number(quote.id) : undefined,
-        };
-    const res = await fetch(editing ? `/api/social/comments/${editing.id}` : '/api/social/comments', {
-      method: editing ? 'PATCH' : 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const err = (await res.json().catch(() => null)) as { message?: string } | null;
-      setError(err?.message ?? 'Yorum gönderilemedi');
-      return;
-    }
-    setBody(''); setReplyTo(null); setQuote(null); setEditing(null);
-    await load();
-    refresh();
+  async function toggleLike() {
+    const res = await fetch(`/api/social/comments/${c.id}/like`, { method: likeState.liked ? 'DELETE' : 'POST' });
+    if (!res.ok) return;
+    const s = (await res.json()) as { likes: number; liked: boolean };
+    setLikeState({ count: s.likes, liked: s.liked });
   }
-
-  async function remove(c: Comment) {
+  async function remove() {
     if (!confirm('Yorum silinsin mi?')) return;
     await fetch(`/api/social/comments/${c.id}`, { method: 'DELETE' });
-    await load();
-    refresh();
+    onChanged();
   }
-
-  async function toggleLike(c: Comment) {
-    const res = await fetch(`/api/social/comments/${c.id}/like`, { method: c.liked ? 'DELETE' : 'POST' });
-    if (!res.ok) return;
-    const state = (await res.json()) as { likes: number; liked: boolean };
-    setItems((prev) => prev.map((x) => (x.id === c.id ? { ...x, like_count: state.likes, liked: state.liked } : x)));
+  async function saveEdit() {
+    const res = await fetch(`/api/social/comments/${c.id}`, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ body: editBody }),
+    });
+    if (res.ok) { setEditing(false); onChanged(); }
   }
-
-  async function report(c: Comment) {
+  async function report() {
     const reason = prompt('Bu yorumu neden bildiriyorsunuz?');
     if (!reason?.trim()) return;
     const res = await fetch(`/api/social/comments/${c.id}/report`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ reason: reason.trim() }),
     });
     alert(res.ok ? 'Bildiriminiz alındı, teşekkürler.' : 'Bildirim gönderilemedi.');
   }
 
-  const tops = items.filter((c) => !c.parent_id);
-  const repliesOf = (id: string) => items.filter((c) => c.parent_id === id);
-  const byId = new Map(items.map((c) => [c.id, c]));
-
-  const renderItem = (c: Comment, isReply = false) => (
-    <div key={c.id} className={`citem${isReply ? ' reply' : ''}`}>
+  return (
+    <div className={`citem${isReply ? ' reply' : ''}`}>
       <div className="chead">
         <a className="cauthor" href={`/kullanici/${c.username}`}>
           <span className="cavatar">{initials(c.display_name)}</span>
@@ -269,87 +201,405 @@ export function CommentsBox() {
         </a>
         <span className="cmuted">{fmtDate(c.created_at)}{c.visibility === 'private' && ' · 🔒'}</span>
       </div>
-      {c.quote_id && byId.get(c.quote_id) && (
-        <blockquote className="cquote">❝ {byId.get(c.quote_id)!.body.slice(0, 160)}</blockquote>
+      {quoted && <blockquote className="cquote">❝ {quoted.body.slice(0, 160)}</blockquote>}
+      {editing ? (
+        <div className="cform" style={{ borderTop: 'none', padding: '.3rem 0' }}>
+          <textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} maxLength={2000} rows={2} />
+          <div className="cform-row">
+            <button className="csubmit" onClick={saveEdit}>Kaydet</button>
+            <button onClick={() => setEditing(false)}>Vazgeç</button>
+          </div>
+        </div>
+      ) : (
+        <p className="cbody">{c.body}</p>
       )}
-      <p className="cbody">{c.body}</p>
       <div className="cactions">
         <button
-          className={`clike${c.liked ? ' liked' : ''}`}
-          key={`like-${c.liked}`}
+          className={`clike${likeState.liked ? ' liked' : ''}`}
+          key={`like-${likeState.liked}`}
           disabled={!me || me.username === c.username}
-          title={!me ? 'Beğenmek için giriş yapın' : me.username === c.username ? 'Kendi yorumunuz' : c.liked ? 'Beğeniyi geri al' : 'Beğen'}
-          onClick={() => toggleLike(c)}
+          title={!me ? 'Beğenmek için giriş yapın' : me.username === c.username ? 'Kendi yorumunuz' : likeState.liked ? 'Beğeniyi geri al' : 'Beğen'}
+          onClick={toggleLike}
         >
-          <span className="heart">{c.liked ? '♥' : '♡'}</span> {c.like_count}
+          <span className="heart">{likeState.liked ? '♥' : '♡'}</span> {likeState.count}
         </button>
-        {me && !isReply && <button onClick={() => { setReplyTo(c); setQuote(null); setEditing(null); }}>↩ Yanıtla</button>}
-        {me && <button onClick={() => { setQuote(c); setReplyTo(null); setEditing(null); }}>❝ Alıntıla</button>}
-        {me && me.username !== c.username && <button onClick={() => report(c)}>⚑ Bildir</button>}
+        {me && !isReply && onReply && <button onClick={() => onReply(c)}>↩ Yanıtla</button>}
+        {me && onQuote && <button onClick={() => onQuote(c)}>❝ Alıntıla</button>}
+        {me && me.username !== c.username && <button onClick={report}>⚑ Bildir</button>}
         {me?.username === c.username && (
           <>
-            <button onClick={() => { setEditing(c); setBody(c.body); setVisibility(c.visibility); setReplyTo(null); setQuote(null); }}>✎ Düzenle</button>
-            <button onClick={() => remove(c)}>🗑 Sil</button>
+            <button onClick={() => { setEditBody(c.body); setEditing(true); }}>✎ Düzenle</button>
+            <button onClick={remove}>🗑 Sil</button>
           </>
         )}
       </div>
-      {!isReply && repliesOf(c.id).map((r) => renderItem(r, true))}
+      {replies?.map((r) => (
+        <CommentItem key={r.id} c={r} me={me} isReply onChanged={onChanged} onQuote={onQuote} />
+      ))}
     </div>
   );
+}
+
+function CommentList({ items, me, onChanged, onReply, onQuote }: {
+  items: Comment[]; me: Me; onChanged: () => void;
+  onReply?: (c: Comment) => void; onQuote?: (c: Comment) => void;
+}) {
+  const byId = new Map(items.map((c) => [c.id, c]));
+  const tops = items.filter((c) => !c.parent_id);
+  return (
+    <>
+      {tops.map((c) => (
+        <CommentItem key={c.id} c={c} me={me}
+          quoted={c.quote_id ? byId.get(c.quote_id) : undefined}
+          replies={items.filter((r) => r.parent_id === c.id)}
+          onChanged={onChanged} onReply={onReply} onQuote={onQuote} />
+      ))}
+    </>
+  );
+}
+
+function CommentForm({ me, onSubmit, replyTo, quote, onCancelReply, onCancelQuote, extra }: {
+  me: Me; onSubmit: (body: string, visibility: 'public' | 'private') => Promise<string | null>;
+  replyTo: Comment | null; quote: Comment | null;
+  onCancelReply: () => void; onCancelQuote: () => void; extra?: ReactNode;
+}) {
+  const pathname = usePathname();
+  const [body, setBody] = useState('');
+  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const [error, setError] = useState('');
+
+  if (!me) {
+    return (
+      <div className="cform">
+        <a className="clogin" href={`/api/auth/login?next=${encodeURIComponent(pathname)}`}>
+          Yorum yazmak için giriş yapın →
+        </a>
+      </div>
+    );
+  }
+  async function submit() {
+    setError('');
+    const err = await onSubmit(body, visibility);
+    if (err) setError(err);
+    else setBody('');
+  }
+  return (
+    <div className="cform">
+      {replyTo && <div className="cnote">↩ @{replyTo.username} yanıtlanıyor <button onClick={onCancelReply}>vazgeç</button></div>}
+      {quote && <div className="cnote">❝ @{quote.username} alıntılanıyor <button onClick={onCancelQuote}>vazgeç</button></div>}
+      {extra}
+      <textarea
+        value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={3}
+        placeholder="Yorumunuz… (Ctrl+Enter ile gönder)"
+        onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && body.trim()) void submit(); }}
+      />
+      <div className="cform-row">
+        <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}>
+          <option value="public">🌍 Herkese açık</option>
+          <option value="private">🔒 Özel (yalnızca ben)</option>
+        </select>
+        <span className="cmuted">{body.length}/2000</span>
+        <button className="csubmit" disabled={!body.trim()} onClick={submit}>Gönder</button>
+      </div>
+      {error && <p className="cerror">{error}</p>}
+    </div>
+  );
+}
+
+async function postComment(target: Target, body: string, visibility: string, replyTo: Comment | null, quote: Comment | null): Promise<string | null> {
+  const res = await fetch('/api/social/comments', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      target_type: target.type, target_key: target.key, body, visibility,
+      parent_id: replyTo ? Number(replyTo.id) : undefined,
+      quote_id: quote ? Number(quote.id) : undefined,
+    }),
+  });
+  if (res.ok) return null;
+  const err = (await res.json().catch(() => null)) as { message?: string } | null;
+  return err?.message ?? 'Yorum gönderilemedi';
+}
+
+// ---------- Ayet kutusu: "Ayet | Kelimeler" sekmeleri ----------
+function AyahWordBox() {
+  const { me, counts, target, close, refresh } = useComments();
+  const anchor = anchorOf(target!)!;
+  const [s] = anchor.split(':').map(Number);
+  const words = target!.words ?? [];
+
+  const [tab, setTab] = useState<'ayet' | 'kelime'>(target!.type === 'word' ? 'kelime' : 'ayet');
+  const [writeWord, setWriteWord] = useState<number>(
+    target!.type === 'word' ? Number(target!.key.split(':')[2]) : words[0]?.p ?? 1,
+  );
+  const [ayahItems, setAyahItems] = useState<Comment[] | null>(null);
+  const [wordItems, setWordItems] = useState<Map<number, Comment[]> | null>(null);
+  const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  const [quote, setQuote] = useState<Comment | null>(null);
+
+  useEffect(() => {
+    setTab(target!.type === 'word' ? 'kelime' : 'ayet');
+    if (target!.type === 'word') setWriteWord(Number(target!.key.split(':')[2]));
+    setReplyTo(null); setQuote(null);
+    setAyahItems(null); setWordItems(null);
+  }, [target]);
+
+  const surahCounts = counts[s];
+  const ayahNo = anchor.split(':')[1];
+  const wordCountByPos = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const [k, n] of Object.entries(surahCounts?.words ?? {})) {
+      if (k.startsWith(`${anchor}:`)) m.set(Number(k.split(':')[2]), n);
+    }
+    return m;
+  }, [surahCounts, anchor]);
+  const ayahCount = surahCounts?.ayahs[ayahNo] ?? 0;
+  const wordTotal = [...wordCountByPos.values()].reduce((a, b) => a + b, 0);
+
+  const loadAyah = useCallback(async () => {
+    const rows = await getJSON<Comment[]>(`/api/social/comments?type=ayah&key=${anchor}`);
+    setAyahItems(rows ?? []);
+  }, [anchor]);
+
+  const loadWords = useCallback(async () => {
+    const positions = new Set([...wordCountByPos.keys(), writeWord]);
+    const entries = await Promise.all([...positions].sort((a, b) => a - b).map(async (p) => {
+      const rows = await getJSON<Comment[]>(`/api/social/comments?type=word&key=${anchor}:${p}`);
+      return [p, rows ?? []] as const;
+    }));
+    setWordItems(new Map(entries));
+  }, [anchor, wordCountByPos, writeWord]);
+
+  useEffect(() => { if (tab === 'ayet' && !ayahItems) void loadAyah(); }, [tab, ayahItems, loadAyah]);
+  useEffect(() => { if (tab === 'kelime' && !wordItems) void loadWords(); }, [tab, wordItems, loadWords]);
+
+  const reload = useCallback(() => {
+    setAyahItems(null); setWordItems(null); refresh();
+  }, [refresh]);
+
+  async function submit(body: string, visibility: 'public' | 'private') {
+    const t: Target = tab === 'ayet'
+      ? { type: 'ayah', key: anchor }
+      : { type: 'word', key: `${anchor}:${writeWord}` };
+    const err = await postComment(t, body, visibility, replyTo, quote);
+    if (!err) { setReplyTo(null); setQuote(null); reload(); }
+    return err;
+  }
+
+  const onReply = (c: Comment) => {
+    setReplyTo(c); setQuote(null);
+    if (c.target_type === 'word') { setTab('kelime'); setWriteWord(Number(c.target_key.split(':')[2])); }
+    else setTab('ayet');
+  };
+  const onQuote = (c: Comment) => { setQuote(c); setReplyTo(null); };
+
+  const wordAr = (p: number) => words.find((w) => w.p === p)?.ar ?? '';
 
   return (
     <div className="cbox" dir="ltr">
       <div className="cbox-head">
-        <b>💬 {targetLabel(current)}</b>
-        <span className="cmuted">{items.length} yorum</span>
+        <b>💬 {anchor} ayeti</b>
+        <span className="cmuted">{ayahCount + wordTotal} yorum</span>
         <button className="cbox-close" onClick={close} title="Kapat">✕</button>
       </div>
-      {(target!.type === 'ayah' || target!.type === 'word') && target!.words && (
-        <select
-          className="cword-select"
-          value={current.type === 'word' ? current.key : ''}
-          onChange={(e) => setCurrent(e.target.value
-            ? { type: 'word', key: e.target.value }
-            : { type: 'ayah', key: anchorOf(target!) ?? target!.key })}
-        >
-          <option value="">Ayetin tamamı</option>
-          {target!.words.map((w) => (
-            <option key={w.p} value={`${anchorOf(target!)}:${w.p}`}>{w.p}. kelime — {w.ar}</option>
-          ))}
-        </select>
-      )}
-      <div className="clist">
-        {loading ? <p className="cmuted">Yükleniyor…</p>
-          : tops.length === 0 ? <p className="cmuted">Henüz yorum yok — ilk yorumu siz yazın.</p>
-          : tops.map((c) => renderItem(c))}
+      <div className="ctabs">
+        <button className={tab === 'ayet' ? 'on' : ''} onClick={() => setTab('ayet')}>Ayet ({ayahCount})</button>
+        <button className={tab === 'kelime' ? 'on' : ''} onClick={() => setTab('kelime')}>Kelimeler ({wordTotal})</button>
       </div>
-      {me ? (
-        <div className="cform">
-          {replyTo && <div className="cnote">↩ @{replyTo.username} yanıtlanıyor <button onClick={() => setReplyTo(null)}>vazgeç</button></div>}
-          {quote && <div className="cnote">❝ @{quote.username} alıntılanıyor <button onClick={() => setQuote(null)}>vazgeç</button></div>}
-          {editing && <div className="cnote">✎ yorum düzenleniyor <button onClick={() => { setEditing(null); setBody(''); }}>vazgeç</button></div>}
-          <textarea
-            value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={3}
-            placeholder="Yorumunuz… (Ctrl+Enter ile gönder)"
-            onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && body.trim()) void submit(); }}
-          />
-          <div className="cform-row">
-            <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}>
-              <option value="public">🌍 Herkese açık</option>
-              <option value="private">🔒 Özel (yalnızca ben)</option>
+      <div className="clist">
+        {tab === 'ayet' && (
+          ayahItems === null ? <p className="cmuted">Yükleniyor…</p>
+            : ayahItems.length === 0 ? <p className="cmuted">Henüz ayet yorumu yok — ilk yorumu siz yazın.</p>
+            : <CommentList items={ayahItems} me={me} onChanged={reload} onReply={onReply} onQuote={onQuote} />
+        )}
+        {tab === 'kelime' && (
+          wordItems === null ? <p className="cmuted">Yükleniyor…</p>
+            : [...wordItems.entries()].every(([, v]) => v.length === 0)
+              ? <p className="cmuted">Henüz kelime yorumu yok — aşağıdan kelime seçip ilk yorumu yazın.</p>
+              : [...wordItems.entries()].filter(([, v]) => v.length > 0).map(([p, items]) => (
+                  <div key={p} className="wgroup">
+                    <div className="wgroup-head">
+                      <span className="wordchip" dir="rtl">{wordAr(p)}</span>
+                      <span className="cmuted">{p}. kelime · {items.length} yorum</span>
+                    </div>
+                    <CommentList items={items} me={me} onChanged={reload} onReply={onReply} onQuote={onQuote} />
+                  </div>
+                ))
+        )}
+      </div>
+      <CommentForm me={me} onSubmit={submit} replyTo={replyTo} quote={quote}
+        onCancelReply={() => setReplyTo(null)} onCancelQuote={() => setQuote(null)}
+        extra={tab === 'kelime' ? (
+          <div className="cnote">
+            Hedef kelime:{' '}
+            <select value={writeWord} onChange={(e) => { setWriteWord(Number(e.target.value)); setWordItems(null); }}>
+              {words.map((w) => (
+                <option key={w.p} value={w.p}>{w.p}. — {w.ar}{wordCountByPos.get(w.p) ? ` (${wordCountByPos.get(w.p)})` : ''}</option>
+              ))}
             </select>
-            <span className="cmuted">{body.length}/2000</span>
-            <button className="csubmit" disabled={!body.trim()} onClick={submit}>{editing ? 'Kaydet' : 'Gönder'}</button>
           </div>
-          {error && <p className="cerror">{error}</p>}
-        </div>
-      ) : (
-        <div className="cform">
-          <a className="clogin" href={`/api/auth/login?next=${encodeURIComponent(pathname)}`}>
-            Yorum yazmak için giriş yapın →
-          </a>
-        </div>
-      )}
+        ) : undefined}
+      />
     </div>
+  );
+}
+
+// ---------- Sure/sayfa hedef kutusu (tek liste) ----------
+function SingleTargetBox() {
+  const { me, target, close, refresh } = useComments();
+  const t: Target = { type: target!.type, key: target!.key };
+  const [items, setItems] = useState<Comment[] | null>(null);
+  const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  const [quote, setQuote] = useState<Comment | null>(null);
+
+  const load = useCallback(async () => {
+    const rows = await getJSON<Comment[]>(`/api/social/comments?type=${t.type}&key=${t.key}`);
+    setItems(rows ?? []);
+  }, [t.type, t.key]);
+  useEffect(() => { void load(); }, [load]);
+
+  const reload = useCallback(() => { void load(); refresh(); }, [load, refresh]);
+  async function submit(body: string, visibility: 'public' | 'private') {
+    const err = await postComment(t, body, visibility, replyTo, quote);
+    if (!err) { setReplyTo(null); setQuote(null); reload(); }
+    return err;
+  }
+
+  return (
+    <div className="cbox" dir="ltr">
+      <div className="cbox-head">
+        <b>💬 {targetLabel(t)}</b>
+        <span className="cmuted">{items?.length ?? 0} yorum</span>
+        <button className="cbox-close" onClick={close} title="Kapat">✕</button>
+      </div>
+      <div className="clist">
+        {items === null ? <p className="cmuted">Yükleniyor…</p>
+          : items.length === 0 ? <p className="cmuted">Henüz yorum yok — ilk yorumu siz yazın.</p>
+          : <CommentList items={items} me={me} onChanged={reload}
+              onReply={(c) => { setReplyTo(c); setQuote(null); }}
+              onQuote={(c) => { setQuote(c); setReplyTo(null); }} />}
+      </div>
+      <CommentForm me={me} onSubmit={submit} replyTo={replyTo} quote={quote}
+        onCancelReply={() => setReplyTo(null)} onCancelQuote={() => setQuote(null)} />
+    </div>
+  );
+}
+
+// ---------- Sayfadaki tüm ayet & kelime yorumları (toplu, salt-okunur özet) ----------
+function PageAllComments({ groups, onClose }: { groups: ReaderGroup[]; onClose: () => void }) {
+  const { me, counts, open } = useComments();
+  const [data, setData] = useState<{ label: string; anchor: string; items: Comment[]; words: SlimWord[]; surah: number }[] | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const sections: { label: string; anchor: string; items: Comment[]; words: SlimWord[]; surah: number }[] = [];
+      for (const g of groups) {
+        const c = counts[g.surah.id];
+        if (!c) continue;
+        for (const ayah of g.ayahs) {
+          const key = `${g.surah.id}:${ayah.ayah}`;
+          const wordKeys = Object.keys(c.words).filter((k) => k.startsWith(`${key}:`));
+          const items: Comment[] = [];
+          if (c.ayahs[String(ayah.ayah)]) {
+            items.push(...((await getJSON<Comment[]>(`/api/social/comments?type=ayah&key=${key}`)) ?? []));
+          }
+          for (const wk of wordKeys) {
+            items.push(...((await getJSON<Comment[]>(`/api/social/comments?type=word&key=${wk}`)) ?? []));
+          }
+          if (items.length) {
+            sections.push({
+              label: `${key}`, anchor: `ayet-${g.surah.id}-${ayah.ayah}`, items,
+              words: ayah.words.map((w) => ({ p: w.p, ar: w.ar })), surah: g.surah.id,
+            });
+          }
+        }
+      }
+      setData(sections);
+    })();
+  }, [groups, counts]);
+
+  return (
+    <div className="cbox" dir="ltr">
+      <div className="cbox-head">
+        <b>💬 Sayfadaki ayet &amp; kelime yorumları</b>
+        <button className="cbox-close" onClick={onClose} title="Kapat">✕</button>
+      </div>
+      <div className="clist">
+        {data === null ? <p className="cmuted">Yükleniyor…</p>
+          : data.length === 0 ? <p className="cmuted">Bu sayfadaki ayetlerde henüz yorum yok.</p>
+          : data.map((sec) => (
+            <div key={sec.label} className="wgroup">
+              <div className="wgroup-head">
+                <a href={`#${sec.anchor}`}>{sec.label}</a>
+                <button className="cmuted" style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                  onClick={() => open({ type: 'ayah', key: sec.label, words: sec.words })}>
+                  yorum yaz →
+                </button>
+              </div>
+              {sec.items.map((c) => (
+                <div key={`${c.target_type}-${c.id}`} className="citem">
+                  <div className="chead">
+                    <a className="cauthor" href={`/kullanici/${c.username}`}>
+                      <span className="cavatar">{initials(c.display_name)}</span>
+                      <b>{c.display_name}</b>
+                    </a>
+                    <span className="cmuted">
+                      {c.target_type === 'word' ? `${c.target_key.split(':')[2]}. kelime` : 'ayet'} · {fmtDate(c.created_at)}
+                    </span>
+                  </div>
+                  <p className="cbody">{c.body}</p>
+                  <div className="cactions"><span className="cmuted">♥ {c.like_count}</span></div>
+                </div>
+              ))}
+            </div>
+          ))}
+      </div>
+      {!me && <div className="cform"><span className="cmuted" style={{ display: 'block', textAlign: 'center' }}>Yorum yazmak için giriş yapın</span></div>}
+    </div>
+  );
+}
+
+// ---------- Hedef düğmeleri ----------
+export function TargetButtons({ groups, pageNumber }: { groups: ReaderGroup[]; pageNumber?: number }) {
+  const { enabled, counts, pageCount, target, open } = useComments();
+  const [showAll, setShowAll] = useState(false);
+  if (!enabled) return null;
+  const boxHere = target && (target.type === 'surah' || target.type === 'page');
+
+  // Sayfadaki ayet+kelime yorumlarının toplamı
+  let inPageTotal = 0;
+  if (pageNumber) {
+    for (const g of groups) {
+      const c = counts[g.surah.id];
+      if (!c) continue;
+      for (const ayah of g.ayahs) {
+        inPageTotal += c.ayahs[String(ayah.ayah)] ?? 0;
+        const prefix = `${g.surah.id}:${ayah.ayah}:`;
+        for (const [k, n] of Object.entries(c.words)) if (k.startsWith(prefix)) inPageTotal += n;
+      }
+    }
+  }
+
+  return (
+    <>
+      <div className="target-buttons">
+        {groups.map((g) => (
+          <button key={g.surah.id} onClick={() => { setShowAll(false); open({ type: 'surah', key: String(g.surah.id) }); }}>
+            💬 {g.surah.name_tr} Suresi yorumları ({counts[g.surah.id]?.surah ?? 0})
+          </button>
+        ))}
+        {pageNumber && (
+          <>
+            <button onClick={() => { setShowAll(false); open({ type: 'page', key: String(pageNumber) }); }}>
+              💬 Sayfa {pageNumber} yorumları ({pageCount ?? 0})
+            </button>
+            <button onClick={() => setShowAll((v) => !v)}>
+              💬 Sayfadaki ayet &amp; kelime yorumları ({inPageTotal})
+            </button>
+          </>
+        )}
+      </div>
+      {boxHere && !showAll && <SingleTargetBox />}
+      {showAll && <PageAllComments groups={groups} onClose={() => setShowAll(false)} />}
+    </>
   );
 }

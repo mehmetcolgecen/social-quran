@@ -13,6 +13,7 @@ export type Settings = {
   comments: boolean; // yorum rozetleri/kutuları tamamen kapatılabilir (GOAL gereksinimi)
   theme: 'acik' | 'koyu';
   arFont: 'hafs' | 'amiri' | 'sheherazade' | 'noto';
+  frame: 'klasik' | 'zumrut' | 'gul' | 'gece' | 'firuze' | 'sade';
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   comments: true,
   theme: 'acik',
   arFont: 'hafs',
+  frame: 'klasik',
 };
 
 const STORAGE_KEY = 'sk-settings';
