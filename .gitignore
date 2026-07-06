@@ -3,10 +3,10 @@ dist/
 .next/
 *.log
 
-# Ham veri repoya girmez (indirme scriptleri idempotent)
+# Ham ve üretilmiş veri repoya girmez (indirme/build scriptleri idempotent)
 data/raw/
 data/audio/
-data/processed/*.db
+data/processed/
 
 # Ortam
 .env
