@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getPageContent, getReciters } from '@/lib/db';
 import Reader from '@/components/Reader';
 import MemorizeSidebar, { type UniqueWord } from '@/components/MemorizeSidebar';
+import PageReadButton from '@/components/PageReadButton';
 
 type Props = { params: Promise<{ n: string }> };
 
@@ -38,7 +39,8 @@ export default async function SayfaPage({ params }: Props) {
         <p className="meta">
           <Link className="view-toggle" href={`/sure/${groups[0].surah.id}#ayet-${groups[0].surah.id}-${groups[0].ayahs[0].ayah}`}>
             ☰ Sure görünümüne geç
-          </Link>
+          </Link>{' '}
+          <PageReadButton page={n} />
         </p>
       </div>
       <div className="sayfa-layout">

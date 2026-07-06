@@ -9,6 +9,8 @@ import { mahrecSegments } from '@/lib/mahrec';
 import { EMBEDDED_MEAL, EMBEDDED_WBW, flagOf } from '@/lib/langs';
 import type { Ayah, ReaderGroup, Reciter, Word } from '@/lib/types';
 import SettingsBar from './SettingsBar';
+import BookmarkButton from './BookmarkButton';
+import ShareAyah from './ShareAyah';
 import { AyahBadge, CommentsProvider, InlineComments, MyNotes, TargetButtons, useComments } from './Comments';
 
 const BASMALA = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
@@ -83,11 +85,11 @@ function WordSpan({ word, loc, wi, mode, active, count, wordLangs, wbwExtra, onC
 }
 
 const AyahRow = memo(function AyahRow({
-  surahId, ayah, mode, activeWord, isActive, gi, ai, onPlay,
+  surahId, surahName, ayah, mode, activeWord, isActive, gi, ai, onPlay,
   wordCounts, openWord, onWordClick, onWordListen,
   wordLangs, meals, wbwExtra, mealExtra,
 }: {
-  surahId: number; ayah: Ayah; mode: Mode; activeWord: number | null;
+  surahId: number; surahName: string; ayah: Ayah; mode: Mode; activeWord: number | null;
   isActive: boolean; gi: number; ai: number; onPlay: (gi: number, ai: number) => void;
   wordCounts: Record<number, number> | undefined; openWord: number | null;
   onWordClick: (gi: number, ai: number, p: number) => void;
@@ -117,6 +119,8 @@ const AyahRow = memo(function AyahRow({
           {ayah.ayah}
         </button>
         <AyahBadge surah={surahId} ayah={ayah.ayah} words={slimWords} />
+        <BookmarkButton surah={surahId} ayah={ayah.ayah} name={surahName} />
+        <ShareAyah verseKey={ayah.key} surahName={surahName} words={slimWords} mealTr={ayah.meal.tr} />
       </div>
       {meals.length > 0 && (
         <div className="meal">
@@ -198,7 +202,7 @@ function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, pl
               return (
                 <div key={ayah.ayah}>
                   {marks}
-                  <AyahRow surahId={group.surah.id} ayah={ayah} mode={mode}
+                  <AyahRow surahId={group.surah.id} surahName={group.surah.name_tr} ayah={ayah} mode={mode}
                     activeWord={isActive ? activeWord : null} isActive={isActive}
                     gi={gi} ai={ai} onPlay={playAt}
                     wordCounts={wordCountMap.get(`${group.surah.id}:${ayah.ayah}`)}

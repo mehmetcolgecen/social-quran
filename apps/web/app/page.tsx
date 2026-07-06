@@ -1,12 +1,16 @@
 import Link from 'next/link';
 import { getSurahs } from '@/lib/db';
 import ContinueCard from '@/components/ContinueCard';
+import HomeWidgets from '@/components/HomeWidgets';
 
 export default function HomePage() {
   const surahs = getSurahs();
   return (
     <main>
-      <ContinueCard />
+      <div className="home-widgets-row">
+        <ContinueCard />
+        <HomeWidgets />
+      </div>
       <ul className="surah-grid">
         {surahs.map((s) => (
           <li key={s.id}>

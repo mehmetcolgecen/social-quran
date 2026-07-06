@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Link from 'next/link';
 import { SettingsProvider } from '@/lib/settings';
+import PwaRegister from '@/components/PwaRegister';
 import ThemeToggle from '@/components/ThemeToggle';
 import UserMenu from '@/components/UserMenu';
 import './globals.css';
@@ -52,16 +53,28 @@ const caveat = localFont({
 export const metadata: Metadata = {
   title: { default: 'Sosyal Kur’an', template: '%s — Sosyal Kur’an' },
   description: 'Kelime mealli, renkli, sesli takipli Kur’an-ı Kerim okuma platformu',
+  manifest: '/manifest.webmanifest',
+  icons: { icon: '/icon.svg' },
 };
+
+export const viewport = { themeColor: '#8a6d1d' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${sheherazade.variable} ${lateef.variable} ${ruqaa.variable} ${husrev.variable} ${caveat.variable}`}>
       <body>
+        <PwaRegister />
         <SettingsProvider>
           <header className="site-header">
             <Link href="/" className="brand">Sosyal Kur&rsquo;an</Link>
-            <nav><Link href="/">Sureler</Link></nav>
+            <nav>
+              <Link href="/">Sureler</Link>
+              <Link href="/yer-imleri" title="Yer imlerim">🔖</Link>
+              <Link href="/plan" title="Okuma planım">📅</Link>
+            </nav>
+            <form action="/ara" className="hsearch">
+              <input name="q" placeholder="🔍 Ara…" aria-label="Ara" />
+            </form>
             <UserMenu />
             <ThemeToggle />
           </header>

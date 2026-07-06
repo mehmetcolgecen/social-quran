@@ -113,3 +113,82 @@ export function getTimings(reciter: string, surah: number): AyahTiming[] {
 export function isValidReciter(slug: string): boolean {
   return getReciters().some((r) => r.slug === slug);
 }
+
+// ---- Arama ----
+// SQLite LIKE Türkçe harflerde büyük/küçük ayrımı yapar; birkaç varyantla arıyoruz.
+export type SearchResults = {
+  surahs: (Surah & { matchedAyah?: number })[];
+  direct: { key: string; meal: string } | null;
+  meals: { verse_key: string; lang: string; snippet: string }[];
+  words: { location: string; ar: string; tr: string }[];
+};
+
+function likeVariants(q: string): string[] {
+  const set = new Set([q, q.toLocaleLowerCase('tr'), q.toLocaleUpperCase('tr'),
+    q.charAt(0).toLocaleUpperCase('tr') + q.slice(1).toLocaleLowerCase('tr')]);
+  return [...set];
+}
+
+function snippetAround(text: string, q: string, radius = 60): string {
+  const plain = text.replace(/<[^>]+>/g, '');
+  const idx = plain.toLocaleLowerCase('tr').indexOf(q.toLocaleLowerCase('tr'));
+  if (idx < 0) return plain.slice(0, radius * 2) + '…';
+  const start = Math.max(0, idx - radius);
+  const end = Math.min(plain.length, idx + q.length + radius);
+  return `${start > 0 ? '…' : ''}${plain.slice(start, end)}${end < plain.length ? '…' : ''}`;
+}
+
+export function search(qRaw: string): SearchResults {
+  const q = qRaw.trim().slice(0, 80);
+  const out: SearchResults = { surahs: [], direct: null, meals: [], words: [] };
+  if (q.length < 2) return out;
+
+  // Doğrudan referans: "2:255" veya "2 255"
+  const ref = /^(\d{1,3})[:\s](\d{1,3})$/.exec(q);
+  if (ref) {
+    const key = `${Number(ref[1])}:${Number(ref[2])}`;
+    const row = db.prepare("SELECT text FROM translations WHERE verse_key = ? AND lang = 'tr'").get(key) as
+      unknown as { text: string } | undefined;
+    if (row) out.direct = { key, meal: stripNotes(row.text) };
+  }
+
+  // Sure adı (JS'te Türkçe-duyarlı): "bakara", "bakara 255", "yasin"
+  const nameMatch = /^(.+?)(?:\s+(\d{1,3}))?$/.exec(q);
+  if (nameMatch) {
+    const namePart = nameMatch[1].toLocaleLowerCase('tr');
+    const ayahPart = nameMatch[2] ? Number(nameMatch[2]) : undefined;
+    out.surahs = getSurahs()
+      .filter((s) =>
+        s.name_tr.toLocaleLowerCase('tr').includes(namePart) ||
+        s.name_simple.toLowerCase().includes(namePart) ||
+        s.name_en.toLowerCase().includes(namePart))
+      .slice(0, 8)
+      .map((s) => (ayahPart && ayahPart >= 1 && ayahPart <= s.verses_count ? { ...s, matchedAyah: ayahPart } : s));
+  }
+
+  // Meal metni (TR + EN) ve kelime anlamları
+  const variants = likeVariants(q).map((v) => `%${v}%`);
+  const mealRows = new Map<string, { verse_key: string; lang: string; text: string }>();
+  for (const pattern of variants) {
+    const rows = db.prepare(
+      "SELECT verse_key, lang, text FROM translations WHERE lang IN ('tr','en') AND text LIKE ? LIMIT 40",
+    ).all(pattern) as unknown as { verse_key: string; lang: string; text: string }[];
+    for (const r of rows) mealRows.set(`${r.verse_key}:${r.lang}`, r);
+    if (mealRows.size >= 40) break;
+  }
+  out.meals = [...mealRows.values()].slice(0, 40)
+    .map((r) => ({ verse_key: r.verse_key, lang: r.lang, snippet: snippetAround(r.text, q) }));
+
+  const wordRows = new Map<string, { location: string; text_uthmani: string; tr: string }>();
+  for (const pattern of variants) {
+    const rows = db.prepare(
+      'SELECT location, text_uthmani, tr FROM words WHERE tr LIKE ? LIMIT 30',
+    ).all(pattern) as unknown as { location: string; text_uthmani: string; tr: string }[];
+    for (const r of rows) wordRows.set(r.location, r);
+    if (wordRows.size >= 30) break;
+  }
+  out.words = [...wordRows.values()].slice(0, 30)
+    .map((r) => ({ location: r.location, ar: r.text_uthmani, tr: r.tr }));
+
+  return out;
+}

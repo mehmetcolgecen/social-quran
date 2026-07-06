@@ -67,6 +67,16 @@ a { color: var(--accent); }
 .site-header .brand { font-weight: 700; font-size: 1.15rem; text-decoration: none; color: var(--ink); }
 .site-header nav a { margin-inline-end: .8rem; text-decoration: none; font-size: .9rem; }
 .theme-toggle { background: none; border: 1px solid var(--line); border-radius: 50%; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 1rem; }
+.hsearch { margin-inline-start: auto; }
+.hsearch input {
+  font: inherit; font-size: .82rem;
+  padding: .3rem .7rem;
+  width: 11rem;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 1rem;
+}
+.hsearch input:focus { outline: 2px solid var(--accent); width: 15rem; transition: width .2s; }
+.site-header .user-menu { margin-inline-start: 0; }
 
 .site-footer { padding: 1.2rem; font-size: .75rem; color: var(--muted); border-top: 1px solid var(--line); margin-top: 3rem; }
 
@@ -401,6 +411,68 @@ html[data-theme='koyu'] .mynote { color: #d9c08a; }
 }
 .cbadge.has { opacity: .6; }
 .ayah:hover .cbadge, .cbadge:hover { opacity: 1; }
+
+/* Yer imi + paylaşım düğmeleri (ayet satırında, hover'da belirginleşir) */
+.bmark, .sharebtn {
+  align-self: center;
+  font-size: .85rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: .2;
+  transition: opacity .15s, transform .15s;
+  padding: 0 .1rem;
+}
+.bmark.on { opacity: .85; }
+.ayah:hover .bmark, .ayah:hover .sharebtn, .bmark:hover, .sharebtn:hover { opacity: 1; transform: scale(1.15); }
+
+/* Paylaşım kartı modalı */
+.share-modal {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0, 0, 0, .55);
+  display: flex; align-items: center; justify-content: center;
+}
+.share-box {
+  display: flex; flex-direction: column; gap: .6rem;
+  background: var(--card);
+  border: 1px solid var(--line); border-radius: .8rem;
+  padding: 1rem;
+  max-height: 92vh;
+}
+.share-box canvas { width: min(380px, 80vw); height: auto; border-radius: .4rem; }
+.share-actions { display: flex; gap: .6rem; justify-content: center; }
+.share-actions button {
+  font: inherit; padding: .35rem .9rem; cursor: pointer;
+  background: var(--accent-soft); color: var(--ink);
+  border: 1px solid var(--line); border-radius: .4rem;
+}
+
+/* Plan sayfası */
+.plan-cards { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1rem 0; }
+.plan-card {
+  flex: 1; min-width: 13rem;
+  display: flex; flex-direction: column; gap: .3rem;
+  background: var(--card);
+  border: 1px solid var(--line); border-radius: .7rem;
+  padding: .9rem 1rem;
+}
+.plan-big { font-size: 1.9rem; font-weight: 700; color: var(--accent); }
+.plan-big small { font-size: 1rem; color: var(--muted); font-weight: 400; }
+.page-read { display: inline-flex; gap: .6rem; align-items: center; margin-inline-start: .5rem; }
+.view-toggle.done { background: #d9ead9; border-color: #2e7d32; }
+html[data-theme='koyu'] .view-toggle.done { background: #1e3320; border-color: #7fd18a; }
+
+/* Arama sayfası */
+.search-page-form { display: flex; gap: .5rem; margin: .8rem 0 1.2rem; }
+.search-page-form input {
+  flex: 1; max-width: 34rem;
+  font: inherit; padding: .5rem .9rem;
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--line); border-radius: .5rem;
+}
+.search-page-form button { font: inherit; padding: .5rem 1.2rem; cursor: pointer; background: var(--accent); color: var(--card); border: none; border-radius: .5rem; }
+.home-widgets-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.home-widgets { display: flex; flex-wrap: wrap; gap: .5rem; }
 
 .target-buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
 .target-buttons button {
