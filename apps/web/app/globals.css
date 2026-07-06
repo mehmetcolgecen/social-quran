@@ -34,13 +34,13 @@ html[data-theme='koyu'] {
   --mh-cevf: #ff6f6a; --mh-halk: #c07ae0; --mh-lisan: #64a9f0; --mh-sefetan: #6fca77;
 }
 
-/* Arapça font seçimi (ayarlardan) */
-html { --font-ar: var(--font-hafs), serif; }
-html[data-arfont='amiri'] { --font-ar: var(--font-amiri), serif; }
+/* Arapça font seçimi (ayarlardan). --ar-boost: küçük ölçekli üretilmiş fontlar için düzeltme. */
+html { --font-ar: var(--font-hafs), serif; --ar-boost: 1; }
+html[data-arfont='amiri'] { --font-ar: var(--font-amiri), serif; --ar-boost: 1.08; }
 html[data-arfont='sheherazade'] { --font-ar: var(--font-sheherazade), serif; }
-html[data-arfont='lateef'] { --font-ar: var(--font-lateef), serif; }
-html[data-arfont='ruqaa'] { --font-ar: var(--font-ruqaa), serif; }
-html[data-arfont='husrev'] { --font-ar: var(--font-husrev), serif; }
+html[data-arfont='lateef'] { --font-ar: var(--font-lateef), serif; --ar-boost: 1.12; }
+html[data-arfont='ruqaa'] { --font-ar: var(--font-ruqaa), serif; --ar-boost: 1.1; }
+html[data-arfont='husrev'] { --font-ar: var(--font-husrev), serif; --ar-boost: 1.55; }
 html[data-arfont='noto'] { --font-ar: 'Noto Naskh Arabic', 'Noto Naskh Arabic UI', serif; }
 
 * { box-sizing: border-box; }
@@ -202,7 +202,7 @@ h1, h2 { color: var(--ink); }
 .basmala {
   font-family: var(--font-ar);
   text-align: center;
-  font-size: calc(1.9rem * var(--ar-scale, 1));
+  font-size: calc(1.9rem * var(--ar-scale, 1) * var(--ar-boost, 1));
   color: var(--ink);
   margin: .8rem 0;
 }
@@ -227,7 +227,7 @@ h1, h2 { color: var(--ink); }
 .w { position: relative; display: inline-flex; flex-direction: column; align-items: center; gap: .1rem; }
 .w .ar {
   font-family: var(--font-ar);
-  font-size: calc(2.1rem * var(--ar-scale, 1));
+  font-size: calc(2.1rem * var(--ar-scale, 1) * var(--ar-boost, 1));
   line-height: 1.6;
   white-space: nowrap;
   background: none;
@@ -480,6 +480,21 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
   flex-shrink: 0;
 }
 .rmedal.sm { width: 1.5rem; height: 1.5rem; font-size: .72rem; box-shadow: 0 0 0 1.5px #c9a227; margin-inline-end: .35rem; vertical-align: -6px; }
+.rmedal.photo { object-fit: cover; background: var(--accent-soft); }
+
+/* Öğren: örnek kartı ses düğmeleri */
+.ogren-sample { font-family: var(--font-ar); font-size: 1.05rem; color: var(--muted); }
+.ogren-play { display: flex; gap: .35rem; margin-top: .25rem; }
+.ogren-play button {
+  font-size: .78rem;
+  padding: .15rem .55rem;
+  cursor: pointer;
+  background: var(--accent-soft);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+}
+.ogren-play button:hover { border-color: var(--accent); }
 .rdd summary { display: inline-flex; align-items: center; }
 .rlist { min-width: 20rem; max-height: 22rem; overflow-y: auto; }
 .rlist button {
@@ -800,7 +815,7 @@ html[data-theme='koyu'] .view-toggle.done { background: #1e3320; border-color: #
   padding: 1.4rem 1.6rem;
   box-shadow: inset 0 0 26px rgba(169, 126, 18, .14);
 }
-.mushaf-inner .basmala { font-size: calc(2.1rem * var(--ar-scale, 1)); }
+.mushaf-inner .basmala { font-size: calc(2.1rem * var(--ar-scale, 1) * var(--ar-boost, 1)); }
 .mushaf-inner .group-title {
   text-align: center;
   margin: .8rem auto .4rem;
@@ -852,7 +867,7 @@ html[data-theme='koyu'] .mem-list li.done .mem-ar { color: #7fd18a; }
 }
 
 @media (max-width: 640px) {
-  .w .ar { font-size: calc(1.7rem * var(--ar-scale, 1)); }
+  .w .ar { font-size: calc(1.7rem * var(--ar-boost, 1) * var(--ar-scale, 1)); }
   .w small { max-width: 5.5rem; }
   .mushaf-band { padding: 7px; }
   .mushaf-inner { padding: .8rem; }

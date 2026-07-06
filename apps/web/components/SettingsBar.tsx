@@ -4,7 +4,23 @@ import { useSettings } from '@/lib/settings';
 import { MAHREC_GROUPS } from '@/lib/mahrec';
 import { LANGS, WBW_LANGS, flagOf } from '@/lib/langs';
 import { RECITER_META } from '@/lib/reciters';
+import photos from '@/lib/reciter-photos.json';
 import type { Reciter } from '@/lib/types';
+
+const PHOTOS = photos as Record<string, { license: string } | undefined>;
+
+// Serbest lisanslı fotoğraf varsa onu, yoksa hat monogram madalyonunu gösterir
+function Medal({ slug, small = false }: { slug: string; small?: boolean }) {
+  const m = RECITER_META[slug];
+  if (PHOTOS[slug]) {
+    return <img className={`rmedal photo${small ? ' sm' : ''}`} src={`/reciters/${slug}.jpg`} alt="" loading="lazy" />;
+  }
+  return (
+    <span className={`rmedal${small ? ' sm' : ''}`} style={{ ['--h' as string]: m?.hue ?? 40 }}>
+      {m?.short ?? '؟'}
+    </span>
+  );
+}
 
 const FRAMES = [
   ['klasik', 'Klasik (lacivert)'],
@@ -52,7 +68,6 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
   }, []);
 
   const current = reciters.find((r) => r.slug === settings.reciter);
-  const currentMeta = RECITER_META[settings.reciter];
 
   return (
     <>
@@ -110,7 +125,7 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
         )}
         <details className="dd rdd">
           <summary>
-            {currentMeta && <span className="rmedal sm" style={{ ['--h' as string]: currentMeta.hue }}>{currentMeta.short}</span>}
+            <Medal slug={settings.reciter} small />
             <b>{current?.name ?? 'Kâri'}</b>
           </summary>
           <div className="dd-panel rlist">
@@ -119,7 +134,7 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
               return (
                 <button key={r.slug} className={r.slug === settings.reciter ? 'on' : ''}
                   onClick={(e) => { update({ reciter: r.slug }); closeDetails(e.currentTarget); }}>
-                  <span className="rmedal" style={{ ['--h' as string]: m?.hue ?? 40 }}>{m?.short ?? r.name[0]}</span>
+                  <Medal slug={r.slug} />
                   <span className="rinfo">
                     <b>{r.name}</b>
                     <small>{m ? `${m.tagIcon} ${m.tag} · ${m.desc}` : ''}{m?.wordTiming ? ' · 🎯 kelime takibi' : ''}</small>

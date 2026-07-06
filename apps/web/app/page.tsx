@@ -4,10 +4,17 @@ import ContinueCard from '@/components/ContinueCard';
 import HomeWidgets from '@/components/HomeWidgets';
 import OgrenHero from '@/components/OgrenHero';
 
-export default function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ hata?: string }> }) {
+  const { hata } = await searchParams;
   const surahs = getSurahs();
   return (
     <main>
+      {hata && (
+        <p className="cerror" role="alert">
+          ⚠️ Giriş tamamlanamadı ({hata === 'state' ? 'oturum doğrulaması eşleşmedi' : hata === 'token' ? 'kimlik sunucusuna ulaşılamadı' : 'akış yarıda kesildi'}).
+          Lütfen tekrar <a href="/api/auth/login?next=/">giriş yapmayı deneyin</a>.
+        </p>
+      )}
       <OgrenHero />
       <div className="home-widgets-row">
         <ContinueCard />

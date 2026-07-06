@@ -20,6 +20,8 @@ Son doğrulama: 2026-07-06. Değişmez kural: Kur'an metni hiçbir işlemde değ
 | Ek mealler: DE Bubenheim&Elyas (27), FR Hamidullah (31), IT Piccardo (153), ES Isa García (83), UR Jalandhari (234), HI al-Umari (122), KO Hamed Choi (219), JA Saeed Sato (218), ZH Ma Jian (56) | quran.com API v4 `/quran/translations/{id}` | Kaynak bazında; quran.com üzerinden açık sunulan çeviriler | Çevirmen atfı meal satırında kaynak adı olarak saklanıyor |
 | Kelime-kelime UR + HI çevirileri | quran.com API v4 (`language=ur/hi`) | QUL wbw veri setleri | quran.com/QUL atfı |
 
+| Kâri fotoğrafları (5 adet, `apps/web/public/reciters/`) | Wikimedia Commons (lisans script ile doğrulandı) | Husary + Minshawi: Public Domain; Şureym: CC BY-SA 4.0; Sudais: GODL-India; Alafasy: Copyrighted free use | Dosya bazlı atıf `apps/web/lib/reciter-photos.json` manifest'inde (kaynak linkleriyle); CC BY-SA olanlar için atıf sayfası gösterimi |
+
 ## Notlar
 - QUL'ün doğrudan dump indirmeleri ücretsiz üyelik istiyor; aynı verinin açık REST sunumu olan quran.com API v4 kullanıldı. İkisi de aynı kuruluşun (Tarteel/quran.com) altyapısı.
 - API imlâsı ile Tanzil imlâsı 4301 ayette teknik olarak farklı (ör. hançer elif ٰ için tatweel taşıyıcısı). İçerik farkı değildir; kanonik referans Tanzil, kelime görüntüleme API imlâsıdır.

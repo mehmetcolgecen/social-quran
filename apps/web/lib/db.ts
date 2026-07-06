@@ -114,6 +114,56 @@ export function isValidReciter(slug: string): boolean {
   return getReciters().some((r) => r.slug === slug);
 }
 
+// ---- Öğren bölümü: harekesiz eşleşmeyle örnek kelime bulma ----
+const AR_MARKS = /[ً-ٰٟۖ-ۭـٕٓٔ]/g;
+const normalizeAr = (s: string) => s
+  .replace(AR_MARKS, '')
+  .replaceAll('ٱ', 'ا').replaceAll('أ', 'ا').replaceAll('إ', 'ا').replaceAll('آ', 'ا')
+  .replaceAll('ؤ', 'و').replaceAll('ئ', 'ي');
+
+export type OgrenWord = { loc: string; ar: string; tr: string | null };
+let ogrenIdx: { byText: Map<string, OgrenWord>; byLetter: Map<string, OgrenWord> } | null = null;
+
+function buildOgrenIndex() {
+  if (ogrenIdx) return ogrenIdx;
+  const rows = db.prepare('SELECT location, text_uthmani, tr FROM words ORDER BY id')
+    .all() as unknown as { location: string; text_uthmani: string; tr: string | null }[];
+  const byText = new Map<string, OgrenWord>();
+  const bestScore = new Map<string, number>();
+  const byLetter = new Map<string, OgrenWord>();
+  for (const r of rows) {
+    const n = normalizeAr(r.text_uthmani);
+    if (!n) continue;
+    if (!byText.has(n)) byText.set(n, { loc: r.location, ar: r.text_uthmani, tr: r.tr });
+    // Harf örneği: 3-5 harfli, mushafta erken geçen kelimeler tercih edilir
+    const score = Math.abs(4 - n.length);
+    const cur = bestScore.get(n[0]);
+    if (cur === undefined || score < cur) {
+      bestScore.set(n[0], score);
+      byLetter.set(n[0], { loc: r.location, ar: r.text_uthmani, tr: r.tr });
+    }
+  }
+  ogrenIdx = { byText, byLetter };
+  return ogrenIdx;
+}
+
+export function ogrenLookup(texts: string[], letters: string[]): {
+  texts: Record<string, OgrenWord | null>; letters: Record<string, OgrenWord | null>;
+} {
+  const idx = buildOgrenIndex();
+  const outT: Record<string, OgrenWord | null> = {};
+  for (const t of texts.slice(0, 60)) {
+    const n = normalizeAr(t.trim());
+    // Tam eşleşme yoksa (çok kelimeli örnekler) ilk eşleşen kelimeyi dene
+    outT[t] = idx.byText.get(n) ?? n.split(' ').map((p) => idx.byText.get(p)).find(Boolean) ?? null;
+  }
+  const outL: Record<string, OgrenWord | null> = {};
+  for (const l of letters.slice(0, 40)) {
+    outL[l] = idx.byLetter.get(normalizeAr(l)[0] ?? '') ?? null;
+  }
+  return { texts: outT, letters: outL };
+}
+
 // ---- Arama ----
 // SQLite LIKE Türkçe harflerde büyük/küçük ayrımı yapar; birkaç varyantla arıyoruz.
 export type SearchResults = {
