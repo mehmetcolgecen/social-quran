@@ -33,7 +33,6 @@ const FRAMES = [
 
 const AR_FONTS = [
   ['hafs', 'KFGQPC Hafs'],
-  ['husrev', 'Hüsrev Hattı'],
   ['amiri', 'Amiri Quran'],
   ['sheherazade', 'Scheherazade'],
   ['lateef', 'Lateef'],

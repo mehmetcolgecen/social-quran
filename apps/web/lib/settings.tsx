@@ -13,7 +13,7 @@ export type Settings = {
   notes: boolean;    // kendi yorumlarının hâşiye (el yazısı not) görünümü
   science: boolean;  // ilim/tefekkür notları (bilimsel işaret hâşiyeleri)
   theme: 'acik' | 'koyu';
-  arFont: 'hafs' | 'amiri' | 'sheherazade' | 'noto' | 'lateef' | 'ruqaa' | 'husrev';
+  arFont: 'hafs' | 'amiri' | 'sheherazade' | 'noto' | 'lateef' | 'ruqaa';
   frame: 'klasik' | 'zumrut' | 'gul' | 'gece' | 'firuze' | 'sade';
 };
 
@@ -43,6 +43,7 @@ function migrate(saved: Record<string, unknown>): Partial<Settings> {
   if (!Array.isArray(saved.meals) && typeof saved.meal === 'string') {
     out.meals = saved.meal === 'iki' ? ['tr', 'en'] : saved.meal === 'kapali' ? [] : [saved.meal];
   }
+  if (saved.arFont === 'husrev') out.arFont = 'hafs'; // Hüsrev fontu kaldırıldı (kalite/lisans)
   return out;
 }
 

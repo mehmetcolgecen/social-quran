@@ -16,7 +16,7 @@ Son doğrulama: 2026-07-06. Değişmez kural: Kur'an metni hiçbir işlemde değ
 | Font: Lateef | [silnrsi/font-lateef](https://github.com/silnrsi/font-lateef) | SIL OFL 1.1 | OFL bildirimi |
 | Font: Aref Ruqaa | [google/fonts](https://github.com/google/fonts/tree/main/ofl/arefruqaa) | SIL OFL 1.1 | OFL bildirimi |
 | Font: Caveat (el yazısı notlar) | [google/fonts](https://github.com/google/fonts/tree/main/ofl/caveat) | SIL OFL 1.1 | OFL bildirimi |
-| Font: Hüsrev Hattı Arapça | font.download (toplayıcı site) | ⚠️ **LİSANS BELİRSİZ** — Hattat Ahmed Hüsrev Altınbaşak hattının dijitalleştirmesi; haklar muhtemelen Hayrat Vakfı'nda | **Yayına almadan önce Hayrat Vakfı'ndan yazılı izin alınmalı; izin yoksa üründen çıkarılmalı.** Şimdilik yalnızca yerel değerlendirme |
+| ~~Font: Hüsrev Hattı Arapça~~ | — | Kalite yetersiz + lisans belirsiz olduğundan ÜRÜNDEN ÇIKARILDI (2026-07-07). Gerçek Hüsrev hattı fontu için Hayrat Vakfı'ndan resmî lisans gerekir | — |
 | Ek mealler: DE Bubenheim&Elyas (27), FR Hamidullah (31), IT Piccardo (153), ES Isa García (83), UR Jalandhari (234), HI al-Umari (122), KO Hamed Choi (219), JA Saeed Sato (218), ZH Ma Jian (56) | quran.com API v4 `/quran/translations/{id}` | Kaynak bazında; quran.com üzerinden açık sunulan çeviriler | Çevirmen atfı meal satırında kaynak adı olarak saklanıyor |
 | Kelime-kelime UR + HI çevirileri | quran.com API v4 (`language=ur/hi`) | QUL wbw veri setleri | quran.com/QUL atfı |
 

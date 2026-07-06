@@ -122,33 +122,40 @@ const normalizeAr = (s: string) => s
   .replaceAll('ؤ', 'و').replaceAll('ئ', 'ي');
 
 export type OgrenWord = { loc: string; ar: string; tr: string | null };
-let ogrenIdx: { byText: Map<string, OgrenWord>; byLetter: Map<string, OgrenWord> } | null = null;
+let ogrenIdx: { byText: Map<string, OgrenWord>; byLetter: Map<string, OgrenWord[]> } | null = null;
 
 function buildOgrenIndex() {
   if (ogrenIdx) return ogrenIdx;
   const rows = db.prepare('SELECT location, text_uthmani, tr FROM words ORDER BY id')
     .all() as unknown as { location: string; text_uthmani: string; tr: string | null }[];
   const byText = new Map<string, OgrenWord>();
-  const bestScore = new Map<string, number>();
-  const byLetter = new Map<string, OgrenWord>();
+  const cands = new Map<string, { w: OgrenWord; score: number; n: string }[]>();
   for (const r of rows) {
     const n = normalizeAr(r.text_uthmani);
     if (!n) continue;
     if (!byText.has(n)) byText.set(n, { loc: r.location, ar: r.text_uthmani, tr: r.tr });
-    // Harf örneği: 3-5 harfli, mushafta erken geçen kelimeler tercih edilir
-    const score = Math.abs(4 - n.length);
-    const cur = bestScore.get(n[0]);
-    if (cur === undefined || score < cur) {
-      bestScore.set(n[0], score);
-      byLetter.set(n[0], { loc: r.location, ar: r.text_uthmani, tr: r.tr });
+    // Harf örnekleri: 3-5 harfli, anlamı olan, mushafta erken geçen kelimeler tercih edilir
+    const list = cands.get(n[0]) ?? [];
+    if (list.length < 400) {
+      list.push({ w: { loc: r.location, ar: r.text_uthmani, tr: r.tr }, score: Math.abs(4 - n.length) + (r.tr ? 0 : 3), n });
+      cands.set(n[0], list);
     }
+  }
+  const byLetter = new Map<string, OgrenWord[]>();
+  for (const [letter, list] of cands) {
+    const seen = new Set<string>();
+    const top = list.sort((a, b) => a.score - b.score)
+      .filter((c) => (seen.has(c.n) ? false : (seen.add(c.n), true)))
+      .slice(0, 3)
+      .map((c) => c.w);
+    byLetter.set(letter, top);
   }
   ogrenIdx = { byText, byLetter };
   return ogrenIdx;
 }
 
 export function ogrenLookup(texts: string[], letters: string[]): {
-  texts: Record<string, OgrenWord | null>; letters: Record<string, OgrenWord | null>;
+  texts: Record<string, OgrenWord | null>; letters: Record<string, OgrenWord[]>;
 } {
   const idx = buildOgrenIndex();
   const outT: Record<string, OgrenWord | null> = {};
@@ -157,9 +164,9 @@ export function ogrenLookup(texts: string[], letters: string[]): {
     // Tam eşleşme yoksa (çok kelimeli örnekler) ilk eşleşen kelimeyi dene
     outT[t] = idx.byText.get(n) ?? n.split(' ').map((p) => idx.byText.get(p)).find(Boolean) ?? null;
   }
-  const outL: Record<string, OgrenWord | null> = {};
+  const outL: Record<string, OgrenWord[]> = {};
   for (const l of letters.slice(0, 40)) {
-    outL[l] = idx.byLetter.get(normalizeAr(l)[0] ?? '') ?? null;
+    outL[l] = idx.byLetter.get(normalizeAr(l)[0] ?? '') ?? [];
   }
   return { texts: outT, letters: outL };
 }

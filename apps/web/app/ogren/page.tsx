@@ -1,7 +1,7 @@
 'use client';
 // Kur'an okumayı öğrenme bölümü — adım adım, bol örnekli, tecvid dahil.
-// Örnekler Husary tilavetinden gerçek kelime kesitleriyle SESLİ dinlenebilir (▶);
-// harflerde ayrıca deneysel yapay zeka sesi (🔈, tarayıcı TTS). İlerleme localStorage'da.
+// Örnek kartına tıklayınca Husary tilavetinden GERÇEK kelime kesiti çalar;
+// harflerde her harf için Kur'an'dan 3 örnek kelime listelenir. İlerleme localStorage'da.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { DERSLER } from '@/lib/ogren';
@@ -9,15 +9,16 @@ import { loadJSON, saveJSON } from '@/lib/store';
 
 const KEY = 'sk-ogren';
 const RECITER = 'Husary_64kbps';
-type Found = { loc: string; ar: string; tr: string | null } | null;
+type Found = { loc: string; ar: string; tr: string | null };
 
 const pad3 = (n: number) => String(n).padStart(3, '0');
 
 export default function OgrenPage() {
   const [done, setDone] = useState<Set<string>>(new Set());
   const [current, setCurrent] = useState(0);
-  const [textMap, setTextMap] = useState<Record<string, Found>>({});
-  const [letterMap, setLetterMap] = useState<Record<string, Found>>({});
+  const [textMap, setTextMap] = useState<Record<string, Found | null>>({});
+  const [letterMap, setLetterMap] = useState<Record<string, Found[]>>({});
+  const [playingLoc, setPlayingLoc] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const stopAtRef = useRef<number | null>(null);
   const seekRef = useRef<number | null>(null);
@@ -33,10 +34,10 @@ export default function OgrenPage() {
   const ders = DERSLER[current];
   const isHarfler = ders.id === 'harfler';
 
-  // Ders örnekleri için Kur'an'dan kelime konumları (sesli çalmak için)
+  // Ders örnekleri için Kur'an'dan kelime konumları
   useEffect(() => {
-    const texts = isHarfler ? [] : ders.examples.map((e) => e.ar).filter((t) => !textMap[t]);
-    const letters = isHarfler ? ders.examples.map((e) => e.ar).filter((l) => !letterMap[l]) : [];
+    const texts = isHarfler ? [] : ders.examples.map((e) => e.ar).filter((t) => !(t in textMap));
+    const letters = isHarfler ? ders.examples.map((e) => e.ar).filter((l) => !(l in letterMap)) : [];
     if (!texts.length && !letters.length) return;
     void fetch('/api/ogren', {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -49,7 +50,11 @@ export default function OgrenPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current]);
 
+  // Tek ses kaynağı: yeni çalma başlamadan önce mevcut durdurulur → sesler karışmaz
   const play = useCallback(async (loc: string) => {
+    const el = audioRef.current!;
+    el.pause();
+    if (playingLoc === loc) { setPlayingLoc(null); return; }
     const [s, a, p] = loc.split(':').map(Number);
     if (!timingsRef.current.has(s)) {
       try {
@@ -58,22 +63,12 @@ export default function OgrenPage() {
       } catch { timingsRef.current.set(s, new Map()); }
     }
     const seg = timingsRef.current.get(s)?.get(a)?.find((x) => x[0] === p - 1);
-    const el = audioRef.current!;
     seekRef.current = seg ? seg[2] : null;
     stopAtRef.current = seg ? seg[3] : null;
     el.src = `/audio/${RECITER}/${pad3(s)}${pad3(a)}.mp3`;
+    setPlayingLoc(loc);
     void el.play();
-  }, []);
-
-  const speak = useCallback((text: string) => {
-    try {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ar-SA';
-      u.rate = 0.7;
-      speechSynthesis.speak(u);
-    } catch { /* desteklenmiyorsa sessiz */ }
-  }, []);
+  }, [playingLoc]);
 
   const toggleDone = () => {
     const next = new Set(done);
@@ -85,12 +80,21 @@ export default function OgrenPage() {
 
   const pct = Math.round((done.size / DERSLER.length) * 100);
 
+  const playChip = (found: Found | null | undefined, key: string) => found && (
+    <button key={key} className={`ogren-word${playingLoc === found.loc ? ' playing' : ''}`}
+      title={`${found.tr ?? ''} — ${found.loc} (Husary)`}
+      onClick={() => play(found.loc)}>
+      <span dir="rtl" className="ogren-word-ar">{found.ar}</span>
+      <small>{playingLoc === found.loc ? '⏸' : '▶'} {found.tr ?? found.loc}</small>
+    </button>
+  );
+
   return (
     <main>
       <h1>🎓 Kur&rsquo;an Okumayı Öğren</h1>
       <p className="cmuted">
-        10 adımda elifbadan tecvidli okumaya. <b>▶</b> gerçek tilavetten (Husary) kelime kesiti çalar,{' '}
-        <b>🔈</b> deneysel yapay zeka sesidir.
+        10 adımda elifbadan tecvidli okumaya. Örnek kelimelere tıklayın — Husary tilavetinden
+        <b> gerçek kelime kesiti</b> çalar; tekrar tıklayınca durur.
       </p>
       <div className="mem-progress" style={{ maxWidth: '28rem' }}>
         <div className="mem-bar" style={{ width: `${pct}%` }} />
@@ -114,22 +118,21 @@ export default function OgrenPage() {
           <p>{ders.intro}</p>
           <div className={`ogren-examples${isHarfler ? ' compact' : ''}`}>
             {ders.examples.map((ex, i) => {
-              const found = isHarfler ? letterMap[ex.ar] : textMap[ex.ar];
+              const found = isHarfler ? null : textMap[ex.ar];
+              const samples = isHarfler ? letterMap[ex.ar] ?? [] : [];
               return (
-                <div key={i} className="ogren-ex">
+                <div key={i}
+                  className={`ogren-ex${found ? ' clickable' : ''}${found && playingLoc === found.loc ? ' playing' : ''}`}
+                  title={found ? `Dinle: ${found.ar} — ${found.loc} (Husary)` : undefined}
+                  onClick={found ? () => play(found.loc) : undefined}>
                   <span className="ogren-ar" dir="rtl">{ex.ar}</span>
-                  <b>{ex.latin}</b>
+                  <b>{ex.latin}{found ? (playingLoc === found.loc ? ' ⏸' : ' ▶') : ''}</b>
                   {ex.not && <small className="cmuted">{ex.not}</small>}
-                  {isHarfler && found && (
-                    <small className="ogren-sample" dir="rtl" title={found.tr ?? ''}>{found.ar}</small>
+                  {isHarfler && samples.length > 0 && (
+                    <span className="ogren-words" onClick={(e) => e.stopPropagation()}>
+                      {samples.map((s, j) => playChip(s, `${ex.ar}-${j}`))}
+                    </span>
                   )}
-                  <span className="ogren-play">
-                    {found && (
-                      <button title={`Kur'an'dan dinle: ${found.ar}${found.tr ? ` (${found.tr})` : ''} — ${found.loc}`}
-                        onClick={() => play(found.loc)}>▶</button>
-                    )}
-                    <button title="Yapay zeka sesi (deneysel)" onClick={() => speak(ex.ar)}>🔈</button>
-                  </span>
                 </div>
               );
             })}
@@ -157,9 +160,10 @@ export default function OgrenPage() {
         onTimeUpdate={() => {
           const el = audioRef.current!;
           if (stopAtRef.current != null && el.currentTime * 1000 >= stopAtRef.current) {
-            el.pause(); stopAtRef.current = null;
+            el.pause(); stopAtRef.current = null; setPlayingLoc(null);
           }
         }}
+        onEnded={() => setPlayingLoc(null)}
       />
     </main>
   );

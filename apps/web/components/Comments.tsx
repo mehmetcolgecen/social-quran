@@ -8,6 +8,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { targetLabel, type Target } from '@/lib/target';
 import { useSettings } from '@/lib/settings';
+import { useDragNote } from '@/lib/useDragNote';
 import type { ReaderGroup } from '@/lib/types';
 
 type Counts = { surah: number; ayahs: Record<string, number>; words: Record<string, number> };
@@ -110,8 +111,29 @@ export function InlineComments({ anchor }: { anchor: string }) {
   return <AyahWordBox />;
 }
 
-// Hâşiye: kullanıcının kendi yorumları, ayetin altında kesikli okla bağlı
-// el yazısı notlar olarak görünür (okumayı bozmayan nostaljik kenar notu).
+// Hâşiye: kullanıcının kendi yorumları, kesikli okla Arapça metne bağlı el yazısı notlar.
+// Varsayılan görünür; kutu SÜRÜKLENEREK istenen yere taşınabilir (konum hatırlanır).
+function DraggableNote({ id, onOpen, children, className = '' }: {
+  id: string; onOpen?: () => void; children: ReactNode; className?: string;
+}) {
+  const { style, movedRef, handlers } = useDragNote(id);
+  return (
+    <button
+      className={`mynote ${className}`}
+      style={style}
+      title={onOpen ? 'Sürükleyerek taşı · tıklayınca yorumu açar' : 'Sürükleyerek taşı'}
+      {...handlers}
+      onClick={() => { if (!movedRef.current && onOpen) onOpen(); }}
+    >
+      <svg className="mynote-arrow" viewBox="0 0 44 34" aria-hidden="true">
+        <path d="M4 30 C 12 22, 24 14, 38 7" fill="none" stroke="currentColor" strokeWidth="1.9" strokeDasharray="5 4" strokeLinecap="round" />
+        <path d="M30 4 L39 6 L36 15" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      {children}
+    </button>
+  );
+}
+
 export function MyNotes({ anchor, words }: { anchor: string; words: SlimWord[] }) {
   const { enabled, me, myNotes, open } = useComments();
   const { settings } = useSettings();
@@ -121,23 +143,21 @@ export function MyNotes({ anchor, words }: { anchor: string; words: SlimWord[] }
   return (
     <div className="mynotes">
       {notes.slice(0, 2).map((n) => (
-        <button key={n.id} className="mynote" title="Nota git"
-          onClick={() => open(n.target_type === 'word'
+        <DraggableNote key={n.id} id={`c${n.id}`}
+          onOpen={() => open(n.target_type === 'word'
             ? { type: 'word', key: n.target_key, words }
             : { type: 'ayah', key: anchor, words })}>
-          <svg className="mynote-arrow" viewBox="0 0 44 34" aria-hidden="true">
-            <path d="M4 30 C 12 22, 24 14, 38 7" fill="none" stroke="currentColor" strokeWidth="1.7" strokeDasharray="5 4" strokeLinecap="round" />
-            <path d="M30 4 L39 6 L36 15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
           <span className="mynote-text">
             {n.target_type === 'word' && <em>({n.target_key.split(':')[2]}. kelime)</em>} {n.body.slice(0, 140)}{n.body.length > 140 ? '…' : ''}
           </span>
-        </button>
+        </DraggableNote>
       ))}
       {notes.length > 2 && <span className="cmuted">+{notes.length - 2} notun daha…</span>}
     </div>
   );
 }
+
+export { DraggableNote };
 
 // ---------- Rozet + hover önizleme ----------
 const previewCache = new Map<string, { display_name: string; body: string }[]>();

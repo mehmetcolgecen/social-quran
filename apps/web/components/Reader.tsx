@@ -375,7 +375,12 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
     playAt(g, a);
   };
 
-  const cls = ['reader', settings.mode === 'siyah' ? 'black' : ''].filter(Boolean).join(' ');
+  // Hâşiyeler açıksa notlar için sol şerit (gutter) ayrılır → kutular her ekranda görünür
+  const cls = [
+    'reader',
+    settings.mode === 'siyah' ? 'black' : '',
+    settings.notes || settings.science ? 'gutter' : '',
+  ].filter(Boolean).join(' ');
 
   const body = (
     <ReaderBody groups={groups} showPageMarkers={showPageMarkers} mode={settings.mode}

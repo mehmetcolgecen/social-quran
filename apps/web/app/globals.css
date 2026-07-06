@@ -40,7 +40,6 @@ html[data-arfont='amiri'] { --font-ar: var(--font-amiri), serif; --ar-boost: 1.0
 html[data-arfont='sheherazade'] { --font-ar: var(--font-sheherazade), serif; }
 html[data-arfont='lateef'] { --font-ar: var(--font-lateef), serif; --ar-boost: 1.12; }
 html[data-arfont='ruqaa'] { --font-ar: var(--font-ruqaa), serif; --ar-boost: 1.1; }
-html[data-arfont='husrev'] { --font-ar: var(--font-husrev), serif; --ar-boost: 1.55; }
 html[data-arfont='noto'] { --font-ar: 'Noto Naskh Arabic', 'Noto Naskh Arabic UI', serif; }
 
 * { box-sizing: border-box; }
@@ -333,32 +332,37 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
 .mynote-text {
   display: inline-block;
   font-family: var(--font-note), cursive;
-  font-size: 1.12rem;
-  line-height: 1.3;
-  border: 1.4px dashed currentColor;
+  font-size: 1.22rem;
+  font-weight: 600;
+  line-height: 1.32;
+  border: 1.6px dashed currentColor;
   border-radius: .5rem .9rem .5rem 1rem;
-  padding: .3rem .75rem;
+  padding: .35rem .8rem;
   transform: rotate(-1.2deg);
   background: color-mix(in srgb, var(--card) 55%, transparent);
   transition: transform .15s;
 }
+.mynote:active { cursor: grabbing; }
 .mynote:hover .mynote-text { transform: rotate(0deg) scale(1.02); }
-.mynote-text em { font-style: normal; opacity: .7; font-size: .95rem; }
-.mynote-text q { quotes: none; opacity: .85; }
+.mynote-text em { font-style: normal; opacity: .75; font-size: 1rem; }
+.mynote-text q { quotes: none; opacity: .9; }
+.mynote-text b { font-weight: 700; }
 
-@media (min-width: 1500px) {
-  .mynotes {
+/* Geniş ekranda notlar için okuyucunun İÇİNDE ayrılmış sol şerit — kutular hep görünür kalır */
+@media (min-width: 1200px) {
+  .reader.gutter { padding-inline-start: 252px; }
+  .reader.gutter .mynotes {
     position: absolute;
     top: .2rem;
-    inset-inline-start: -258px;
-    width: 235px;
+    inset-inline-start: -244px;
+    width: 226px;
     margin: 0;
   }
-  .mynote { margin-top: .4rem; max-width: 235px; }
-  .mynote-arrow { top: -.35rem; inset-inline-end: -2.5rem; }
-  .mynote-text { font-size: 1.02rem; }
+  .reader.gutter .mynote { margin-top: .4rem; max-width: 226px; }
+  .reader.gutter .mynote-arrow { top: -.35rem; inset-inline-end: -2.5rem; }
+  .reader.gutter .mynote-text { font-size: 1.08rem; }
   /* Aynı ayette hem ilim notu hem kendi notun varsa üst üste binmesin */
-  .mynotes.science { top: auto; bottom: .2rem; }
+  .reader.gutter .mynotes.science { top: auto; bottom: .2rem; }
 }
 
 .reader.black .w, .reader.black .w .ar span { color: var(--ink) !important; }
@@ -482,19 +486,28 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
 .rmedal.sm { width: 1.5rem; height: 1.5rem; font-size: .72rem; box-shadow: 0 0 0 1.5px #c9a227; margin-inline-end: .35rem; vertical-align: -6px; }
 .rmedal.photo { object-fit: cover; background: var(--accent-soft); }
 
-/* Öğren: örnek kartı ses düğmeleri */
-.ogren-sample { font-family: var(--font-ar); font-size: 1.05rem; color: var(--muted); }
-.ogren-play { display: flex; gap: .35rem; margin-top: .25rem; }
-.ogren-play button {
-  font-size: .78rem;
-  padding: .15rem .55rem;
+/* Öğren: tıklanabilir örnek kartları + harf başına örnek kelime çipleri */
+.ogren-ex.clickable { cursor: pointer; }
+.ogren-ex.clickable:hover { border-color: var(--accent); }
+.ogren-ex.playing { border-color: var(--accent); background: var(--accent-soft); }
+.ogren-words { display: flex; flex-direction: column; gap: .3rem; margin-top: .35rem; width: 100%; }
+.ogren-word {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .1rem;
+  font: inherit;
+  padding: .25rem .4rem;
   cursor: pointer;
-  background: var(--accent-soft);
+  background: var(--paper);
   color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: .5rem;
 }
-.ogren-play button:hover { border-color: var(--accent); }
+.ogren-word:hover { border-color: var(--accent); }
+.ogren-word.playing { border-color: var(--accent); background: var(--accent-soft); }
+.ogren-word-ar { font-family: var(--font-ar); font-size: 1.45rem; line-height: 1.5; }
+.ogren-word small { font-size: .68rem; color: var(--muted); }
 .rdd summary { display: inline-flex; align-items: center; }
 .rlist { min-width: 20rem; max-height: 22rem; overflow-y: auto; }
 .rlist button {

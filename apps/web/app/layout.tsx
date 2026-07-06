@@ -36,12 +36,6 @@ const ruqaa = localFont({
   display: 'swap',
   preload: false,
 });
-const husrev = localFont({
-  src: '../fonts/HusrevHatti.ttf',
-  variable: '--font-husrev',
-  display: 'swap',
-  preload: false,
-});
 // El yazısı not fontu (hâşiye görünümü) — latin-ext, Türkçe karakterleri kapsar
 const caveat = localFont({
   src: '../fonts/Caveat.ttf',
@@ -61,7 +55,7 @@ export const viewport = { themeColor: '#8a6d1d' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${sheherazade.variable} ${lateef.variable} ${ruqaa.variable} ${husrev.variable} ${caveat.variable}`}>
+    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${sheherazade.variable} ${lateef.variable} ${ruqaa.variable} ${caveat.variable}`}>
       <body>
         <PwaRegister />
         <SettingsProvider>
