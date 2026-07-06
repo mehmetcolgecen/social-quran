@@ -7,6 +7,7 @@
     "download": "node scripts/download.mjs",
     "download-audio": "node scripts/download-audio.mjs",
     "validate": "node scripts/validate.mjs",
-    "build-db": "node scripts/build-db.mjs"
+    "build-db": "node scripts/build-db.mjs",
+    "preview": "node --no-warnings scripts/preview.mjs"
   }
 }
