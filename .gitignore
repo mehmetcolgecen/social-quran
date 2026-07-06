@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+*.log
+
+# Ham veri repoya girmez (indirme scriptleri idempotent)
+data/raw/
+data/audio/
+data/processed/*.db
+
+# Ortam
+.env
+.env.*
+!.env.example

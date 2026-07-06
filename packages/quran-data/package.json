@@ -1,0 +1,12 @@
+{
+  "name": "@sosyal-kuran/quran-data",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "download": "node scripts/download.mjs",
+    "download-audio": "node scripts/download-audio.mjs",
+    "validate": "node scripts/validate.mjs",
+    "build-db": "node scripts/build-db.mjs"
+  }
+}
