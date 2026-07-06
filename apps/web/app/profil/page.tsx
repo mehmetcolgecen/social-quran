@@ -3,13 +3,17 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { targetHref, targetLabel, type Target } from '@/lib/target';
 import ProfileEditor from '@/components/ProfileEditor';
+import Stars from '@/components/Stars';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:4000';
 
 export const metadata = { title: 'Profilim' };
 export const dynamic = 'force-dynamic';
 
-type OwnComment = Target & { id: string; body: string; visibility: string; created_at: string; target_type: Target['type']; target_key: string };
+type OwnComment = Target & {
+  id: string; body: string; visibility: string; created_at: string;
+  target_type: Target['type']; target_key: string; hidden: boolean; like_count: number;
+};
 
 export default async function ProfilPage() {
   const session = await getSession();
@@ -26,7 +30,9 @@ export default async function ProfilPage() {
 
   return (
     <main>
-      <h1>@{me.username}</h1>
+      <h1>@{me.username} {me.role !== 'user' && <small className="cmuted">({me.role})</small>}</h1>
+      <Stars stars={me.stars} totalLikes={me.total_likes} />
+      {me.role !== 'user' && <p><Link href="/moderasyon">→ Moderasyon paneli</Link></p>}
       <ProfileEditor displayName={me.display_name} bio={me.bio} />
       <h2>Yorumlarım ({comments.length})</h2>
       {comments.length === 0 && <p className="cmuted">Henüz yorumunuz yok. Okurken ayet yanındaki rozete tıklayın.</p>}
@@ -37,8 +43,9 @@ export default async function ProfilPage() {
             <li key={c.id}>
               <Link href={targetHref(t)}>{targetLabel(t)}</Link>
               {c.visibility === 'private' && ' 🔒'}
+              {c.hidden && <span className="cerror"> (moderasyon tarafından gizlendi)</span>}
               <p>{c.body}</p>
-              <small className="cmuted">{new Date(c.created_at).toLocaleString('tr-TR')}</small>
+              <small className="cmuted">♥ {c.like_count} · {new Date(c.created_at).toLocaleString('tr-TR')}</small>
             </li>
           );
         })}

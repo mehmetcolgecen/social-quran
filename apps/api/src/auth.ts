@@ -9,7 +9,17 @@ import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose';
 import { config } from './config';
 import { pool } from './db';
 
-export type AuthUser = { sub: string; username: string; name: string };
+export type Role = 'user' | 'moderator' | 'admin';
+export type AuthUser = { sub: string; username: string; name: string; role: Role };
+
+// Keycloak realm rolleri token'da realm_access.roles içinde gelir; dev issuer aynı formatı üretir.
+function roleFromClaims(payload: Record<string, unknown>): Role {
+  const realmAccess = payload.realm_access as { roles?: string[] } | undefined;
+  const roles = realmAccess?.roles ?? (payload.roles as string[] | undefined) ?? [];
+  if (roles.includes('admin')) return 'admin';
+  if (roles.includes('moderator')) return 'moderator';
+  return 'user';
+}
 
 export const ACCESS_KEY = 'sk-access';
 // Varsayılan: auth zorunlu. @Public: token bakılmaz. @OptionalAuth: token varsa doğrulanır.
@@ -75,6 +85,7 @@ export class AuthGuard implements CanActivate {
         sub: String(payload.sub),
         username: String(payload.preferred_username ?? payload.sub),
         name: String(payload.name ?? payload.preferred_username ?? ''),
+        role: roleFromClaims(payload as Record<string, unknown>),
       };
       await ensureUser(user);
       req.authUser = user;

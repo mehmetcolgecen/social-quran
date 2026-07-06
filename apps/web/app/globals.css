@@ -286,6 +286,32 @@ main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
 .cmuted { color: #77705e; font-size: .85rem; }
 .clogin { display: block; text-align: center; padding: .4rem; }
 
+.cbadge-wrap { position: relative; align-self: center; display: inline-flex; }
+.cpreview {
+  position: absolute;
+  top: calc(100% + .4rem);
+  inset-inline-end: 0;
+  z-index: 15;
+  width: 17rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+  padding: .5rem .7rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  font-size: .78rem;
+}
+.clike { min-width: 3rem; }
+.clike.liked { color: #c62828 !important; }
+.clike:disabled { opacity: .45; cursor: default; }
+
+.stars { display: inline-flex; align-items: baseline; gap: .15rem; font-size: 1.1rem; }
+.stars-filled { color: #d4a017; }
+.stars-empty { color: #cfc7ae; }
+.stars small { color: #77705e; margin-inline-start: .3rem; }
+
 /* ---------- Profil ---------- */
 .profile-editor { display: flex; flex-direction: column; gap: .6rem; max-width: 28rem; margin-bottom: 1.5rem; }
 .profile-editor label { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; }

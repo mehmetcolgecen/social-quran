@@ -35,7 +35,11 @@ const subFor = (username) => {
 
 async function issueTokens(entry) {
   const now = Math.floor(Date.now() / 1000);
-  const claims = { sub: entry.sub, preferred_username: entry.username, name: entry.name };
+  const claims = {
+    sub: entry.sub, preferred_username: entry.username, name: entry.name,
+    // Keycloak realm rol formatı — API aynı claim'i prod'da da okur
+    ...(entry.role && entry.role !== 'user' ? { realm_access: { roles: [entry.role] } } : {}),
+  };
   const sign = (extra) => new SignJWT({ ...claims, ...extra })
     .setProtectedHeader({ alg: 'RS256', kid: privateJwk.kid })
     .setIssuer(ISSUER).setIssuedAt(now).setExpirationTime(now + 3600)
@@ -56,6 +60,11 @@ const LOGIN_FORM = (q) => `<!doctype html><html lang="tr"><meta charset="utf-8">
 <form method="post" action="/authorize?${q}">
   <label>Kullanıcı adı<br><input name="username" required pattern="[a-zA-Z0-9_]{3,30}" style="width:100%"></label><br><br>
   <label>Görünen ad<br><input name="name" style="width:100%"></label><br><br>
+  <label>Rol (yalnızca dev)<br><select name="role" style="width:100%">
+    <option value="user">Kullanıcı</option>
+    <option value="moderator">Moderatör</option>
+    <option value="admin">Admin</option>
+  </select></label><br><br>
   <button style="width:100%">Giriş yap</button>
 </form></body></html>`;
 
@@ -85,17 +94,20 @@ createServer(async (req, res) => {
     const p = url.searchParams;
     let username = p.get('username'); // headless (e2e) kısayolu
     let name = p.get('name') ?? '';
+    let role = p.get('role') ?? 'user';
     if (req.method === 'POST') {
       const body = await new Promise((r) => { let b = ''; req.on('data', (c) => (b += c)); req.on('end', () => r(b)); });
       const form = new URLSearchParams(body);
       username = form.get('username');
       name = form.get('name') ?? '';
+      role = form.get('role') ?? 'user';
     }
+    if (!['user', 'moderator', 'admin'].includes(role)) role = 'user';
     if (!username) return send(200, LOGIN_FORM(p.toString()), 'text/html');
     if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) return send(400, { error: 'geçersiz kullanıcı adı' });
     const code = randomBytes(24).toString('base64url');
     codes.set(code, {
-      sub: subFor(username), username, name: name || username,
+      sub: subFor(username), username, name: name || username, role,
       challenge: p.get('code_challenge'), redirect_uri: p.get('redirect_uri'),
       exp: Date.now() + 120_000,
     });

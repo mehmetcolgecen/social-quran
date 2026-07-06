@@ -12,11 +12,11 @@ function check(name, cond, detail = '') {
   else { failed++; console.error(`  ✗ ${name} ${detail}`); }
 }
 
-async function login(username) {
+async function login(username, role = 'user') {
   const verifier = randomBytes(32).toString('base64url');
   const challenge = createHash('sha256').update(verifier).digest('base64url');
   const redirect = 'http://localhost:9999/cb';
-  const auth = await fetch(`${OIDC}/authorize?username=${username}&redirect_uri=${encodeURIComponent(redirect)}` +
+  const auth = await fetch(`${OIDC}/authorize?username=${username}&role=${role}&redirect_uri=${encodeURIComponent(redirect)}` +
     `&code_challenge=${challenge}&code_challenge_method=S256&state=x`, { redirect: 'manual' });
   const code = new URL(auth.headers.get('location')).searchParams.get('code');
   const res = await fetch(`${OIDC}/token`, {
@@ -95,6 +95,44 @@ check('profil güncellenir', (await json('PATCH', '/users/me', ali, { bio: 'e2e 
 const pub = await (await fetch(`${API}/users/e2e_ali_${suffix}`)).json();
 check('public profil görünür', pub.bio === 'e2e bio');
 check('public profilde private yok', !pub.comments.some((c) => c.id === privComment.id));
+
+// ---- Faz 3: beğeni, yıldız, filtre, moderasyon ----
+
+console.log('Beğeni & yıldız:');
+const starTarget = await json('POST', '/comments', ali, { target_type: 'ayah', target_key: '1:5', body: `e2e beğeni hedefi ${suffix}` });
+const starComment = await starTarget.json();
+check('kendi yorumunu BEĞENEMEZ (400)', (await json('POST', `/comments/${starComment.id}/like`, ali)).status === 400);
+const likeRes = await json('POST', `/comments/${starComment.id}/like`, veli);
+check('beğeni eklenir', likeRes.status === 200 && (await likeRes.json()).likes === 1);
+check('beğeni idempotent', (await (await json('POST', `/comments/${starComment.id}/like`, veli)).json()).likes === 1);
+const listWithLikes = await (await json('GET', '/comments?type=ayah&key=1:5', veli)).json();
+const inList = listWithLikes.find((c) => c.id === starComment.id);
+check('listede like_count + liked', inList?.like_count === 1 && inList?.liked === true);
+const aliProfile = await (await fetch(`${API}/users/e2e_ali_${suffix}`)).json();
+check('KABUL: beğeni eşiği geçince profil yıldızı oluşur', aliProfile.stars >= 1 && aliProfile.total_likes >= 1,
+  `stars=${aliProfile.stars} likes=${aliProfile.total_likes}`);
+check('en beğenilenler profilde', aliProfile.top_comments.some((c) => c.id === starComment.id));
+const unlike = await (await json('DELETE', `/comments/${starComment.id}/like`, veli)).json();
+check('beğeni geri alınır', unlike.likes === 0);
+
+console.log('Kelime filtresi:');
+check('küfür içeren yorum reddedilir (400)',
+  (await json('POST', '/comments', ali, { target_type: 'ayah', target_key: '1:5', body: 'bu ne fuck yorum' })).status === 400);
+
+console.log('Moderasyon:');
+const mod = await login(`e2e_mod_${suffix}`, 'moderator');
+const badComment = await (await json('POST', '/comments', ali, { target_type: 'ayah', target_key: '1:6', body: `e2e şikayet hedefi ${suffix}` })).json();
+check('misafir moderasyona erişemez', (await fetch(`${API}/moderation/reports`)).status === 401);
+check('normal üye moderasyona erişemez (403)', (await json('GET', '/moderation/reports', veli)).status === 403);
+check('şikâyet edilir (201)', (await json('POST', `/comments/${badComment.id}/report`, veli, { reason: 'uygunsuz içerik (e2e)' })).status === 201);
+const reports = await (await json('GET', '/moderation/reports', mod)).json();
+const report = reports.find((r) => r.comment_id === badComment.id);
+check('moderatör raporu görür', !!report);
+check('moderatör yorumu gizler', (await json('POST', `/moderation/reports/${report.id}`, mod, { action: 'hide' })).status === 200);
+const afterHide = await (await fetch(`${API}/comments?type=ayah&key=1:6`)).json();
+check('gizlenen yorum misafir listesinde YOK', !afterHide.some((c) => c.id === badComment.id));
+const ownAfterHide = await (await json('GET', '/users/me/comments', ali)).json();
+check('sahibi gizlendiğini görür', ownAfterHide.find((c) => c.id === badComment.id)?.hidden === true);
 
 console.log(`\nSONUÇ: ${passed} geçti, ${failed} kaldı`);
 process.exit(failed ? 1 : 0);

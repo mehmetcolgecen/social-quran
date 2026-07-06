@@ -4,7 +4,7 @@ import { type NextRequest } from 'next/server';
 import { getSession } from '@/lib/session';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:4000';
-const ALLOWED_ROOTS = new Set(['comments', 'users']);
+const ALLOWED_ROOTS = new Set(['comments', 'users', 'moderation']);
 
 async function handler(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
   const { path } = await ctx.params;

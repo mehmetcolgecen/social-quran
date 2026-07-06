@@ -76,24 +76,56 @@ export function CommentsProvider({ groups, pageNumber, enabled, children }: {
   );
 }
 
-// Ayet rozeti: ayet + o ayetin kelime yorumlarının toplamı; 0 ise soluk "+"
+// Ayet rozeti: ayet + o ayetin kelime yorumlarının toplamı; 0 ise soluk "+".
+// Hover'da ilk yorumların kısa önizlemesi gösterilir (GOAL: rakam + hover belirginleşme).
+const previewCache = new Map<string, { display_name: string; body: string }[]>();
+
 export function AyahBadge({ surah, ayah, words }: {
   surah: number; ayah: number; words: { p: number; ar: string }[];
 }) {
   const { enabled, counts, open } = useComments();
+  const [preview, setPreview] = useState<{ display_name: string; body: string }[] | null>(null);
+  const timer = useState<{ id: ReturnType<typeof setTimeout> | null }>({ id: null })[0];
   if (!enabled) return null;
   const c = counts[surah];
   const prefix = `${surah}:${ayah}:`;
   const wordTotal = c ? Object.entries(c.words).reduce((sum, [k, n]) => (k.startsWith(prefix) ? sum + n : sum), 0) : 0;
   const total = (c?.ayahs[String(ayah)] ?? 0) + wordTotal;
+
+  const key = `${surah}:${ayah}`;
+  const showPreview = () => {
+    if (!total) return;
+    timer.id = setTimeout(async () => {
+      if (!previewCache.has(key)) {
+        const rows = await getJSON<{ display_name: string; body: string }[]>(`/api/social/comments?type=ayah&key=${key}`);
+        previewCache.set(key, (rows ?? []).slice(0, 2));
+      }
+      setPreview(previewCache.get(key) ?? []);
+    }, 300);
+  };
+  const hidePreview = () => {
+    if (timer.id) clearTimeout(timer.id);
+    setPreview(null);
+  };
+
   return (
-    <button
-      className={`cbadge${total ? ' has' : ''}`}
-      title={total ? `${total} yorum` : 'Yorum yaz'}
-      onClick={() => open({ type: 'ayah', key: `${surah}:${ayah}`, words })}
-    >
-      {total || '+'}
-    </button>
+    <span className="cbadge-wrap" onMouseEnter={showPreview} onMouseLeave={hidePreview}>
+      <button
+        className={`cbadge${total ? ' has' : ''}`}
+        title={total ? `${total} yorum` : 'Yorum yaz'}
+        onClick={() => open({ type: 'ayah', key, words })}
+      >
+        {total || '+'}
+      </button>
+      {preview && preview.length > 0 && (
+        <span className="cpreview">
+          {preview.map((p, i) => (
+            <span key={i}><b>{p.display_name}:</b> {p.body.slice(0, 70)}{p.body.length > 70 ? '…' : ''}</span>
+          ))}
+          {total > preview.length && <span className="cmuted">+{total - preview.length} yorum daha…</span>}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -121,6 +153,7 @@ type Comment = {
   id: string; target_type: string; target_key: string; body: string;
   visibility: 'public' | 'private'; parent_id: string | null; quote_id: string | null;
   created_at: string; username: string; display_name: string;
+  like_count: number; liked: boolean;
 };
 
 const fmtDate = (iso: string) =>
@@ -181,6 +214,24 @@ function Panel({ target, onClose }: { target: PanelTarget; onClose: () => void }
     refresh();
   }
 
+  async function toggleLike(c: Comment) {
+    const res = await fetch(`/api/social/comments/${c.id}/like`, { method: c.liked ? 'DELETE' : 'POST' });
+    if (!res.ok) return;
+    const state = (await res.json()) as { likes: number; liked: boolean };
+    setItems((prev) => prev.map((x) => (x.id === c.id ? { ...x, like_count: state.likes, liked: state.liked } : x)));
+  }
+
+  async function report(c: Comment) {
+    const reason = prompt('Bu yorumu neden bildiriyorsunuz?');
+    if (!reason?.trim()) return;
+    const res = await fetch(`/api/social/comments/${c.id}/report`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ reason: reason.trim() }),
+    });
+    alert(res.ok ? 'Bildiriminiz alındı, teşekkürler.' : 'Bildirim gönderilemedi.');
+  }
+
   const tops = items.filter((c) => !c.parent_id);
   const repliesOf = (id: string) => items.filter((c) => c.parent_id === id);
   const byId = new Map(items.map((c) => [c.id, c]));
@@ -196,8 +247,17 @@ function Panel({ target, onClose }: { target: PanelTarget; onClose: () => void }
       )}
       <p className="cbody">{c.body}</p>
       <div className="cactions">
+        <button
+          className={`clike${c.liked ? ' liked' : ''}`}
+          disabled={!me || me.username === c.username}
+          title={!me ? 'Beğenmek için giriş yapın' : me.username === c.username ? 'Kendi yorumunuz' : c.liked ? 'Beğeniyi geri al' : 'Beğen'}
+          onClick={() => toggleLike(c)}
+        >
+          {c.liked ? '♥' : '♡'} {c.like_count}
+        </button>
         {me && !isReply && <button onClick={() => { setReplyTo(c); setQuote(null); setEditing(null); }}>Yanıtla</button>}
         {me && <button onClick={() => { setQuote(c); setReplyTo(null); setEditing(null); }}>Alıntıla</button>}
+        {me && me.username !== c.username && <button onClick={() => report(c)}>Bildir</button>}
         {me?.username === c.username && (
           <>
             <button onClick={() => { setEditing(c); setBody(c.body); setVisibility(c.visibility); setReplyTo(null); setQuote(null); }}>Düzenle</button>
