@@ -13,3 +13,4 @@ data/.dev/
 .env
 .env.*
 !.env.example
+deploy/k8s/secrets.yaml

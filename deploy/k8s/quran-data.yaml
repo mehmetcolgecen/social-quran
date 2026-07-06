@@ -1,0 +1,37 @@
+# Kur'an veri hacmi: metin DB'si + ses arşivleri (~11 GB).
+# data-init Job'ı bir kez doldurur; web pod'u salt-okunur bağlar.
+# Not: local-path (K3S varsayılanı) RWO'dur — tek node'da sorunsuz; çok node'da
+# node-affinity veya RWX (longhorn/nfs) gerekir.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: quran-data
+  namespace: sosyal-kuran
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: quran-data-init
+  namespace: sosyal-kuran
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-data:latest
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: quran-data

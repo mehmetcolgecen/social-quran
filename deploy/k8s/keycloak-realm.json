@@ -1,0 +1,47 @@
+{
+  "realm": "sosyal-kuran",
+  "enabled": true,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "bruteForceProtected": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["tr", "en"],
+  "defaultLocale": "tr",
+  "roles": {
+    "realm": [
+      { "name": "moderator", "description": "Yorum moderasyonu yetkisi" },
+      { "name": "admin", "description": "Tam yönetim yetkisi" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "sosyal-kuran-web",
+      "name": "Sosyal Kur'an Web",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "DEGISTIR-web-client-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "https://sosyal-kuran.com/api/auth/callback",
+        "https://social-quran.com/api/auth/callback",
+        "http://localhost:3000/api/auth/callback"
+      ],
+      "webOrigins": ["https://sosyal-kuran.com", "https://social-quran.com"],
+      "protocolMappers": [
+        {
+          "name": "api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "sosyal-kuran-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

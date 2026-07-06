@@ -20,6 +20,7 @@ Proje dokümanları: `GOAL.md` (hedefler + faz planı), `ON_HAZIRLIK.md` (doğru
 - Dev yığını (Faz 2+): `npm run -w packages/devstack db` (PG :5433) + `npm run -w packages/devstack oidc` (issuer :7788) + `npm run dev -w apps/api` (API :4000, OpenAPI /docs).
 - E2E kabul testi: `npm run -w apps/api test:e2e` (yığın çalışırken).
 - Komutları repo kökünden çalıştır (npm workspaces kökü burası).
+- Prod (Faz 4): `deploy/README.md` — imajlar GitHub Actions ile ghcr.io'ya; `kubectl apply -k deploy/k8s`; gerçek gizli değerler `deploy/k8s/secrets.yaml` (gitignore'da).
 
 ## Teknik notlar
 - `node:sqlite` satırları null-prototype döner; client component'e prop geçmeden önce düz nesneye kopyala (`apps/web/lib/db.ts` içindeki `plain()`).

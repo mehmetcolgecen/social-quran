@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: sosyal-kuran
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: api }
+  template:
+    metadata:
+      labels: { app: api }
+    spec:
+      initContainers:
+        - name: migrate
+          image: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-api:latest
+          command: ["node", "scripts/migrate.mjs"]
+          env:
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: sosyal-kuran-db-app, key: uri } }
+      containers:
+        - name: api
+          image: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-api:latest
+          env:
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: sosyal-kuran-db-app, key: uri } }
+            # Issuer'a cluster içinden erişim; public URL ile aynı realm
+            - name: OIDC_ISSUER
+              value: https://sosyal-kuran.com/auth/realms/sosyal-kuran
+            - name: OIDC_AUDIENCE
+              value: sosyal-kuran-api
+            - name: TARGET_LIMITS_PATH
+              value: /srv/data/processed/target-limits.json
+          ports: [{ containerPort: 4000 }]
+          volumeMounts:
+            - name: data
+              mountPath: /srv/data
+              readOnly: true
+          readinessProbe:
+            httpGet: { path: /health, port: 4000 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 100m, memory: 192Mi }
+            limits: { memory: 512Mi }
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: quran-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: sosyal-kuran
+spec:
+  selector: { app: api }
+  ports: [{ port: 4000 }]

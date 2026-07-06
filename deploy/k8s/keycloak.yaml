@@ -1,0 +1,66 @@
+# Keycloak — /auth altında (ingress aynı domain'e yönlendirir).
+# Realm 'sosyal-kuran' ilk açılışta içe aktarılır (keycloak-realm ConfigMap'i,
+# kustomize configMapGenerator ile üretilir). İçe aktarım sonrası client secret'ı
+# admin konsolundan değiştirip web-oidc secret'ına yazmayı unutmayın.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: sosyal-kuran
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: keycloak }
+  template:
+    metadata:
+      labels: { app: keycloak }
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.1
+          args: ["start", "--import-realm"]
+          env:
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://sosyal-kuran-db-rw:5432/keycloak
+            - name: KC_DB_USERNAME
+              valueFrom: { secretKeyRef: { name: sosyal-kuran-db-app, key: username } }
+            - name: KC_DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: sosyal-kuran-db-app, key: password } }
+            - name: KC_HOSTNAME
+              value: https://sosyal-kuran.com/auth
+            - name: KC_HTTP_RELATIVE_PATH
+              value: /auth
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom: { secretKeyRef: { name: keycloak-admin, key: username } }
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom: { secretKeyRef: { name: keycloak-admin, key: password } }
+          ports: [{ containerPort: 8080 }]
+          volumeMounts:
+            - name: realm
+              mountPath: /opt/keycloak/data/import
+          readinessProbe:
+            httpGet: { path: /auth/realms/master, port: 8080 }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 250m, memory: 640Mi }
+            limits: { memory: 1Gi }
+      volumes:
+        - name: realm
+          configMap:
+            name: keycloak-realm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: sosyal-kuran
+spec:
+  selector: { app: keycloak }
+  ports: [{ port: 8080 }]
