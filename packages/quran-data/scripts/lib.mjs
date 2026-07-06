@@ -6,11 +6,16 @@ export const RAW = `${ROOT}data/raw/`;
 export const PROCESSED = `${ROOT}data/processed/`;
 export const AUDIO = `${ROOT}data/audio/`;
 
+// align: quran-align kelime zamanlaması dosya adı (null = yalnızca ayet takibi)
 export const RECITERS = [
   { slug: 'Husary_64kbps', name: 'Mahmoud Khalil Al-Husary', align: 'Husary_64kbps' },
   { slug: 'Abdul_Basit_Murattal_64kbps', name: 'Abdul Basit (Murattal)', align: 'Abdul_Basit_Murattal_64kbps' },
   { slug: 'Alafasy_128kbps', name: 'Mishary Rashid Alafasy', align: 'Alafasy_128kbps' },
   { slug: 'Minshawy_Murattal_128kbps', name: 'Minshawi (Murattal)', align: 'Minshawy_Murattal_128kbps' },
+  { slug: 'Abdurrahmaan_As-Sudais_192kbps', name: 'Abdurrahman es-Sudais', align: 'Abdurrahmaan_As-Sudais_192kbps' },
+  { slug: 'Saood_ash-Shuraym_128kbps', name: 'Suud eş-Şureym', align: 'Saood_ash-Shuraym_128kbps' },
+  { slug: 'MaherAlMuaiqly128kbps', name: 'Maher el-Muaykli', align: null },
+  { slug: 'Ghamadi_40kbps', name: 'Saad el-Ğamidi', align: null },
 ];
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -45,6 +50,16 @@ export async function fetchWithRetry(url, { tries = 5, asJson = true } = {}) {
 
 export async function readJSON(path) {
   return JSON.parse(await readFile(path, 'utf8'));
+}
+
+// quran-align dosyalarının bazılarında (ör. Sudais) dizinin ÖNÜNE ham hata metni sızmış;
+// doğrudan parse başarısız olursa dizinin başlangıcından itibaren parse edilir.
+export async function readAlign(path) {
+  const raw = await readFile(path, 'utf8');
+  try { return JSON.parse(raw); } catch { /* aşağıda kurtar */ }
+  const start = raw.indexOf('[{');
+  if (start < 0) throw new Error(`${path}: JSON dizisi bulunamadı`);
+  return JSON.parse(raw.slice(start));
 }
 
 export async function writeJSON(path, obj) {

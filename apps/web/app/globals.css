@@ -62,7 +62,9 @@ a { color: var(--accent); }
   gap: 1.2rem;
   padding: .7rem 1.2rem;
   background: var(--card);
-  border-bottom: 2px solid var(--line);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, transparent, #c9a227 20%, #7d5f0e 50%, #c9a227 80%, transparent) 1;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, .04);
 }
 .site-header .brand { font-weight: 700; font-size: 1.15rem; text-decoration: none; color: var(--ink); }
 .site-header nav a { margin-inline-end: .8rem; text-decoration: none; font-size: .9rem; }
@@ -103,7 +105,8 @@ h1, h2 { color: var(--ink); }
   text-decoration: none;
   color: var(--ink);
 }
-.surah-card:hover { border-color: var(--accent); }
+.surah-card { transition: transform .15s, box-shadow .15s, border-color .15s; }
+.surah-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, .09); }
 .surah-card .no {
   min-width: 2.1rem; height: 2.1rem;
   display: flex; align-items: center; justify-content: center;
@@ -298,35 +301,65 @@ h1, h2 { color: var(--ink); }
 .ayah.pop-open { content-visibility: visible; position: relative; z-index: 40; }
 .w.wopen { z-index: 41; }
 
-/* ---------- Hâşiye: kendi yorumların el yazısı not görünümü ---------- */
-.mynotes { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; margin: .35rem 0 0 1.6rem; }
+/* ---------- Hâşiye: el yazısı kenar notları (kendi yorumların + ilim notları) ----------
+   Geniş ekranda sayfanın DIŞINA (sol kenar boşluğuna) taşar; ok yukarı-sağa,
+   Arapça metne doğru işaret eder. Dar ekranda ayetin altında kalır. */
+.ayah { position: relative; }
+.mynotes { display: flex; flex-direction: column; align-items: flex-start; gap: .3rem; margin: .3rem 0 0 .8rem; }
 .mynote {
-  display: flex;
-  align-items: flex-start;
-  gap: .15rem;
+  position: relative;
+  display: block;
   background: none;
   border: none;
   padding: 0;
+  margin-top: 1.3rem;
   cursor: pointer;
   text-align: start;
   color: #7a5c2e;
-  max-width: 34rem;
+  max-width: 30rem;
 }
+.mynote.static { cursor: default; }
+.mynotes.science .mynote { color: #33691e; }
 html[data-theme='koyu'] .mynote { color: #d9c08a; }
-.mynote-arrow { width: 2.4rem; height: 1.9rem; flex-shrink: 0; margin-top: -.6rem; opacity: .8; }
+html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
+.mynote-arrow {
+  position: absolute;
+  top: -1.5rem;
+  inset-inline-end: -1rem;
+  width: 2.6rem;
+  height: 2rem;
+  opacity: .85;
+}
 .mynote-text {
+  display: inline-block;
   font-family: var(--font-note), cursive;
   font-size: 1.12rem;
-  line-height: 1.25;
+  line-height: 1.3;
   border: 1.4px dashed currentColor;
-  border-radius: .5rem .8rem .5rem .9rem;
-  padding: .25rem .7rem;
+  border-radius: .5rem .9rem .5rem 1rem;
+  padding: .3rem .75rem;
   transform: rotate(-1.2deg);
-  background: color-mix(in srgb, var(--card) 60%, transparent);
+  background: color-mix(in srgb, var(--card) 55%, transparent);
   transition: transform .15s;
 }
 .mynote:hover .mynote-text { transform: rotate(0deg) scale(1.02); }
 .mynote-text em { font-style: normal; opacity: .7; font-size: .95rem; }
+.mynote-text q { quotes: none; opacity: .85; }
+
+@media (min-width: 1500px) {
+  .mynotes {
+    position: absolute;
+    top: .2rem;
+    inset-inline-start: -258px;
+    width: 235px;
+    margin: 0;
+  }
+  .mynote { margin-top: .4rem; max-width: 235px; }
+  .mynote-arrow { top: -.35rem; inset-inline-end: -2.5rem; }
+  .mynote-text { font-size: 1.02rem; }
+  /* Aynı ayette hem ilim notu hem kendi notun varsa üst üste binmesin */
+  .mynotes.science { top: auto; bottom: .2rem; }
+}
 
 .reader.black .w, .reader.black .w .ar span { color: var(--ink) !important; }
 
@@ -340,7 +373,10 @@ html[data-theme='koyu'] .mynote { color: #d9c08a; }
   height: 1.9rem;
   background: var(--card);
   cursor: pointer;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  transition: box-shadow .15s;
 }
+.num:hover { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent); }
 .num:hover { background: var(--accent-soft); }
 
 .meal {
@@ -384,9 +420,11 @@ html[data-theme='koyu'] .mynote { color: #d9c08a; }
   justify-content: center;
   gap: .8rem;
   padding: .55rem 1rem;
-  background: var(--card);
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  backdrop-filter: blur(8px);
   border-top: 2px solid var(--line);
   font-size: .85rem;
+  box-shadow: 0 -3px 14px rgba(0, 0, 0, .08);
 }
 .player button, .player select { font: inherit; cursor: pointer; padding: .25rem .55rem; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: .3rem; }
 .player .now { font-weight: 600; }
@@ -419,12 +457,102 @@ html[data-theme='koyu'] .mynote { color: #d9c08a; }
   background: none;
   border: none;
   cursor: pointer;
-  opacity: .2;
+  opacity: .35;
+  color: var(--accent);
   transition: opacity .15s, transform .15s;
   padding: 0 .1rem;
+  display: inline-flex;
+  align-items: center;
 }
-.bmark.on { opacity: .85; }
+.bmark.on { opacity: .9; }
 .ayah:hover .bmark, .ayah:hover .sharebtn, .bmark:hover, .sharebtn:hover { opacity: 1; transform: scale(1.15); }
+
+/* Kâri madalyonları */
+.rmedal {
+  width: 2.2rem; height: 2.2rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, hsl(var(--h, 40) 42% 52%), hsl(var(--h, 40) 48% 30%));
+  color: #fff8e8;
+  font-family: var(--font-ar);
+  font-size: 1rem;
+  box-shadow: 0 0 0 2px #c9a227, 0 1px 4px rgba(0, 0, 0, .25);
+  flex-shrink: 0;
+}
+.rmedal.sm { width: 1.5rem; height: 1.5rem; font-size: .72rem; box-shadow: 0 0 0 1.5px #c9a227; margin-inline-end: .35rem; vertical-align: -6px; }
+.rdd summary { display: inline-flex; align-items: center; }
+.rlist { min-width: 20rem; max-height: 22rem; overflow-y: auto; }
+.rlist button {
+  display: flex; align-items: center; gap: .6rem;
+  width: 100%;
+  background: none; border: none;
+  padding: .4rem .3rem;
+  cursor: pointer;
+  text-align: start;
+  color: var(--ink);
+  border-radius: .4rem;
+}
+.rlist button:hover { background: var(--accent-soft); }
+.rlist button.on { background: var(--accent-soft); outline: 1px solid var(--accent); }
+.rlist .rinfo { display: flex; flex-direction: column; line-height: 1.25; }
+.rlist .rinfo small { color: var(--muted); font-size: .72rem; }
+
+/* Öğren bölümü */
+.ogren-hero {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1rem;
+  padding: .9rem 1.2rem;
+  background: linear-gradient(120deg, var(--accent-soft), var(--card) 65%);
+  border: 1.5px solid var(--accent);
+  border-radius: .9rem;
+  text-decoration: none;
+  color: var(--ink);
+  box-shadow: 0 2px 10px rgba(169, 126, 18, .12);
+}
+.ogren-hero-icon { font-size: 2.1rem; }
+.ogren-hero-text { flex: 1; display: flex; flex-direction: column; gap: .25rem; }
+.ogren-hero-text small { color: var(--muted); }
+.ogren-hero-text .mem-progress { max-width: 18rem; display: block; }
+.ogren-hero-text .mem-bar { display: block; }
+.ogren-hero-cta { font-weight: 700; color: var(--accent); white-space: nowrap; }
+.ogren-layout { display: flex; gap: 1.2rem; align-items: flex-start; margin-top: 1rem; }
+.ogren-nav { display: flex; flex-direction: column; gap: .25rem; width: 250px; flex-shrink: 0; position: sticky; top: .8rem; }
+.ogren-nav button {
+  font: inherit; font-size: .82rem;
+  text-align: start;
+  padding: .45rem .6rem;
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--line); border-radius: .5rem;
+  cursor: pointer;
+}
+.ogren-nav button.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.ogren-nav button.done { opacity: .75; }
+.ogren-body { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: .8rem; padding: 1.1rem 1.4rem; }
+.ogren-examples { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; margin: 1rem 0; }
+.ogren-examples.compact { grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); }
+.ogren-ex {
+  display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  background: var(--paper);
+  border: 1px solid var(--line-soft); border-radius: .6rem;
+  padding: .6rem .4rem;
+  text-align: center;
+}
+.ogren-ex b { font-size: .82rem; }
+.ogren-ex small { font-size: .68rem; }
+.ogren-ar { font-family: var(--font-ar); font-size: 2.2rem; line-height: 1.6; color: var(--accent); }
+.ogren-tip {
+  background: var(--accent-soft);
+  border-inline-start: 3px solid var(--accent);
+  padding: .55rem .8rem;
+  border-radius: .4rem;
+  font-size: .88rem;
+}
+.ogren-actions { display: flex; gap: .6rem; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
+.csubmit.muted { opacity: .6; }
+@media (max-width: 800px) {
+  .ogren-layout { flex-direction: column; }
+  .ogren-nav { width: 100%; position: static; flex-direction: row; flex-wrap: wrap; }
+}
 
 /* Paylaşım kartı modalı */
 .share-modal {

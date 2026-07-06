@@ -10,6 +10,7 @@ import { EMBEDDED_MEAL, EMBEDDED_WBW, flagOf } from '@/lib/langs';
 import type { Ayah, ReaderGroup, Reciter, Word } from '@/lib/types';
 import SettingsBar from './SettingsBar';
 import BookmarkButton from './BookmarkButton';
+import MiracleNote from './MiracleNote';
 import ShareAyah from './ShareAyah';
 import { AyahBadge, CommentsProvider, InlineComments, MyNotes, TargetButtons, useComments } from './Comments';
 
@@ -134,6 +135,7 @@ const AyahRow = memo(function AyahRow({
           })}
         </div>
       )}
+      <MiracleNote verseKey={ayah.key} />
       <MyNotes anchor={`${surahId}:${ayah.ayah}`} words={slimWords} />
       <InlineComments anchor={`${surahId}:${ayah.ayah}`} />
     </div>

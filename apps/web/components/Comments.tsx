@@ -126,8 +126,8 @@ export function MyNotes({ anchor, words }: { anchor: string; words: SlimWord[] }
             ? { type: 'word', key: n.target_key, words }
             : { type: 'ayah', key: anchor, words })}>
           <svg className="mynote-arrow" viewBox="0 0 44 34" aria-hidden="true">
-            <path d="M40 30 C 30 28, 14 24, 8 8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeDasharray="5 4" strokeLinecap="round" />
-            <path d="M4 14 L8 5 L15 10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 30 C 12 22, 24 14, 38 7" fill="none" stroke="currentColor" strokeWidth="1.7" strokeDasharray="5 4" strokeLinecap="round" />
+            <path d="M30 4 L39 6 L36 15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="mynote-text">
             {n.target_type === 'word' && <em>({n.target_key.split(':')[2]}. kelime)</em>} {n.body.slice(0, 140)}{n.body.length > 140 ? '…' : ''}

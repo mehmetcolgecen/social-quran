@@ -31,6 +31,14 @@ export default function ShareAyah({ verseKey, surahName, words, mealTr }: Props)
   const [open, setOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Esc ile kapanma
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     void (async () => {
@@ -38,7 +46,10 @@ export default function ShareAyah({ verseKey, surahName, words, mealTr }: Props)
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d')!;
-      const arFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-ar') || 'serif';
+      // CSS var yerine gerçek bir elementin çözümlenmiş font ailesi (canvas'ın anlayacağı biçim)
+      const arEl = document.querySelector('.w .ar, .basmala, .surah-card .ar');
+      const arFamily = arEl ? getComputedStyle(arEl).fontFamily : 'serif';
+      await document.fonts.load(`64px ${arFamily.split(',')[0]}`).catch(() => { /* fallback serif */ });
 
       // Zemin + yaldız çerçeve katmanları
       ctx.fillStyle = '#fbf6e9';
@@ -141,7 +152,13 @@ export default function ShareAyah({ verseKey, surahName, words, mealTr }: Props)
 
   return (
     <>
-      <button className="sharebtn" title="Ayet kartı oluştur" onClick={() => setOpen(true)}>🖼</button>
+      <button className="sharebtn" title="Ayet kartı oluştur" onClick={() => setOpen(true)}>
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="3.5" />
+          <path d="M3 16 L8.5 10.5 L13 15 L16 12 L21 17" />
+          <circle cx="15.5" cy="7.5" r="1.6" fill="currentColor" stroke="none" />
+        </svg>
+      </button>
       {open && (
         <span className="share-modal" dir="ltr" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
           <span className="share-box">

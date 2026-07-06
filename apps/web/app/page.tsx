@@ -2,11 +2,13 @@ import Link from 'next/link';
 import { getSurahs } from '@/lib/db';
 import ContinueCard from '@/components/ContinueCard';
 import HomeWidgets from '@/components/HomeWidgets';
+import OgrenHero from '@/components/OgrenHero';
 
 export default function HomePage() {
   const surahs = getSurahs();
   return (
     <main>
+      <OgrenHero />
       <div className="home-widgets-row">
         <ContinueCard />
         <HomeWidgets />

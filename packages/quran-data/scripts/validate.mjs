@@ -65,7 +65,7 @@ stats.words = { total: totalWords, pages: pages.size, emptyTr, emptyEn, tanzilTe
 
 // 4) quran-align zamanlamaları (4 MVP kârisi)
 stats.align = {};
-for (const { align } of RECITERS) {
+for (const { align } of RECITERS.filter((r) => r.align)) {
   const data = await readJSON(`${RAW}quran-align/${align}.json`);
   const keys = new Set(data.map((e) => `${e.surah}:${e.ayah}`));
   const missing = tanzil.filter((a) => !keys.has(`${a.surah}:${a.ayah}`)).length;

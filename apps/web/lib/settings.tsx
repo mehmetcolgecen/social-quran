@@ -11,6 +11,7 @@ export type Settings = {
   reciter: string;
   comments: boolean; // yorum rozetleri/kutuları tamamen kapatılabilir (GOAL gereksinimi)
   notes: boolean;    // kendi yorumlarının hâşiye (el yazısı not) görünümü
+  science: boolean;  // ilim/tefekkür notları (bilimsel işaret hâşiyeleri)
   theme: 'acik' | 'koyu';
   arFont: 'hafs' | 'amiri' | 'sheherazade' | 'noto' | 'lateef' | 'ruqaa' | 'husrev';
   frame: 'klasik' | 'zumrut' | 'gul' | 'gece' | 'firuze' | 'sade';
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reciter: 'Husary_64kbps',
   comments: true,
   notes: true,
+  science: true,
   theme: 'acik',
   arFont: 'hafs',
   frame: 'klasik',

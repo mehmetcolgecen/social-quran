@@ -1,7 +1,9 @@
 'use client';
+import { useEffect } from 'react';
 import { useSettings } from '@/lib/settings';
 import { MAHREC_GROUPS } from '@/lib/mahrec';
 import { LANGS, WBW_LANGS, flagOf } from '@/lib/langs';
+import { RECITER_META } from '@/lib/reciters';
 import type { Reciter } from '@/lib/types';
 
 const FRAMES = [
@@ -30,10 +32,28 @@ function toggleIn(list: string[], code: string): string[] {
 const langSummary = (selected: string[]) =>
   selected.length === 0 ? 'Kapalı' : selected.map(flagOf).join(' ');
 
+const closeDetails = (el: HTMLElement) =>
+  (el.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open');
+
 export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelect = false }: {
   reciters: Reciter[]; onPlaySurah: () => void; playing: boolean; frameSelect?: boolean;
 }) {
   const { settings, update } = useSettings();
+
+  // Açık kalan dropdown'lar dışarı tıklanınca kapanır
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      document.querySelectorAll('details.dd[open]').forEach((d) => {
+        if (!d.contains(e.target as Node)) d.removeAttribute('open');
+      });
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const current = reciters.find((r) => r.slug === settings.reciter);
+  const currentMeta = RECITER_META[settings.reciter];
+
   return (
     <>
       <div className="settings-bar">
@@ -88,13 +108,30 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
             </select>
           </label>
         )}
-        <label>Kâri
-          <select value={settings.reciter} onChange={(e) => update({ reciter: e.target.value })}>
-            {reciters.map((r) => <option key={r.slug} value={r.slug}>{r.name}</option>)}
-          </select>
-        </label>
+        <details className="dd rdd">
+          <summary>
+            {currentMeta && <span className="rmedal sm" style={{ ['--h' as string]: currentMeta.hue }}>{currentMeta.short}</span>}
+            <b>{current?.name ?? 'Kâri'}</b>
+          </summary>
+          <div className="dd-panel rlist">
+            {reciters.map((r) => {
+              const m = RECITER_META[r.slug];
+              return (
+                <button key={r.slug} className={r.slug === settings.reciter ? 'on' : ''}
+                  onClick={(e) => { update({ reciter: r.slug }); closeDetails(e.currentTarget); }}>
+                  <span className="rmedal" style={{ ['--h' as string]: m?.hue ?? 40 }}>{m?.short ?? r.name[0]}</span>
+                  <span className="rinfo">
+                    <b>{r.name}</b>
+                    <small>{m ? `${m.tagIcon} ${m.tag} · ${m.desc}` : ''}{m?.wordTiming ? ' · 🎯 kelime takibi' : ''}</small>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </details>
         <label><input type="checkbox" checked={settings.comments} onChange={(e) => update({ comments: e.target.checked })} /> Yorumlar</label>
-        <label><input type="checkbox" checked={settings.notes} onChange={(e) => update({ notes: e.target.checked })} /> 📝 Notlarım</label>
+        <label><input type="checkbox" checked={settings.notes} onChange={(e) => update({ notes: e.target.checked })} /> 📝 Notlar</label>
+        <label><input type="checkbox" checked={settings.science} onChange={(e) => update({ science: e.target.checked })} /> 🔬 İlim</label>
         <button className="play-btn" onClick={onPlaySurah}>{playing ? '⏹ Durdur' : '▶ Dinle'}</button>
       </div>
       {settings.mode === 'mahrec' && (

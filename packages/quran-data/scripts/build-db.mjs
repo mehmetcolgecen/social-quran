@@ -3,7 +3,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { rm, writeFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
-import { PROCESSED, RAW, RECITERS, ensureDir, parseTanzil, readJSON } from './lib.mjs';
+import { PROCESSED, RAW, RECITERS, ensureDir, parseTanzil, readAlign, readJSON } from './lib.mjs';
 
 await ensureDir(PROCESSED);
 const DB_PATH = `${PROCESSED}quran.db`;
@@ -133,10 +133,15 @@ const insReciter = db.prepare('INSERT INTO reciters VALUES (?,?)');
 const insTiming = db.prepare('INSERT INTO timings VALUES (?,?,?,?)');
 for (const { slug, name, align } of RECITERS) {
   insReciter.run(slug, name); row('reciters', [slug, name]);
-  for (const e of await readJSON(`${RAW}quran-align/${align}.json`)) {
+  if (!align) continue; // kelime zamanlaması olmayan kâri: yalnızca ayet takibi
+  let skipped = 0;
+  for (const e of await readAlign(`${RAW}quran-align/${align}.json`)) {
+    // quran-align bazı ayetlerde hizalama hatası kaydı bırakır (segments dizi değildir) → atla
+    if (!Array.isArray(e.segments) || e.segments.length === 0) { skipped++; continue; }
     const vals = [slug, e.surah, e.ayah, JSON.stringify(e.segments)];
     insTiming.run(...vals); row('timings', vals);
   }
+  if (skipped) console.log(`${slug}: ${skipped} ayette kelime zamanlaması yok (ayet takibiyle çalınır)`);
 }
 
 db.exec('COMMIT');
