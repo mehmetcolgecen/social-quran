@@ -1,0 +1,229 @@
+:root {
+  --ink: #1c1a16;
+  --paper: #faf7f0;
+  --card: #fffdf7;
+  --line: #d4c9a8;
+  --accent: #8a6d1d;
+  --accent-soft: #f3ecd9;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+a { color: var(--accent); }
+
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: .7rem 1.2rem;
+  background: var(--card);
+  border-bottom: 2px solid var(--line);
+}
+.site-header .brand { font-weight: 700; font-size: 1.15rem; text-decoration: none; color: var(--ink); }
+.site-header nav a { margin-inline-end: .8rem; text-decoration: none; font-size: .9rem; }
+
+.site-footer { padding: 1.2rem; font-size: .75rem; color: #6b654f; border-top: 1px solid var(--line); margin-top: 3rem; }
+
+main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+
+/* ---------- Ana sayfa: sure listesi ---------- */
+.surah-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: .7rem;
+  padding: 0;
+  list-style: none;
+}
+.surah-card {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: .6rem;
+  padding: .6rem .8rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+.surah-card:hover { border-color: var(--accent); }
+.surah-card .no {
+  min-width: 2.1rem; height: 2.1rem;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  font-size: .8rem;
+  color: var(--accent);
+}
+.surah-card .names { flex: 1; }
+.surah-card .names b { display: block; font-size: .95rem; }
+.surah-card .names small { color: #77705e; }
+.surah-card .ar { font-family: var(--font-hafs), serif; font-size: 1.5rem; color: var(--accent); }
+.continue-card {
+  display: inline-block;
+  margin: .4rem 0 1rem;
+  padding: .5rem .9rem;
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: .6rem;
+  text-decoration: none;
+  font-size: .9rem;
+}
+
+/* ---------- Ayar çubuğu ---------- */
+.settings-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .7rem 1rem;
+  padding: .55rem .9rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: .6rem;
+  margin-bottom: 1rem;
+  font-size: .8rem;
+}
+.settings-bar label { display: flex; align-items: center; gap: .3rem; }
+.settings-bar select, .settings-bar button { font: inherit; padding: .2rem .4rem; }
+.settings-bar .play-btn { margin-inline-start: auto; cursor: pointer; }
+.legend {
+  display: flex; flex-wrap: wrap; gap: .6rem 1.2rem;
+  font-size: .78rem;
+  padding: .5rem .9rem;
+  margin: -0.5rem 0 1rem;
+  background: var(--card);
+  border: 1px dashed var(--line);
+  border-radius: .6rem;
+}
+.legend .dot { width: .75rem; height: .75rem; border-radius: 50%; display: inline-block; vertical-align: -1px; }
+.legend .note { color: #77705e; }
+
+/* ---------- Okuyucu ---------- */
+.sure-head { text-align: center; margin: .6rem 0 1rem; }
+.sure-head .ar { font-family: var(--font-hafs), serif; font-size: 2.4rem; color: var(--accent); margin: 0; }
+.sure-head .meta { font-size: .85rem; color: #77705e; }
+.sure-head .nav { display: flex; justify-content: space-between; font-size: .85rem; }
+
+.basmala {
+  font-family: var(--font-hafs), serif;
+  text-align: center;
+  font-size: calc(1.9rem * var(--ar-scale, 1));
+  color: var(--ink);
+  margin: .8rem 0;
+}
+
+.group-title { font-size: 1rem; margin: 1.2rem 0 .3rem; }
+.group-title a { text-decoration: none; }
+
+.ayah {
+  padding: .7rem .6rem;
+  border-radius: .6rem;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 160px;
+}
+.ayah.active { background: var(--accent-soft); }
+
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem 1rem;
+  align-items: flex-end;
+}
+.w { display: inline-flex; flex-direction: column; align-items: center; gap: .1rem; }
+.w .ar {
+  font-family: var(--font-hafs), serif;
+  font-size: calc(2.1rem * var(--ar-scale, 1));
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.w small {
+  font-size: .67rem;
+  max-width: 7.5rem;
+  text-align: center;
+  color: inherit;
+}
+.w.hl .ar { background: #ffe08a; border-radius: .3rem; box-shadow: 0 0 0 4px #ffe08a; }
+
+.reader.black .w, .reader.black .w .ar span { color: var(--ink) !important; }
+.reader.hide-wtr .w .wtr { display: none; }
+.reader.hide-wen .w .wen { display: none; }
+
+.num {
+  align-self: center;
+  font-size: .85rem;
+  color: var(--accent);
+  border: 1.5px solid #c9a94e;
+  border-radius: 50%;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  background: var(--card);
+  cursor: pointer;
+}
+.num:hover { background: var(--accent-soft); }
+
+.meal {
+  font-size: .87rem;
+  color: #46413a;
+  margin-top: .5rem;
+  padding: .45rem .7rem;
+  background: var(--card);
+  border: 1px solid #e5dcc3;
+  border-radius: .4rem;
+}
+.meal b { color: var(--accent); font-weight: 600; }
+.meal .mtr, .meal .men { display: block; }
+.meal .men { margin-top: .25rem; }
+.reader.meal-kapali .meal { display: none; }
+.reader.meal-tr .meal .men { display: none; }
+.reader.meal-en .meal .mtr { display: none; }
+
+.page-mark, .juz-mark {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: .9rem 0;
+  font-size: .75rem;
+  color: var(--accent);
+}
+.page-mark::before, .page-mark::after, .juz-mark::before, .juz-mark::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--line);
+}
+.juz-mark { font-weight: 700; }
+.page-mark a { text-decoration: none; }
+
+/* ---------- Oynatıcı ---------- */
+.player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem;
+  padding: .55rem 1rem;
+  background: var(--card);
+  border-top: 2px solid var(--line);
+  font-size: .85rem;
+}
+.player button { font: inherit; cursor: pointer; padding: .25rem .55rem; }
+.player .now { font-weight: 600; }
+.player .repeat { display: flex; align-items: center; gap: .3rem; }
+
+@media (max-width: 640px) {
+  .w .ar { font-size: calc(1.7rem * var(--ar-scale, 1)); }
+  .w small { max-width: 5.5rem; }
+}
