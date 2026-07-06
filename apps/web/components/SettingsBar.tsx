@@ -35,6 +35,14 @@ export default function SettingsBar({ reciters, onPlaySurah, playing }: {
             <option value={1.4}>Çok büyük</option>
           </select>
         </label>
+        <label>Yazı
+          <select value={settings.arFont} onChange={(e) => update({ arFont: e.target.value as typeof settings.arFont })}>
+            <option value="hafs">KFGQPC Hafs</option>
+            <option value="amiri">Amiri Quran</option>
+            <option value="sheherazade">Scheherazade</option>
+            <option value="noto">Noto Naskh</option>
+          </select>
+        </label>
         <label>Kâri
           <select value={settings.reciter} onChange={(e) => update({ reciter: e.target.value })}>
             {reciters.map((r) => <option key={r.slug} value={r.slug}>{r.name}</option>)}
@@ -46,7 +54,7 @@ export default function SettingsBar({ reciters, onPlaySurah, playing }: {
       {settings.mode === 'mahrec' && (
         <div className="legend">
           {MAHREC_GROUPS.map((g) => (
-            <span key={g.key}><i className="dot" style={{ background: g.color }} /> {g.label}</span>
+            <span key={g.key}><i className="dot" style={{ background: `var(--mh-${g.key})` }} /> {g.label}</span>
           ))}
           <span className="note">Basitleştirilmiş gösterim; el-Hayşûm (ğunne) bağlamsal olduğundan renklendirilmez.</span>
         </div>

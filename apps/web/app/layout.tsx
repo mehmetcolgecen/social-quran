@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Link from 'next/link';
 import { SettingsProvider } from '@/lib/settings';
+import ThemeToggle from '@/components/ThemeToggle';
 import UserMenu from '@/components/UserMenu';
 import './globals.css';
 
@@ -9,6 +10,18 @@ const hafs = localFont({
   src: '../fonts/UthmanicHafs1Ver18.woff2',
   variable: '--font-hafs',
   display: 'swap',
+});
+const amiriQuran = localFont({
+  src: '../fonts/AmiriQuran.ttf',
+  variable: '--font-amiri',
+  display: 'swap',
+  preload: false,
+});
+const sheherazade = localFont({
+  src: '../fonts/ScheherazadeNew-Regular.woff2',
+  variable: '--font-sheherazade',
+  display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -18,13 +31,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={hafs.variable}>
+    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${sheherazade.variable}`}>
       <body>
         <SettingsProvider>
           <header className="site-header">
             <Link href="/" className="brand">Sosyal Kur&rsquo;an</Link>
             <nav><Link href="/">Sureler</Link></nav>
             <UserMenu />
+            <ThemeToggle />
           </header>
           {children}
           <footer className="site-footer">

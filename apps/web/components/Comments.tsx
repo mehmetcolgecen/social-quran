@@ -1,9 +1,9 @@
 'use client';
-// Yorum katmanı: rakam rozetleri (hover'da belirginleşir, ayarlardan kapatılabilir),
-// sağ panel (kelime/ayet/sayfa/sure hedefleri), public/private, yanıt + alıntı.
-// Misafir okur; yazmak için giriş gerekir.
+// Yorum katmanı: rakam rozetleri (hover'da önizleme), ilgili ayetin ALTINDA inline yorum kutusu,
+// kelime/ayet/sayfa/sure hedefleri, public/private, yanıt + alıntı + beğeni (kalp animasyonlu).
+// Misafir okur; yazmak için giriş gerekir. "Yorumlar" ayarı tüm katmanı kapatır.
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode,
+  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode,
 } from 'react';
 import { usePathname } from 'next/navigation';
 import { targetLabel, type Target } from '@/lib/target';
@@ -18,12 +18,15 @@ type CtxValue = {
   me: Me;
   counts: Record<number, Counts>;
   pageCount: number | null;
+  target: PanelTarget | null;
   open: (t: PanelTarget) => void;
+  close: () => void;
   refresh: () => void;
 };
 
 const Ctx = createContext<CtxValue>({
-  enabled: false, me: null, counts: {}, pageCount: null, open: () => {}, refresh: () => {},
+  enabled: false, me: null, counts: {}, pageCount: null, target: null,
+  open: () => {}, close: () => {}, refresh: () => {},
 });
 export const useComments = () => useContext(Ctx);
 
@@ -63,21 +66,36 @@ export function CommentsProvider({ groups, pageNumber, enabled, children }: {
     refresh();
   }, [enabled, refresh]);
 
+  // Aynı hedefe ikinci tıklama kutuyu kapatır (toggle)
+  const open = useCallback((t: PanelTarget) => {
+    setTarget((prev) => (prev && prev.type === t.type && prev.key === t.key ? null : t));
+  }, []);
+  const close = useCallback(() => setTarget(null), []);
+
   const value = useMemo<CtxValue>(
-    () => ({ enabled, me, counts, pageCount, open: setTarget, refresh }),
-    [enabled, me, counts, pageCount, refresh],
+    () => ({ enabled, me, counts, pageCount, target, open, close, refresh }),
+    [enabled, me, counts, pageCount, target, open, close, refresh],
   );
 
-  return (
-    <Ctx.Provider value={value}>
-      {children}
-      {enabled && target && <Panel target={target} onClose={() => setTarget(null)} />}
-    </Ctx.Provider>
-  );
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+// Hedefin bağlandığı ayet çapası ("2:255") — inline kutunun nerede açılacağını belirler
+function anchorOf(t: Target): string | null {
+  if (t.type === 'ayah') return t.key;
+  if (t.type === 'word') return t.key.split(':').slice(0, 2).join(':');
+  return null;
+}
+
+// AyahRow içine yerleştirilir; açık hedef bu ayete aitse yorum kutusunu gösterir
+export function InlineComments({ anchor }: { anchor: string }) {
+  const { enabled, target } = useComments();
+  if (!enabled || !target || anchorOf(target) !== anchor) return null;
+  return <CommentsBox />;
 }
 
 // Ayet rozeti: ayet + o ayetin kelime yorumlarının toplamı; 0 ise soluk "+".
-// Hover'da ilk yorumların kısa önizlemesi gösterilir (GOAL: rakam + hover belirginleşme).
+// Hover'da ilk yorumların kısa önizlemesi gösterilir.
 const previewCache = new Map<string, { display_name: string; body: string }[]>();
 
 export function AyahBadge({ surah, ayah, words }: {
@@ -85,7 +103,7 @@ export function AyahBadge({ surah, ayah, words }: {
 }) {
   const { enabled, counts, open } = useComments();
   const [preview, setPreview] = useState<{ display_name: string; body: string }[] | null>(null);
-  const timer = useState<{ id: ReturnType<typeof setTimeout> | null }>({ id: null })[0];
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   if (!enabled) return null;
   const c = counts[surah];
   const prefix = `${surah}:${ayah}:`;
@@ -95,7 +113,7 @@ export function AyahBadge({ surah, ayah, words }: {
   const key = `${surah}:${ayah}`;
   const showPreview = () => {
     if (!total) return;
-    timer.id = setTimeout(async () => {
+    timer.current = setTimeout(async () => {
       if (!previewCache.has(key)) {
         const rows = await getJSON<{ display_name: string; body: string }[]>(`/api/social/comments?type=ayah&key=${key}`);
         previewCache.set(key, (rows ?? []).slice(0, 2));
@@ -104,7 +122,7 @@ export function AyahBadge({ surah, ayah, words }: {
     }, 300);
   };
   const hidePreview = () => {
-    if (timer.id) clearTimeout(timer.id);
+    if (timer.current) clearTimeout(timer.current);
     setPreview(null);
   };
 
@@ -113,7 +131,7 @@ export function AyahBadge({ surah, ayah, words }: {
       <button
         className={`cbadge${total ? ' has' : ''}`}
         title={total ? `${total} yorum` : 'Yorum yaz'}
-        onClick={() => open({ type: 'ayah', key, words })}
+        onClick={() => { hidePreview(); open({ type: 'ayah', key, words }); }}
       >
         {total || '+'}
       </button>
@@ -129,23 +147,27 @@ export function AyahBadge({ surah, ayah, words }: {
   );
 }
 
-// Sure/sayfa hedef düğmeleri (okuyucunun üstünde)
+// Sure/sayfa hedef düğmeleri + bu hedefler için inline kutu
 export function TargetButtons({ groups, pageNumber }: { groups: ReaderGroup[]; pageNumber?: number }) {
-  const { enabled, counts, pageCount, open } = useComments();
+  const { enabled, counts, pageCount, target, open } = useComments();
   if (!enabled) return null;
+  const boxHere = target && (target.type === 'surah' || target.type === 'page');
   return (
-    <div className="target-buttons">
-      {groups.map((g) => (
-        <button key={g.surah.id} onClick={() => open({ type: 'surah', key: String(g.surah.id) })}>
-          💬 {g.surah.name_tr} Suresi yorumları ({counts[g.surah.id]?.surah ?? 0})
-        </button>
-      ))}
-      {pageNumber && (
-        <button onClick={() => open({ type: 'page', key: String(pageNumber) })}>
-          💬 Sayfa {pageNumber} yorumları ({pageCount ?? 0})
-        </button>
-      )}
-    </div>
+    <>
+      <div className="target-buttons">
+        {groups.map((g) => (
+          <button key={g.surah.id} onClick={() => open({ type: 'surah', key: String(g.surah.id) })}>
+            💬 {g.surah.name_tr} Suresi yorumları ({counts[g.surah.id]?.surah ?? 0})
+          </button>
+        ))}
+        {pageNumber && (
+          <button onClick={() => open({ type: 'page', key: String(pageNumber) })}>
+            💬 Sayfa {pageNumber} yorumları ({pageCount ?? 0})
+          </button>
+        )}
+      </div>
+      {boxHere && <CommentsBox />}
+    </>
   );
 }
 
@@ -159,10 +181,12 @@ type Comment = {
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' });
 
-function Panel({ target, onClose }: { target: PanelTarget; onClose: () => void }) {
-  const { me, refresh } = useComments();
+const initials = (name: string) => name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+
+export function CommentsBox() {
+  const { me, target, close, refresh } = useComments();
   const pathname = usePathname();
-  const [current, setCurrent] = useState<Target>({ type: target.type, key: target.key });
+  const [current, setCurrent] = useState<Target>({ type: target!.type, key: target!.key });
   const [items, setItems] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -172,7 +196,7 @@ function Panel({ target, onClose }: { target: PanelTarget; onClose: () => void }
   const [quote, setQuote] = useState<Comment | null>(null);
   const [editing, setEditing] = useState<Comment | null>(null);
 
-  useEffect(() => { setCurrent({ type: target.type, key: target.key }); }, [target]);
+  useEffect(() => { setCurrent({ type: target!.type, key: target!.key }); }, [target]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -239,29 +263,33 @@ function Panel({ target, onClose }: { target: PanelTarget; onClose: () => void }
   const renderItem = (c: Comment, isReply = false) => (
     <div key={c.id} className={`citem${isReply ? ' reply' : ''}`}>
       <div className="chead">
-        <a href={`/kullanici/${c.username}`}><b>{c.display_name}</b> @{c.username}</a>
-        <span>{fmtDate(c.created_at)}{c.visibility === 'private' && ' · 🔒 özel'}</span>
+        <a className="cauthor" href={`/kullanici/${c.username}`}>
+          <span className="cavatar">{initials(c.display_name)}</span>
+          <b>{c.display_name}</b> <span className="cmuted">@{c.username}</span>
+        </a>
+        <span className="cmuted">{fmtDate(c.created_at)}{c.visibility === 'private' && ' · 🔒'}</span>
       </div>
       {c.quote_id && byId.get(c.quote_id) && (
-        <blockquote className="cquote">{byId.get(c.quote_id)!.body.slice(0, 160)}</blockquote>
+        <blockquote className="cquote">❝ {byId.get(c.quote_id)!.body.slice(0, 160)}</blockquote>
       )}
       <p className="cbody">{c.body}</p>
       <div className="cactions">
         <button
           className={`clike${c.liked ? ' liked' : ''}`}
+          key={`like-${c.liked}`}
           disabled={!me || me.username === c.username}
           title={!me ? 'Beğenmek için giriş yapın' : me.username === c.username ? 'Kendi yorumunuz' : c.liked ? 'Beğeniyi geri al' : 'Beğen'}
           onClick={() => toggleLike(c)}
         >
-          {c.liked ? '♥' : '♡'} {c.like_count}
+          <span className="heart">{c.liked ? '♥' : '♡'}</span> {c.like_count}
         </button>
-        {me && !isReply && <button onClick={() => { setReplyTo(c); setQuote(null); setEditing(null); }}>Yanıtla</button>}
-        {me && <button onClick={() => { setQuote(c); setReplyTo(null); setEditing(null); }}>Alıntıla</button>}
-        {me && me.username !== c.username && <button onClick={() => report(c)}>Bildir</button>}
+        {me && !isReply && <button onClick={() => { setReplyTo(c); setQuote(null); setEditing(null); }}>↩ Yanıtla</button>}
+        {me && <button onClick={() => { setQuote(c); setReplyTo(null); setEditing(null); }}>❝ Alıntıla</button>}
+        {me && me.username !== c.username && <button onClick={() => report(c)}>⚑ Bildir</button>}
         {me?.username === c.username && (
           <>
-            <button onClick={() => { setEditing(c); setBody(c.body); setVisibility(c.visibility); setReplyTo(null); setQuote(null); }}>Düzenle</button>
-            <button onClick={() => remove(c)}>Sil</button>
+            <button onClick={() => { setEditing(c); setBody(c.body); setVisibility(c.visibility); setReplyTo(null); setQuote(null); }}>✎ Düzenle</button>
+            <button onClick={() => remove(c)}>🗑 Sil</button>
           </>
         )}
       </div>
@@ -270,28 +298,29 @@ function Panel({ target, onClose }: { target: PanelTarget; onClose: () => void }
   );
 
   return (
-    <aside className="cpanel">
-      <div className="cpanel-head">
-        <b>{targetLabel(current)}</b>
-        <button onClick={onClose} title="Kapat">✕</button>
+    <div className="cbox" dir="ltr">
+      <div className="cbox-head">
+        <b>💬 {targetLabel(current)}</b>
+        <span className="cmuted">{items.length} yorum</span>
+        <button className="cbox-close" onClick={close} title="Kapat">✕</button>
       </div>
-      {target.type === 'ayah' && target.words && (
+      {(target!.type === 'ayah' || target!.type === 'word') && target!.words && (
         <select
           className="cword-select"
           value={current.type === 'word' ? current.key : ''}
           onChange={(e) => setCurrent(e.target.value
             ? { type: 'word', key: e.target.value }
-            : { type: 'ayah', key: target.key })}
+            : { type: 'ayah', key: anchorOf(target!) ?? target!.key })}
         >
           <option value="">Ayetin tamamı</option>
-          {target.words.map((w) => (
-            <option key={w.p} value={`${target.key}:${w.p}`}>{w.p}. kelime — {w.ar}</option>
+          {target!.words.map((w) => (
+            <option key={w.p} value={`${anchorOf(target!)}:${w.p}`}>{w.p}. kelime — {w.ar}</option>
           ))}
         </select>
       )}
       <div className="clist">
         {loading ? <p className="cmuted">Yükleniyor…</p>
-          : tops.length === 0 ? <p className="cmuted">Henüz yorum yok.</p>
+          : tops.length === 0 ? <p className="cmuted">Henüz yorum yok — ilk yorumu siz yazın.</p>
           : tops.map((c) => renderItem(c))}
       </div>
       {me ? (
@@ -299,14 +328,18 @@ function Panel({ target, onClose }: { target: PanelTarget; onClose: () => void }
           {replyTo && <div className="cnote">↩ @{replyTo.username} yanıtlanıyor <button onClick={() => setReplyTo(null)}>vazgeç</button></div>}
           {quote && <div className="cnote">❝ @{quote.username} alıntılanıyor <button onClick={() => setQuote(null)}>vazgeç</button></div>}
           {editing && <div className="cnote">✎ yorum düzenleniyor <button onClick={() => { setEditing(null); setBody(''); }}>vazgeç</button></div>}
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000}
-            placeholder="Yorumunuz… (saygı çerçevesinde)" rows={3} />
+          <textarea
+            value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={3}
+            placeholder="Yorumunuz… (Ctrl+Enter ile gönder)"
+            onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && body.trim()) void submit(); }}
+          />
           <div className="cform-row">
             <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}>
-              <option value="public">Herkese açık</option>
-              <option value="private">Özel (yalnızca ben)</option>
+              <option value="public">🌍 Herkese açık</option>
+              <option value="private">🔒 Özel (yalnızca ben)</option>
             </select>
-            <button disabled={!body.trim()} onClick={submit}>{editing ? 'Kaydet' : 'Gönder'}</button>
+            <span className="cmuted">{body.length}/2000</span>
+            <button className="csubmit" disabled={!body.trim()} onClick={submit}>{editing ? 'Kaydet' : 'Gönder'}</button>
           </div>
           {error && <p className="cerror">{error}</p>}
         </div>
@@ -317,6 +350,6 @@ function Panel({ target, onClose }: { target: PanelTarget; onClose: () => void }
           </a>
         </div>
       )}
-    </aside>
+    </div>
   );
 }

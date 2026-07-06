@@ -37,14 +37,14 @@ export function getReciters(): Reciter[] {
   return db.prepare('SELECT slug, name FROM reciters ORDER BY name').all().map((r) => plain<Reciter>(r));
 }
 
-type WordRow = { ayah: number; position: number; text_uthmani: string; tr: string | null; en: string | null; page: number };
+type WordRow = { ayah: number; position: number; text_uthmani: string; tr: string | null; en: string | null; transliteration: string | null; page: number };
 type TransRow = { verse_key: string; lang: string; text: string };
 type AyahRow = { ayah: number; verse_key: string; page: number; juz: number };
 
 function buildAyahs(surahId: number, ayahFilter?: Set<number>): Ayah[] {
   const ayahRows = (db.prepare('SELECT ayah, verse_key, page, juz FROM ayahs WHERE surah = ? ORDER BY ayah')
     .all(surahId) as unknown as AyahRow[]).filter((a) => !ayahFilter || ayahFilter.has(a.ayah));
-  const words = db.prepare('SELECT ayah, position, text_uthmani, tr, en, page FROM words WHERE surah = ? ORDER BY ayah, position')
+  const words = db.prepare('SELECT ayah, position, text_uthmani, tr, en, transliteration, page FROM words WHERE surah = ? ORDER BY ayah, position')
     .all(surahId) as unknown as WordRow[];
   const meals = new Map<string, { tr: string; en: string }>();
   for (const t of db.prepare("SELECT verse_key, lang, text FROM translations WHERE verse_key LIKE ?")
@@ -56,7 +56,7 @@ function buildAyahs(surahId: number, ayahFilter?: Set<number>): Ayah[] {
   const wordsByAyah = new Map<number, Word[]>();
   for (const w of words) {
     if (!wordsByAyah.has(w.ayah)) wordsByAyah.set(w.ayah, []);
-    wordsByAyah.get(w.ayah)!.push({ p: w.position, ar: w.text_uthmani, tr: w.tr, en: w.en });
+    wordsByAyah.get(w.ayah)!.push({ p: w.position, ar: w.text_uthmani, tr: w.tr, en: w.en, tl: w.transliteration });
   }
   return ayahRows.map((a) => ({
     ayah: a.ayah,

@@ -13,6 +13,7 @@ export type Word = {
   ar: string;
   tr: string | null;
   en: string | null;
+  tl: string | null; // transliterasyon (kelime popover'ında gösterilir)
 };
 
 export type Ayah = {

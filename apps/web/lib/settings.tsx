@@ -10,7 +10,9 @@ export type Settings = {
   meal: 'kapali' | 'tr' | 'en' | 'iki';
   fontScale: number;
   reciter: string;
-  comments: boolean; // yorum rozetleri/paneli tamamen kapatılabilir (GOAL gereksinimi)
+  comments: boolean; // yorum rozetleri/kutuları tamamen kapatılabilir (GOAL gereksinimi)
+  theme: 'acik' | 'koyu';
+  arFont: 'hafs' | 'amiri' | 'sheherazade' | 'noto';
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -21,6 +23,8 @@ export const DEFAULT_SETTINGS: Settings = {
   fontScale: 1,
   reciter: 'Husary_64kbps',
   comments: true,
+  theme: 'acik',
+  arFont: 'hafs',
 };
 
 const STORAGE_KEY = 'sk-settings';
@@ -39,6 +43,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       if (saved) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(saved) });
     } catch { /* bozuk kayıt yok sayılır */ }
   }, []);
+
+  // Tema ve Arapça font tüm sayfayı etkiler → <html> data attribute'larıyla CSS'e aktarılır
+  useEffect(() => {
+    document.documentElement.dataset.theme = settings.theme;
+    document.documentElement.dataset.arfont = settings.arFont;
+  }, [settings.theme, settings.arFont]);
 
   const update = (patch: Partial<Settings>) => {
     setSettings((prev) => {
