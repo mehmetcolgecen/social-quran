@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getReciters, getSurah, getSurahContent } from '@/lib/db';
 import Reader from '@/components/Reader';
+import MemorizeSidebar, { type UniqueWord } from '@/components/MemorizeSidebar';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -17,6 +18,17 @@ export default async function SurePage({ params }: Props) {
   const content = getSurahContent(id);
   if (!content) notFound();
   const { surah } = content;
+
+  // Suredeki benzersiz kelimeler (ilk görülme sırasıyla) — ezber listesi için
+  const unique = new Map<string, UniqueWord>();
+  for (const ayah of content.ayahs) {
+    for (const w of ayah.words) {
+      const existing = unique.get(w.ar);
+      if (existing) existing.count++;
+      else unique.set(w.ar, { ar: w.ar, tr: w.tr, en: w.en, count: 1 });
+    }
+  }
+
   return (
     <main>
       <div className="sure-head">
@@ -33,7 +45,12 @@ export default async function SurePage({ params }: Props) {
           <Link className="view-toggle" href={`/sayfa/${content.ayahs[0].page}`}>🕮 Sayfa görünümüne geç</Link>
         </p>
       </div>
-      <Reader groups={[content]} reciters={getReciters()} />
+      <div className="sayfa-layout">
+        <div className="sayfa-content">
+          <Reader groups={[content]} reciters={getReciters()} />
+        </div>
+        <MemorizeSidebar words={[...unique.values()]} title="Surenin kelimeleri" />
+      </div>
     </main>
   );
 }

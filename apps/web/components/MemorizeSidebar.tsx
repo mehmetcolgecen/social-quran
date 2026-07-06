@@ -15,7 +15,7 @@ function motivation(done: number, total: number): string {
   return '🌟 Mâşâallah! Bu sayfadaki tüm kelimeler ezberinde.';
 }
 
-export default function MemorizeSidebar({ words }: { words: UniqueWord[] }) {
+export default function MemorizeSidebar({ words, title = 'Sayfanın kelimeleri' }: { words: UniqueWord[]; title?: string }) {
   const [learned, setLearned] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
 
@@ -41,7 +41,7 @@ export default function MemorizeSidebar({ words }: { words: UniqueWord[] }) {
 
   return (
     <aside className="memorize">
-      <h3>📖 Sayfanın kelimeleri</h3>
+      <h3>📖 {title}</h3>
       <p className="cmuted">{words.length} benzersiz kelime — ezberlediklerine tik at!</p>
       <div className="mem-progress" title={`%${pct}`}>
         <div className="mem-bar" style={{ width: `${pct}%` }} />

@@ -1,6 +1,7 @@
 'use client';
 import { useSettings } from '@/lib/settings';
 import { MAHREC_GROUPS } from '@/lib/mahrec';
+import { LANGS, WBW_LANGS, flagOf } from '@/lib/langs';
 import type { Reciter } from '@/lib/types';
 
 const FRAMES = [
@@ -12,12 +13,27 @@ const FRAMES = [
   ['sade', 'Sade altın'],
 ] as const;
 
+const AR_FONTS = [
+  ['hafs', 'KFGQPC Hafs'],
+  ['husrev', 'Hüsrev Hattı'],
+  ['amiri', 'Amiri Quran'],
+  ['sheherazade', 'Scheherazade'],
+  ['lateef', 'Lateef'],
+  ['ruqaa', 'Aref Ruqaa'],
+  ['noto', 'Noto Naskh'],
+] as const;
+
+function toggleIn(list: string[], code: string): string[] {
+  return list.includes(code) ? list.filter((x) => x !== code) : [...list, code];
+}
+
+const langSummary = (selected: string[]) =>
+  selected.length === 0 ? 'Kapalı' : selected.map(flagOf).join(' ');
+
 export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelect = false }: {
   reciters: Reciter[]; onPlaySurah: () => void; playing: boolean; frameSelect?: boolean;
 }) {
   const { settings, update } = useSettings();
-  const wordLangLabel = settings.wordTr && settings.wordEn ? 'TR+EN'
-    : settings.wordTr ? 'TR' : settings.wordEn ? 'EN' : 'Kapalı';
   return (
     <>
       <div className="settings-bar">
@@ -29,20 +45,29 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
           </select>
         </label>
         <details className="dd">
-          <summary>Kelime anlamı: <b>{wordLangLabel}</b></summary>
+          <summary>Kelime: <b>{langSummary(settings.wordLangs)}</b></summary>
           <div className="dd-panel">
-            <label><input type="checkbox" checked={settings.wordTr} onChange={(e) => update({ wordTr: e.target.checked })} /> Türkçe</label>
-            <label><input type="checkbox" checked={settings.wordEn} onChange={(e) => update({ wordEn: e.target.checked })} /> English</label>
+            {WBW_LANGS.map((l) => (
+              <label key={l.code}>
+                <input type="checkbox" checked={settings.wordLangs.includes(l.code)}
+                  onChange={() => update({ wordLangs: toggleIn(settings.wordLangs, l.code) })} />
+                {l.flag} {l.label}
+              </label>
+            ))}
           </div>
         </details>
-        <label>Meal
-          <select value={settings.meal} onChange={(e) => update({ meal: e.target.value as typeof settings.meal })}>
-            <option value="kapali">Kapalı</option>
-            <option value="tr">Türkçe</option>
-            <option value="en">English</option>
-            <option value="iki">TR + EN</option>
-          </select>
-        </label>
+        <details className="dd">
+          <summary>Meal: <b>{langSummary(settings.meals)}</b></summary>
+          <div className="dd-panel">
+            {LANGS.map((l) => (
+              <label key={l.code}>
+                <input type="checkbox" checked={settings.meals.includes(l.code)}
+                  onChange={() => update({ meals: toggleIn(settings.meals, l.code) })} />
+                {l.flag} {l.label}
+              </label>
+            ))}
+          </div>
+        </details>
         <label>Boyut
           <select value={settings.fontScale} onChange={(e) => update({ fontScale: Number(e.target.value) })}>
             <option value={0.85}>Küçük</option>
@@ -53,10 +78,7 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
         </label>
         <label>Yazı
           <select value={settings.arFont} onChange={(e) => update({ arFont: e.target.value as typeof settings.arFont })}>
-            <option value="hafs">KFGQPC Hafs</option>
-            <option value="amiri">Amiri Quran</option>
-            <option value="sheherazade">Scheherazade</option>
-            <option value="noto">Noto Naskh</option>
+            {AR_FONTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
         </label>
         {frameSelect && (
@@ -72,14 +94,17 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
           </select>
         </label>
         <label><input type="checkbox" checked={settings.comments} onChange={(e) => update({ comments: e.target.checked })} /> Yorumlar</label>
+        <label><input type="checkbox" checked={settings.notes} onChange={(e) => update({ notes: e.target.checked })} /> 📝 Notlarım</label>
         <button className="play-btn" onClick={onPlaySurah}>{playing ? '⏹ Durdur' : '▶ Dinle'}</button>
       </div>
       {settings.mode === 'mahrec' && (
         <div className="legend">
           {MAHREC_GROUPS.map((g) => (
-            <span key={g.key}><i className="dot" style={{ background: `var(--mh-${g.key})` }} /> {g.label}</span>
+            <span key={g.key}>
+              <i className="dot" style={{ background: g.neutral ? 'var(--ink)' : `var(--mh-${g.key})` }} /> {g.label}
+            </span>
           ))}
-          <span className="note">Basitleştirilmiş gösterim; el-Hayşûm (ğunne) bağlamsal olduğundan renklendirilmez.</span>
+          <span className="note">Yalnızca tecvid takibinde kritik bölgeler renklidir; el-Hayşûm (ğunne) bağlamsal olduğundan gösterilmez.</span>
         </div>
       )}
     </>

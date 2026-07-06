@@ -38,6 +38,9 @@ html[data-theme='koyu'] {
 html { --font-ar: var(--font-hafs), serif; }
 html[data-arfont='amiri'] { --font-ar: var(--font-amiri), serif; }
 html[data-arfont='sheherazade'] { --font-ar: var(--font-sheherazade), serif; }
+html[data-arfont='lateef'] { --font-ar: var(--font-lateef), serif; }
+html[data-arfont='ruqaa'] { --font-ar: var(--font-ruqaa), serif; }
+html[data-arfont='husrev'] { --font-ar: var(--font-husrev), serif; }
 html[data-arfont='noto'] { --font-ar: 'Noto Naskh Arabic', 'Noto Naskh Arabic UI', serif; }
 
 * { box-sizing: border-box; }
@@ -285,9 +288,37 @@ h1, h2 { color: var(--ink); }
 .ayah.pop-open { content-visibility: visible; position: relative; z-index: 40; }
 .w.wopen { z-index: 41; }
 
+/* ---------- Hâşiye: kendi yorumların el yazısı not görünümü ---------- */
+.mynotes { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; margin: .35rem 0 0 1.6rem; }
+.mynote {
+  display: flex;
+  align-items: flex-start;
+  gap: .15rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: start;
+  color: #7a5c2e;
+  max-width: 34rem;
+}
+html[data-theme='koyu'] .mynote { color: #d9c08a; }
+.mynote-arrow { width: 2.4rem; height: 1.9rem; flex-shrink: 0; margin-top: -.6rem; opacity: .8; }
+.mynote-text {
+  font-family: var(--font-note), cursive;
+  font-size: 1.12rem;
+  line-height: 1.25;
+  border: 1.4px dashed currentColor;
+  border-radius: .5rem .8rem .5rem .9rem;
+  padding: .25rem .7rem;
+  transform: rotate(-1.2deg);
+  background: color-mix(in srgb, var(--card) 60%, transparent);
+  transition: transform .15s;
+}
+.mynote:hover .mynote-text { transform: rotate(0deg) scale(1.02); }
+.mynote-text em { font-style: normal; opacity: .7; font-size: .95rem; }
+
 .reader.black .w, .reader.black .w .ar span { color: var(--ink) !important; }
-.reader.hide-wtr .w .wtr { display: none; }
-.reader.hide-wen .w .wen { display: none; }
 
 .num {
   align-self: center;
@@ -312,11 +343,8 @@ h1, h2 { color: var(--ink); }
   border-radius: .4rem;
 }
 .meal b { color: var(--accent); font-weight: 600; }
-.meal .mtr, .meal .men { display: block; }
-.meal .men { margin-top: .25rem; }
-.reader.meal-kapali .meal { display: none; }
-.reader.meal-tr .meal .men { display: none; }
-.reader.meal-en .meal .mtr { display: none; }
+.meal .mline { display: block; }
+.meal .mline + .mline { margin-top: .3rem; }
 
 .page-mark, .juz-mark {
   display: flex;

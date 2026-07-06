@@ -30,13 +30,17 @@ db.exec(`
   CREATE TABLE timings (
     reciter TEXT NOT NULL REFERENCES reciters(slug), surah INTEGER NOT NULL, ayah INTEGER NOT NULL,
     segments TEXT NOT NULL, PRIMARY KEY (reciter, surah, ayah));
+  CREATE TABLE word_langs (
+    location TEXT NOT NULL, lang TEXT NOT NULL, text TEXT NOT NULL,
+    PRIMARY KEY (location, lang));
   CREATE INDEX idx_words_verse ON words(surah, ayah);
   CREATE INDEX idx_words_page ON words(page);
   CREATE INDEX idx_ayahs_page ON ayahs(page);
+  CREATE INDEX idx_translations_lang ON translations(lang);
 `);
 
 // Postgres seed için satırları biriktir (COPY text formatı)
-const pg = { surahs: [], ayahs: [], words: [], translations: [], reciters: [], timings: [] };
+const pg = { surahs: [], ayahs: [], words: [], translations: [], reciters: [], timings: [], word_langs: [] };
 const esc = (v) => v == null ? '\\N' : String(v).replaceAll('\\', '\\\\').replaceAll('\t', '\\t').replaceAll('\n', '\\n').replaceAll('\r', '\\r');
 const row = (table, vals) => pg[table].push(vals.map(esc).join('\t'));
 
@@ -90,6 +94,41 @@ for (let ch = 1; ch <= 114; ch++) {
   }
 }
 
+// Ek meal dilleri: /quran/translations yanıtı ayet (verse id) sırasındadır → sıra tanzil sırasıyla eş
+const verseKeysInOrder = [...tanzilByKey.keys()];
+const { readdirSync } = await import('node:fs');
+for (const f of readdirSync(`${RAW}qdc`).filter((x) => /^translation-\w+\.json$/.test(x))) {
+  const { lang, source, translations } = await readJSON(`${RAW}qdc/${f}`);
+  if (translations.length !== 6236) throw new Error(`${f}: ${translations.length} != 6236`);
+  translations.forEach((t, i) => {
+    const vals = [verseKeysInOrder[i], lang, source, t.text];
+    insTrans.run(...vals);
+    row('translations', vals);
+  });
+  console.log(`meal-${lang} yüklendi (${source})`);
+}
+
+// Ek kelime-kelime diller (ur/hi) → word_langs
+const insWordLang = db.prepare('INSERT INTO word_langs VALUES (?,?,?)');
+for (const lang of ['ur', 'hi']) {
+  let count = 0;
+  for (let ch = 1; ch <= 114; ch++) {
+    const pad = String(ch).padStart(3, '0');
+    const { verses } = await readJSON(`${RAW}qdc/words-${lang}/${pad}.json`);
+    for (const v of verses) {
+      for (const w of v.words.filter((x) => x.char_type_name === 'word')) {
+        const text = w.translation?.text ?? '';
+        if (!text) continue;
+        insWordLang.run(w.location, lang, text);
+        row('word_langs', [w.location, lang, text]);
+        count++;
+      }
+    }
+  }
+  if (count < 77000) throw new Error(`word_langs ${lang}: ${count} kelime — eksik`);
+  console.log(`kelime-${lang} yüklendi (${count})`);
+}
+
 const insReciter = db.prepare('INSERT INTO reciters VALUES (?,?)');
 const insTiming = db.prepare('INSERT INTO timings VALUES (?,?,?,?)');
 for (const { slug, name, align } of RECITERS) {
@@ -114,6 +153,7 @@ CREATE TABLE words (id INT PRIMARY KEY, location TEXT NOT NULL UNIQUE, surah INT
 CREATE TABLE translations (verse_key TEXT NOT NULL, lang TEXT NOT NULL, source TEXT NOT NULL, text TEXT NOT NULL, PRIMARY KEY (verse_key, lang));
 CREATE TABLE reciters (slug TEXT PRIMARY KEY, name TEXT NOT NULL);
 CREATE TABLE timings (reciter TEXT NOT NULL REFERENCES reciters(slug), surah INT NOT NULL, ayah INT NOT NULL, segments JSONB NOT NULL, PRIMARY KEY (reciter, surah, ayah));
+CREATE TABLE word_langs (location TEXT NOT NULL, lang TEXT NOT NULL, text TEXT NOT NULL, PRIMARY KEY (location, lang));
 `;
 const copyBlocks = Object.entries(pg)
   .map(([t, rows]) => `COPY ${t} FROM stdin;\n${rows.join('\n')}\n\\.\n`).join('');

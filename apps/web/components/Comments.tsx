@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { usePathname } from 'next/navigation';
 import { targetLabel, type Target } from '@/lib/target';
+import { useSettings } from '@/lib/settings';
 import type { ReaderGroup } from '@/lib/types';
 
 type Counts = { surah: number; ayahs: Record<string, number>; words: Record<string, number> };
@@ -14,19 +15,22 @@ type Me = { username: string; name: string } | null;
 type SlimWord = { p: number; ar: string };
 type PanelTarget = Target & { words?: SlimWord[] };
 
+type OwnNote = { id: string; target_type: string; target_key: string; body: string };
+
 type CtxValue = {
   enabled: boolean;
   me: Me;
   counts: Record<number, Counts>;
   pageCount: number | null;
   target: PanelTarget | null;
+  myNotes: Map<string, OwnNote[]>; // ayet çapası → kendi yorumların (hâşiye görünümü)
   open: (t: PanelTarget) => void;
   close: () => void;
   refresh: () => void;
 };
 
 const Ctx = createContext<CtxValue>({
-  enabled: false, me: null, counts: {}, pageCount: null, target: null,
+  enabled: false, me: null, counts: {}, pageCount: null, target: null, myNotes: new Map(),
   open: () => {}, close: () => {}, refresh: () => {},
 });
 export const useComments = () => useContext(Ctx);
@@ -45,6 +49,7 @@ export function CommentsProvider({ groups, pageNumber, enabled, children }: {
   const [counts, setCounts] = useState<Record<number, Counts>>({});
   const [pageCount, setPageCount] = useState<number | null>(null);
   const [target, setTarget] = useState<PanelTarget | null>(null);
+  const [myNotes, setMyNotes] = useState<Map<string, OwnNote[]>>(new Map());
 
   const surahIds = useMemo(() => groups.map((g) => g.surah.id), [groups]);
 
@@ -59,6 +64,18 @@ export function CommentsProvider({ groups, pageNumber, enabled, children }: {
         if (c) setPageCount(c.page);
       });
     }
+    // Kendi yorumların → hâşiye notları (ayet/kelime hedefli olanlar, ayet çapasına gruplu)
+    void getJSON<OwnNote[]>('/api/social/users/me/comments').then((rows) => {
+      if (!rows) return;
+      const m = new Map<string, OwnNote[]>();
+      for (const n of rows) {
+        if (n.target_type !== 'ayah' && n.target_type !== 'word') continue;
+        const anchor = n.target_type === 'ayah' ? n.target_key : n.target_key.split(':').slice(0, 2).join(':');
+        if (!m.has(anchor)) m.set(anchor, []);
+        m.get(anchor)!.push(n);
+      }
+      setMyNotes(m);
+    });
   }, [surahIds, pageNumber]);
 
   useEffect(() => {
@@ -74,8 +91,8 @@ export function CommentsProvider({ groups, pageNumber, enabled, children }: {
   const close = useCallback(() => setTarget(null), []);
 
   const value = useMemo<CtxValue>(
-    () => ({ enabled, me, counts, pageCount, target, open, close, refresh }),
-    [enabled, me, counts, pageCount, target, open, close, refresh],
+    () => ({ enabled, me, counts, pageCount, target, myNotes, open, close, refresh }),
+    [enabled, me, counts, pageCount, target, myNotes, open, close, refresh],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
@@ -91,6 +108,35 @@ export function InlineComments({ anchor }: { anchor: string }) {
   const { enabled, target } = useComments();
   if (!enabled || !target || anchorOf(target) !== anchor) return null;
   return <AyahWordBox />;
+}
+
+// Hâşiye: kullanıcının kendi yorumları, ayetin altında kesikli okla bağlı
+// el yazısı notlar olarak görünür (okumayı bozmayan nostaljik kenar notu).
+export function MyNotes({ anchor, words }: { anchor: string; words: SlimWord[] }) {
+  const { enabled, me, myNotes, open } = useComments();
+  const { settings } = useSettings();
+  if (!enabled || !settings.notes || !me) return null;
+  const notes = myNotes.get(anchor);
+  if (!notes?.length) return null;
+  return (
+    <div className="mynotes">
+      {notes.slice(0, 2).map((n) => (
+        <button key={n.id} className="mynote" title="Nota git"
+          onClick={() => open(n.target_type === 'word'
+            ? { type: 'word', key: n.target_key, words }
+            : { type: 'ayah', key: anchor, words })}>
+          <svg className="mynote-arrow" viewBox="0 0 44 34" aria-hidden="true">
+            <path d="M40 30 C 30 28, 14 24, 8 8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeDasharray="5 4" strokeLinecap="round" />
+            <path d="M4 14 L8 5 L15 10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="mynote-text">
+            {n.target_type === 'word' && <em>({n.target_key.split(':')[2]}. kelime)</em>} {n.body.slice(0, 140)}{n.body.length > 140 ? '…' : ''}
+          </span>
+        </button>
+      ))}
+      {notes.length > 2 && <span className="cmuted">+{notes.length - 2} notun daha…</span>}
+    </div>
+  );
 }
 
 // ---------- Rozet + hover önizleme ----------

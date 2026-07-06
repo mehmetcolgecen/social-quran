@@ -2,18 +2,19 @@
 // el-Cevf ve el-Hayşûm gerçekte bağlam kurallarıdır; burada harf-tabanlı yaklaşım kullanılır
 // (و her zaman eş-Şefetân, ا med kabul edilir). el-Hayşûm (ğunne) bu sürümde renklendirilmez.
 // Renkler tema-duyarlı CSS değişkenlerinden gelir (--mh-*).
+// Okunabilirlik için el-Lisân (harflerin çoğunluğu) renklendirilmez — nötr (siyah) kalır;
+// yalnızca tecvid takibinde ayırt edilmesi kritik bölgeler boyanır.
 export const MAHREC_GROUPS = [
-  { key: 'cevf', label: 'el-Cevf (boşluk)' },
-  { key: 'halk', label: 'el-Halk (boğaz)' },
-  { key: 'lisan', label: 'el-Lisân (dil)' },
-  { key: 'sefetan', label: 'eş-Şefetân (dudaklar)' },
+  { key: 'cevf', label: 'el-Cevf (boşluk)', neutral: false },
+  { key: 'halk', label: 'el-Halk (boğaz)', neutral: false },
+  { key: 'sefetan', label: 'eş-Şefetân (dudaklar)', neutral: false },
+  { key: 'lisan', label: 'el-Lisân (dil) — nötr', neutral: true },
 ] as const;
 
 const CHAR_GROUP = new Map<string, string>();
 for (const c of 'اٰآىٱ') CHAR_GROUP.set(c, 'cevf');
 for (const c of 'ءهعحغخأإئؤ') CHAR_GROUP.set(c, 'halk');
 for (const c of 'فبمو') CHAR_GROUP.set(c, 'sefetan');
-for (const c of 'قكجشيضلنرطدتظذثصزسة') CHAR_GROUP.set(c, 'lisan');
 
 let segmenter: Intl.Segmenter | null = null;
 

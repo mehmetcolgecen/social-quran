@@ -1,24 +1,31 @@
 'use client';
-// Okuma deneyimi çekirdeği: renkli kelimeler + anlam satırları + mahreç modu + kelime takipli ses.
-// Kelimeye tıklanınca popover açılır (anlam/transliterasyon + segment bazlı dinleme + yorum).
-// Yorumlar ilgili ayetin altında inline kutuda açılır (Comments.tsx).
-// Renkler tema-duyarlı CSS değişkenlerinden gelir (--w0..--w9, --mh-*).
+// Okuma deneyimi çekirdeği: renkli kelimeler + çok dilli anlam satırları + mahreç modu +
+// kelime takipli ses + hâşiye (el yazısı kendi notların) görünümü.
+// tr/en kelime/meal verisi sayfa yüküne gömülü; ur/hi kelime ile diğer mealler tembel yüklenir.
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useSettings } from '@/lib/settings';
 import { mahrecSegments } from '@/lib/mahrec';
+import { EMBEDDED_MEAL, EMBEDDED_WBW, flagOf } from '@/lib/langs';
 import type { Ayah, ReaderGroup, Reciter, Word } from '@/lib/types';
 import SettingsBar from './SettingsBar';
-import { AyahBadge, CommentsProvider, InlineComments, TargetButtons, useComments } from './Comments';
+import { AyahBadge, CommentsProvider, InlineComments, MyNotes, TargetButtons, useComments } from './Comments';
 
 const BASMALA = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
 const pad3 = (n: number) => String(n).padStart(3, '0');
 
 type Mode = 'renkli' | 'siyah' | 'mahrec';
+type LangMap = Record<string, Record<string, string>>; // lang → (location|verse_key) → metin
 
-function WordPopover({ surah, ayah, word, words, count, onListen, onClose }: {
+function wordText(word: Word, loc: string, lang: string, extra: LangMap): string | null {
+  if (lang === 'tr') return word.tr;
+  if (lang === 'en') return word.en;
+  return extra[lang]?.[loc] ?? null;
+}
+
+function WordPopover({ surah, ayah, word, words, count, wbwExtra, onListen, onClose }: {
   surah: number; ayah: number; word: Word; words: { p: number; ar: string }[];
-  count: number; onListen: () => void; onClose: () => void;
+  count: number; wbwExtra: LangMap; onListen: () => void; onClose: () => void;
 }) {
   const { open } = useComments();
   const { settings } = useSettings();
@@ -29,18 +36,21 @@ function WordPopover({ surah, ayah, word, words, count, onListen, onClose }: {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [onClose]);
+  const loc = `${surah}:${ayah}:${word.p}`;
   return (
     <span className="wpop" dir="ltr" onClick={(e) => e.stopPropagation()}>
       <span className="wpop-ar" dir="rtl">{word.ar}</span>
       {word.tl && <i className="wpop-tl">{word.tl}</i>}
       <span className="wpop-meanings">
-        {settings.wordTr && word.tr && <span><b>TR</b> {word.tr}</span>}
-        {settings.wordEn && word.en && <span><b>EN</b> {word.en}</span>}
-        {!settings.wordTr && !settings.wordEn && <span className="cmuted">Kelime anlamı kapalı (ayarlardan açın)</span>}
+        {settings.wordLangs.map((lang) => {
+          const text = wordText(word, loc, lang, wbwExtra);
+          return text ? <span key={lang}><b>{flagOf(lang)}</b> {text}</span> : null;
+        })}
+        {settings.wordLangs.length === 0 && <span className="cmuted">Kelime anlamı kapalı (ayarlardan açın)</span>}
       </span>
       <span className="wpop-actions">
         <button onClick={() => { onListen(); onClose(); }}>▶ Dinle</button>
-        <button onClick={() => { open({ type: 'word', key: `${surah}:${ayah}:${word.p}`, words }); onClose(); }}>
+        <button onClick={() => { open({ type: 'word', key: loc, words }); onClose(); }}>
           💬 Yorum{count > 0 ? ` (${count})` : ''}
         </button>
       </span>
@@ -48,9 +58,9 @@ function WordPopover({ surah, ayah, word, words, count, onListen, onClose }: {
   );
 }
 
-function WordSpan({ word, wi, mode, active, count, onClick, popover }: {
-  word: Word; wi: number; mode: Mode; active: boolean; count: number;
-  onClick: () => void; popover: ReactNode;
+function WordSpan({ word, loc, wi, mode, active, count, wordLangs, wbwExtra, onClick, popover }: {
+  word: Word; loc: string; wi: number; mode: Mode; active: boolean; count: number;
+  wordLangs: string[]; wbwExtra: LangMap; onClick: () => void; popover: ReactNode;
 }) {
   const color = mode === 'renkli' ? `var(--w${wi % 10})` : undefined;
   return (
@@ -63,8 +73,10 @@ function WordSpan({ word, wi, mode, active, count, onClick, popover }: {
             ))
           : word.ar}
       </button>
-      {word.tr && <small className="wtr">{word.tr}</small>}
-      {word.en && <small className="wen">{word.en}</small>}
+      {wordLangs.map((lang) => {
+        const text = wordText(word, loc, lang, wbwExtra);
+        return text ? <small key={lang} className="wln">{text}</small> : null;
+      })}
       {popover}
     </span>
   );
@@ -73,12 +85,14 @@ function WordSpan({ word, wi, mode, active, count, onClick, popover }: {
 const AyahRow = memo(function AyahRow({
   surahId, ayah, mode, activeWord, isActive, gi, ai, onPlay,
   wordCounts, openWord, onWordClick, onWordListen,
+  wordLangs, meals, wbwExtra, mealExtra,
 }: {
   surahId: number; ayah: Ayah; mode: Mode; activeWord: number | null;
   isActive: boolean; gi: number; ai: number; onPlay: (gi: number, ai: number) => void;
   wordCounts: Record<number, number> | undefined; openWord: number | null;
   onWordClick: (gi: number, ai: number, p: number) => void;
   onWordListen: (gi: number, ai: number, p: number) => void;
+  wordLangs: string[]; meals: string[]; wbwExtra: LangMap; mealExtra: LangMap;
 }) {
   const slimWords = useMemo(() => ayah.words.map((w) => ({ p: w.p, ar: w.ar })), [ayah.words]);
   return (
@@ -86,13 +100,14 @@ const AyahRow = memo(function AyahRow({
       <div className="words" dir="rtl">
         {ayah.words.map((w, wi) => (
           <WordSpan
-            key={w.p} word={w} wi={wi} mode={mode}
+            key={w.p} word={w} loc={`${surahId}:${ayah.ayah}:${w.p}`} wi={wi} mode={mode}
             active={isActive && activeWord === w.p}
             count={wordCounts?.[w.p] ?? 0}
+            wordLangs={wordLangs} wbwExtra={wbwExtra}
             onClick={() => onWordClick(gi, ai, w.p)}
             popover={openWord === w.p ? (
               <WordPopover surah={surahId} ayah={ayah.ayah} word={w} words={slimWords}
-                count={wordCounts?.[w.p] ?? 0}
+                count={wordCounts?.[w.p] ?? 0} wbwExtra={wbwExtra}
                 onListen={() => onWordListen(gi, ai, w.p)}
                 onClose={() => onWordClick(gi, ai, w.p)} />
             ) : null}
@@ -103,25 +118,34 @@ const AyahRow = memo(function AyahRow({
         </button>
         <AyahBadge surah={surahId} ayah={ayah.ayah} words={slimWords} />
       </div>
-      <div className="meal">
-        <span className="mtr"><b>{ayah.key}</b> {ayah.meal.tr}</span>
-        <span className="men"><b>{ayah.key}</b> {ayah.meal.en}</span>
-      </div>
+      {meals.length > 0 && (
+        <div className="meal">
+          {meals.map((lang) => {
+            const text = lang === 'tr' ? ayah.meal.tr : lang === 'en' ? ayah.meal.en : mealExtra[lang]?.[ayah.key];
+            return (
+              <span key={lang} className="mline">
+                <b>{flagOf(lang)} {ayah.key}</b> {text ?? '…'}
+              </span>
+            );
+          })}
+        </div>
+      )}
+      <MyNotes anchor={`${surahId}:${ayah.ayah}`} words={slimWords} />
       <InlineComments anchor={`${surahId}:${ayah.ayah}`} />
     </div>
   );
 });
 
 // Provider içinde çalışan gövde: kelime yorum sayıları için context'e erişir
-function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, playWord }: {
+function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, playWord, wordLangs, meals, wbwExtra, mealExtra }: {
   groups: ReaderGroup[]; showPageMarkers: boolean; mode: Mode;
   pos: { g: number; a: number } | null; activeWord: number | null;
   playAt: (g: number, a: number) => void; playWord: (g: number, a: number, p: number) => void;
+  wordLangs: string[]; meals: string[]; wbwExtra: LangMap; mealExtra: LangMap;
 }) {
   const { counts } = useComments();
   const [openWord, setOpenWord] = useState<{ gi: number; ai: number; p: number } | null>(null);
 
-  // location ("2:255:3") sayımlarını ayet bazında gruplar → AyahRow'a stabil prop
   const wordCountMap = useMemo(() => {
     const m = new Map<string, Record<number, number>>();
     for (const c of Object.values(counts)) {
@@ -178,7 +202,8 @@ function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, pl
                     activeWord={isActive ? activeWord : null} isActive={isActive}
                     gi={gi} ai={ai} onPlay={playAt}
                     wordCounts={wordCountMap.get(`${group.surah.id}:${ayah.ayah}`)}
-                    openWord={rowOpenWord} onWordClick={onWordClick} onWordListen={onWordListen} />
+                    openWord={rowOpenWord} onWordClick={onWordClick} onWordListen={onWordListen}
+                    wordLangs={wordLangs} meals={meals} wbwExtra={wbwExtra} mealExtra={mealExtra} />
                 </div>
               );
             })}
@@ -204,6 +229,33 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
   const [repeat, setRepeat] = useState(false);
   const repeatRef = useRef(repeat);
   repeatRef.current = repeat;
+
+  // Tembel dil verileri: ur/hi kelime çevirileri + tr/en dışı mealler
+  const [wbwExtra, setWbwExtra] = useState<LangMap>({});
+  const [mealExtra, setMealExtra] = useState<LangMap>({});
+  const loadedRef = useRef(new Set<string>());
+  useEffect(() => {
+    const load = (kind: 'wbw' | 'meal', lang: string, surah: number) => {
+      const key = `${kind}:${lang}:${surah}`;
+      if (loadedRef.current.has(key)) return;
+      loadedRef.current.add(key);
+      void fetch(`/api/${kind}/${lang}/${surah}`)
+        .then((r) => (r.ok ? r.json() : {}))
+        .then((map: Record<string, string>) => {
+          const set = kind === 'wbw' ? setWbwExtra : setMealExtra;
+          set((prev) => ({ ...prev, [lang]: { ...prev[lang], ...map } }));
+        })
+        .catch(() => loadedRef.current.delete(key));
+    };
+    for (const g of groups) {
+      for (const lang of settings.wordLangs) {
+        if (!EMBEDDED_WBW.includes(lang as typeof EMBEDDED_WBW[number])) load('wbw', lang, g.surah.id);
+      }
+      for (const lang of settings.meals) {
+        if (!EMBEDDED_MEAL.includes(lang as typeof EMBEDDED_MEAL[number])) load('meal', lang, g.surah.id);
+      }
+    }
+  }, [groups, settings.wordLangs, settings.meals]);
 
   const ensureTimings = useCallback(async (surah: number) => {
     const key = `${settings.reciter}:${surah}`;
@@ -239,7 +291,6 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
 
   const playAt = useCallback((g: number, a: number) => startAudio(g, a, null), [startAudio]);
 
-  // Kelime segmenti çalma: zamanlama varsa yalnızca o aralık, yoksa ayetin tamamı
   const playWord = useCallback(async (g: number, a: number, p: number) => {
     const surah = groups[g].surah.id;
     const ayah = groups[g].ayahs[a].ayah;
@@ -318,17 +369,12 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
     playAt(g, a);
   };
 
-  const cls = [
-    'reader',
-    settings.mode === 'siyah' ? 'black' : '',
-    settings.wordTr ? '' : 'hide-wtr',
-    settings.wordEn ? '' : 'hide-wen',
-    `meal-${settings.meal}`,
-  ].filter(Boolean).join(' ');
+  const cls = ['reader', settings.mode === 'siyah' ? 'black' : ''].filter(Boolean).join(' ');
 
   const body = (
     <ReaderBody groups={groups} showPageMarkers={showPageMarkers} mode={settings.mode}
-      pos={pos} activeWord={activeWord} playAt={playAt} playWord={playWord} />
+      pos={pos} activeWord={activeWord} playAt={playAt} playWord={playWord}
+      wordLangs={settings.wordLangs} meals={settings.meals} wbwExtra={wbwExtra} mealExtra={mealExtra} />
   );
 
   return (

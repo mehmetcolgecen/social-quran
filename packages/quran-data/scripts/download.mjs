@@ -10,6 +10,20 @@ const API = 'https://api.quran.com/api/v4';
 const ALIGN_URL = 'https://github.com/cpfair/quran-align/releases/download/release-2016-11-24/quran-align-data-2016-11-24.zip';
 // quran.com API meal kaynak ID'leri: 52 = Elmalılı Hamdi Yazır (TR), 20 = Saheeh International (EN)
 const TRANSLATION_ID = { tr: 52, en: 20 };
+// Ek meal dilleri (tam çeviri; /quran/translations/{id} tek istekte 6236 ayet döner)
+const MEAL_LANGS = {
+  de: { id: 27, source: 'Frank Bubenheim & Nadeem Elyas' },
+  fr: { id: 31, source: 'Muhammad Hamidullah' },
+  it: { id: 153, source: 'Hamza Roberto Piccardo' },
+  es: { id: 83, source: 'Sheikh Isa García' },
+  ur: { id: 234, source: 'Fatah Muhammad Jalandhari' },
+  hi: { id: 122, source: 'Maulana Azizul Haque al-Umari' },
+  ko: { id: 219, source: 'Hamed Choi' },
+  ja: { id: 218, source: 'Saeed Sato' },
+  zh: { id: 56, source: 'Ma Jian' },
+};
+// Kelime-kelime çevirisi API'de mevcut ek diller (tr/en zaten kelime dosyalarında gömülü)
+const WBW_EXTRA = ['ur', 'hi'];
 
 async function downloadTanzil() {
   const path = `${RAW}tanzil/quran-uthmani.txt`;
@@ -59,6 +73,40 @@ async function downloadWords() {
   }
 }
 
+async function downloadMeals() {
+  for (const [lang, { id, source }] of Object.entries(MEAL_LANGS)) {
+    const path = `${RAW}qdc/translation-${lang}.json`;
+    if (await exists(path)) { console.log(`meal-${lang}: mevcut, atlandı`); continue; }
+    const data = await fetchWithRetry(`${API}/quran/translations/${id}`);
+    if (data.translations.length !== 6236) throw new Error(`meal-${lang}: ${data.translations.length} != 6236`);
+    await writeJSON(path, { lang, id, source, translations: data.translations });
+    console.log(`meal-${lang}: indirildi (${source})`);
+    await sleep(100);
+  }
+}
+
+async function downloadWbwExtra() {
+  for (const lang of WBW_EXTRA) {
+    await ensureDir(`${RAW}qdc/words-${lang}`);
+    for (let ch = 1; ch <= 114; ch++) {
+      const path = `${RAW}qdc/words-${lang}/${String(ch).padStart(3, '0')}.json`;
+      if (await exists(path)) continue;
+      const verses = [];
+      let page = 1;
+      while (page) {
+        const url = `${API}/verses/by_chapter/${ch}?language=${lang}&words=true&word_fields=location&per_page=50&page=${page}`;
+        const data = await fetchWithRetry(url);
+        verses.push(...data.verses);
+        page = data.pagination.next_page;
+        await sleep(60);
+      }
+      await writeJSON(path, { chapter: ch, verses });
+      if (ch % 30 === 0) console.log(`words-${lang}: ${ch}/114`);
+    }
+    console.log(`words-${lang}: tamamlandı`);
+  }
+}
+
 async function downloadAlign() {
   const dir = `${RAW}quran-align`;
   const zip = `${dir}/quran-align-data.zip`;
@@ -76,5 +124,7 @@ async function downloadAlign() {
 await downloadTanzil();
 await downloadChapters();
 await downloadWords();
+await downloadMeals();
+await downloadWbwExtra();
 await downloadAlign();
 console.log('İndirme tamam. Sıradaki: npm run -w packages/quran-data validate');

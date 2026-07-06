@@ -90,6 +90,20 @@ export function getPageContent(page: number): ReaderGroup[] {
   }));
 }
 
+// Tembel yüklenen ek meal dilleri — verse_key → metin
+export function getMealMap(lang: string, surah: number): Record<string, string> {
+  const rows = db.prepare('SELECT verse_key, text FROM translations WHERE lang = ? AND verse_key LIKE ?')
+    .all(lang, `${surah}:%`) as unknown as { verse_key: string; text: string }[];
+  return Object.fromEntries(rows.map((r) => [r.verse_key, stripNotes(r.text)]));
+}
+
+// Tembel yüklenen ek kelime-kelime diller (ur/hi) — location → metin
+export function getWordLangMap(lang: string, surah: number): Record<string, string> {
+  const rows = db.prepare('SELECT location, text FROM word_langs WHERE lang = ? AND location LIKE ?')
+    .all(lang, `${surah}:%`) as unknown as { location: string; text: string }[];
+  return Object.fromEntries(rows.map((r) => [r.location, r.text]));
+}
+
 export function getTimings(reciter: string, surah: number): AyahTiming[] {
   const rows = db.prepare('SELECT ayah, segments FROM timings WHERE reciter = ? AND surah = ? ORDER BY ayah')
     .all(reciter, surah) as unknown as { ayah: number; segments: string }[];

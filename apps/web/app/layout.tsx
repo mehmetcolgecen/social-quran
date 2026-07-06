@@ -23,6 +23,31 @@ const sheherazade = localFont({
   display: 'swap',
   preload: false,
 });
+const lateef = localFont({
+  src: '../fonts/Lateef-Regular.woff2',
+  variable: '--font-lateef',
+  display: 'swap',
+  preload: false,
+});
+const ruqaa = localFont({
+  src: '../fonts/ArefRuqaa-Regular.ttf',
+  variable: '--font-ruqaa',
+  display: 'swap',
+  preload: false,
+});
+const husrev = localFont({
+  src: '../fonts/HusrevHatti.ttf',
+  variable: '--font-husrev',
+  display: 'swap',
+  preload: false,
+});
+// El yazısı not fontu (hâşiye görünümü) — latin-ext, Türkçe karakterleri kapsar
+const caveat = localFont({
+  src: '../fonts/Caveat.ttf',
+  variable: '--font-note',
+  display: 'swap',
+  preload: false,
+});
 
 export const metadata: Metadata = {
   title: { default: 'Sosyal Kur’an', template: '%s — Sosyal Kur’an' },
@@ -31,7 +56,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${sheherazade.variable}`}>
+    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${sheherazade.variable} ${lateef.variable} ${ruqaa.variable} ${husrev.variable} ${caveat.variable}`}>
       <body>
         <SettingsProvider>
           <header className="site-header">
