@@ -1,9 +1,10 @@
 'use client';
-// Ayet paylaşım kartı — canvas'ta yaldızlı çerçeveli görsel üretir (PNG indir / paylaş).
+// Ayet paylaşım kartı — canvas'ta yaldızlı çerçeveli görsel üretir (PNG indir / panoya kopyala).
 // Arapça metin seçili mushaf fontuyla, RTL sarmalı çizilir; kart yüksekliği içeriğe göre daralır.
 // Modal, .ayah'ın paint-containment'ından etkilenmemesi için portal ile body'ye açılır.
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useT } from '@/lib/i18n';
 
 type Props = {
   verseKey: string;
@@ -30,7 +31,9 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): st
 }
 
 export default function ShareAyah({ verseKey, surahName, words, mealTr }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Esc ile kapanma
@@ -146,19 +149,23 @@ export default function ShareAyah({ verseKey, surahName, words, mealTr }: Props)
     a.click();
   };
 
-  const share = async () => {
+  // Kartı panoya PNG olarak kopyalar; pano API'si yoksa indirmeye düşer
+  const copy = async () => {
     const canvas = canvasRef.current!;
     const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, 'image/png'));
     if (!blob) return;
-    const file = new File([blob], `ayet-${verseKey.replace(':', '-')}.png`, { type: 'image/png' });
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: `${surahName} ${verseKey}` }).catch(() => { /* vazgeçildi */ });
-    } else download();
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      download();
+    }
   };
 
   return (
     <>
-      <button className="sharebtn" title="Ayet kartı oluştur" onClick={() => setOpen(true)}>
+      <button className="sharebtn" title={t('shareCardTitle')} onClick={() => setOpen(true)}>
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="3.5" />
           <path d="M3 16 L8.5 10.5 L13 15 L16 12 L21 17" />
@@ -170,9 +177,9 @@ export default function ShareAyah({ verseKey, surahName, words, mealTr }: Props)
           <span className="share-box">
             <canvas ref={canvasRef} width={W} height={620} />
             <span className="share-actions">
-              <button onClick={download}>⬇ PNG indir</button>
-              <button onClick={share}>📤 Paylaş</button>
-              <button onClick={() => setOpen(false)}>Kapat</button>
+              <button onClick={download}>{t('sharePngDownload')}</button>
+              <button onClick={copy}>{copied ? t('shareCopied') : t('shareCopy')}</button>
+              <button onClick={() => setOpen(false)}>{t('close')}</button>
             </span>
           </span>
         </span>,

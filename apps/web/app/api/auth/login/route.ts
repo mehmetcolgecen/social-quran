@@ -4,7 +4,13 @@ import { OIDC, getDiscovery } from '@/lib/oidc';
 
 export async function GET(req: NextRequest) {
   const next = req.nextUrl.searchParams.get('next') ?? '/';
-  const disc = await getDiscovery();
+  // Kimlik sunucusuna ulaşılamıyorsa 500 yerine ana sayfaya anlaşılır hatayla dön
+  let disc;
+  try {
+    disc = await getDiscovery();
+  } catch {
+    return NextResponse.redirect(new URL('/?hata=kimlik', req.nextUrl.origin));
+  }
   const state = randomBytes(16).toString('base64url');
   const verifier = randomBytes(32).toString('base64url');
   const challenge = createHash('sha256').update(verifier).digest('base64url');

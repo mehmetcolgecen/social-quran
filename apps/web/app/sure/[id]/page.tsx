@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getReciters, getSurah, getSurahContent } from '@/lib/db';
+import { Tt } from '@/lib/i18n';
 import Reader from '@/components/Reader';
+import SurahBanner from '@/components/SurahBanner';
 import MemorizeSidebar, { type UniqueWord } from '@/components/MemorizeSidebar';
 
 type Props = { params: Promise<{ id: string }> };
@@ -30,26 +32,26 @@ export default async function SurePage({ params }: Props) {
   }
 
   return (
-    <main>
+    <main className="sure-main">
       <div className="sure-head">
         <div className="nav">
           {id > 1 ? <Link href={`/sure/${id - 1}`}>← {getSurah(id - 1)!.name_tr}</Link> : <span />}
           {id < 114 ? <Link href={`/sure/${id + 1}`}>{getSurah(id + 1)!.name_tr} →</Link> : <span />}
         </div>
-        <p className="ar">{surah.name_arabic}</p>
+        <SurahBanner surah={surah} />
         <p className="meta">
-          {surah.id}. {surah.name_tr} Suresi ({surah.name_en}) · {surah.verses_count} ayet ·{' '}
+          {surah.id}. {surah.name_tr} Suresi ({surah.name_en}) · {surah.verses_count} <Tt k="ayahs" /> ·{' '}
           {surah.revelation_place === 'makkah' ? 'Mekkî' : 'Medenî'}
         </p>
         <p className="meta">
-          <Link className="view-toggle" href={`/sayfa/${content.ayahs[0].page}`}>🕮 Sayfa görünümüne geç</Link>
+          <Link className="view-toggle" href={`/sayfa/${content.ayahs[0].page}`}><Tt k="toPageView" /></Link>
         </p>
       </div>
       <div className="sayfa-layout">
         <div className="sayfa-content">
           <Reader groups={[content]} reciters={getReciters()} />
         </div>
-        <MemorizeSidebar words={[...unique.values()]} title="Surenin kelimeleri" />
+        <MemorizeSidebar words={[...unique.values()]} titleKey="memorizeTitleSurah" />
       </div>
     </main>
   );

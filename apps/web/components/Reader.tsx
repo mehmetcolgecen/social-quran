@@ -5,14 +5,16 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useSettings } from '@/lib/settings';
+import { useT } from '@/lib/i18n';
 import { mahrecSegments } from '@/lib/mahrec';
 import { EMBEDDED_MEAL, EMBEDDED_WBW, flagOf } from '@/lib/langs';
 import type { Ayah, ReaderGroup, Reciter, Word } from '@/lib/types';
 import SettingsBar from './SettingsBar';
+import SurahBanner from './SurahBanner';
 import BookmarkButton from './BookmarkButton';
 import MiracleNote from './MiracleNote';
 import ShareAyah from './ShareAyah';
-import { AyahBadge, CommentsProvider, InlineComments, MyNotes, TargetButtons, useComments } from './Comments';
+import { AyahBadge, CommentsProvider, InlineComments, MyNotes, NoteRail, TargetButtons, useComments } from './Comments';
 
 const BASMALA = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
 const pad3 = (n: number) => String(n).padStart(3, '0');
@@ -32,6 +34,7 @@ function WordPopover({ surah, ayah, word, words, count, wbwExtra, onListen, onCl
 }) {
   const { open } = useComments();
   const { settings } = useSettings();
+  const t = useT();
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!(e.target as HTMLElement).closest('.wpop')) onClose();
@@ -52,9 +55,9 @@ function WordPopover({ surah, ayah, word, words, count, wbwExtra, onListen, onCl
         {settings.wordLangs.length === 0 && <span className="cmuted">Kelime anlamı kapalı (ayarlardan açın)</span>}
       </span>
       <span className="wpop-actions">
-        <button onClick={() => { onListen(); onClose(); }}>▶ Dinle</button>
+        <button onClick={() => { onListen(); onClose(); }}>{t('listenWord')}</button>
         <button onClick={() => { open({ type: 'word', key: loc, words }); onClose(); }}>
-          💬 Yorum{count > 0 ? ` (${count})` : ''}
+          {t('comment')}{count > 0 ? ` (${count})` : ''}
         </button>
       </span>
     </span>
@@ -100,6 +103,9 @@ const AyahRow = memo(function AyahRow({
   const slimWords = useMemo(() => ayah.words.map((w) => ({ p: w.p, ar: w.ar })), [ayah.words]);
   return (
     <div id={`ayet-${surahId}-${ayah.ayah}`} className={`ayah${isActive ? ' active' : ''}${openWord != null ? ' pop-open' : ''}`}>
+      {/* Ağır içerik .ayah-inner'da: content-visibility oraya uygulanır, böylece
+          dışarı taşan hâşiye kutuları ve kenar rayı paint containment'a KIRPILMAZ. */}
+      <div className="ayah-inner">
       <div className="words" dir="rtl">
         {ayah.words.map((w, wi) => (
           <WordSpan
@@ -135,9 +141,11 @@ const AyahRow = memo(function AyahRow({
           })}
         </div>
       )}
+      <InlineComments anchor={`${surahId}:${ayah.ayah}`} />
+      </div>
+      <NoteRail anchor={`${surahId}:${ayah.ayah}`} />
       <MiracleNote verseKey={ayah.key} />
       <MyNotes anchor={`${surahId}:${ayah.ayah}`} words={slimWords} />
-      <InlineComments anchor={`${surahId}:${ayah.ayah}`} />
     </div>
   );
 });
@@ -177,10 +185,10 @@ function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, pl
         let prevJuz = -1;
         return (
           <section key={group.surah.id}>
-            {groups.length > 1 && (
-              <h2 className="group-title">
-                <Link href={`/sure/${group.surah.id}`}>{group.surah.id}. {group.surah.name_tr} Suresi</Link>
-              </h2>
+            {(groups.length > 1 || group.ayahs[0]?.ayah === 1) && (
+              <Link href={`/sure/${group.surah.id}`} className="sure-banner-link" title={`${group.surah.id}. ${group.surah.name_tr}`}>
+                <SurahBanner surah={group.surah} compact />
+              </Link>
             )}
             {group.ayahs[0]?.ayah === 1 && group.surah.id !== 1 && group.surah.id !== 9 && (
               <p className="basmala" dir="rtl">{BASMALA}</p>
@@ -217,6 +225,32 @@ function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, pl
         );
       })}
     </>
+  );
+}
+
+function Player({ groups, pos, paused, repeat, speed, onStep, onPause, onRepeat, onSpeed, onStop }: {
+  groups: ReaderGroup[]; pos: { g: number; a: number }; paused: boolean; repeat: boolean; speed: number;
+  onStep: (dir: 1 | -1) => void; onPause: () => void; onRepeat: (v: boolean) => void;
+  onSpeed: (v: number) => void; onStop: () => void;
+}) {
+  const t = useT();
+  return (
+    <div className="player">
+      <button onClick={() => onStep(-1)} title={t('prevAyah')}>⏮</button>
+      <button onClick={onPause} title={paused ? t('resume') : t('pause')}>{paused ? '▶' : '⏸'}</button>
+      <button onClick={() => onStep(1)} title={t('nextAyah')}>⏭</button>
+      <span className="now">
+        {groups[pos.g].surah.name_tr} {groups[pos.g].surah.id}:{groups[pos.g].ayahs[pos.a].ayah}
+      </span>
+      <label className="repeat"><input type="checkbox" checked={repeat} onChange={(e) => onRepeat(e.target.checked)} /> {t('repeat')}</label>
+      <select value={speed} onChange={(e) => onSpeed(Number(e.target.value))} title={t('speed')}>
+        <option value={0.75}>0.75×</option>
+        <option value={1}>1×</option>
+        <option value={1.25}>1.25×</option>
+        <option value={1.5}>1.5×</option>
+      </select>
+      <button onClick={onStop} title={t('close')}>✕</button>
+    </div>
   );
 }
 
@@ -401,24 +435,8 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
           </div>
         ) : body}
         <audio ref={audioRef} onTimeUpdate={onTimeUpdate} onEnded={onEnded} onLoadedMetadata={onLoadedMetadata} />
-        {pos && (
-          <div className="player">
-            <button onClick={() => stepAyah(-1)} title="Önceki ayet">⏮</button>
-            <button onClick={togglePause} title={paused ? 'Devam' : 'Duraklat'}>{paused ? '▶' : '⏸'}</button>
-            <button onClick={() => stepAyah(1)} title="Sonraki ayet">⏭</button>
-            <span className="now">
-              {groups[pos.g].surah.name_tr} {groups[pos.g].surah.id}:{groups[pos.g].ayahs[pos.a].ayah}
-            </span>
-            <label className="repeat"><input type="checkbox" checked={repeat} onChange={(e) => setRepeat(e.target.checked)} /> Tekrar</label>
-            <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} title="Hız">
-              <option value={0.75}>0.75×</option>
-              <option value={1}>1×</option>
-              <option value={1.25}>1.25×</option>
-              <option value={1.5}>1.5×</option>
-            </select>
-            <button onClick={stop} title="Kapat">✕</button>
-          </div>
-        )}
+        {pos && <Player groups={groups} pos={pos} paused={paused} repeat={repeat} speed={speed}
+          onStep={stepAyah} onPause={togglePause} onRepeat={setRepeat} onSpeed={setSpeed} onStop={stop} />}
       </CommentsProvider>
     </div>
   );

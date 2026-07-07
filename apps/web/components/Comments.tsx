@@ -8,7 +8,8 @@ import {
 import { usePathname } from 'next/navigation';
 import { targetLabel, type Target } from '@/lib/target';
 import { useSettings } from '@/lib/settings';
-import { useDragNote } from '@/lib/useDragNote';
+import { useT } from '@/lib/i18n';
+import { saveNotePos, useDragNote } from '@/lib/useDragNote';
 import type { ReaderGroup } from '@/lib/types';
 
 type Counts = { surah: number; ayahs: Record<string, number>; words: Record<string, number> };
@@ -112,25 +113,102 @@ export function InlineComments({ anchor }: { anchor: string }) {
 }
 
 // Hâşiye: kullanıcının kendi yorumları, kesikli okla Arapça metne bağlı el yazısı notlar.
-// Varsayılan görünür; kutu SÜRÜKLENEREK istenen yere taşınabilir (konum hatırlanır).
+// Varsayılan görünür; kutu SÜRÜKLENEREK taşınır, köşesinden BOYUTLANDIRILIR,
+// ok UCU da sürüklenerek istenen noktaya yöneltilir; "–" ile küçültülüp 🗨 çipine
+// dönüşür (tümü not bazında hatırlanır). Ok canlı çizilir: kutu ya da uç taşındıkça
+// uzar/kısalır ve yönünü günceller.
 function DraggableNote({ id, onOpen, children, className = '' }: {
   id: string; onOpen?: () => void; children: ReactNode; className?: string;
 }) {
-  const { style, movedRef, handlers } = useDragNote(id);
+  const t = useT();
+  const { style, pos, width, tip, minimized, setMinimized, movedRef, handlers, resizeHandlers, tipHandlers } = useDragNote(id);
+  const ref = useRef<HTMLDivElement>(null);
+  const [arrow, setArrow] = useState<{ dx: number; dy: number } | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || minimized) { setArrow(null); return; }
+    const draw = () => {
+      const words = el.closest('.ayah')?.querySelector('.words');
+      if (!words) { setArrow(null); return; }
+      const b = el.getBoundingClientRect();
+      const w = words.getBoundingClientRect();
+      const dx = w.left - b.right + 4 + tip.x;   // varsayılan hedef: Arapça bloğunun sol kenarı
+      const dy = w.top + 22 - b.top + tip.y;     // + kullanıcının uç kaydırması
+      setArrow(Math.abs(dx) < 1600 && Math.abs(dy) < 1600 ? { dx, dy } : null);
+    };
+    draw();
+    window.addEventListener('resize', draw);
+    return () => window.removeEventListener('resize', draw);
+  }, [pos, width, tip, minimized]);
+
+  // Kuadratik eğri + uç açısına göre ok başı
+  const head = arrow && (() => {
+    const cx = arrow.dx * 0.45;
+    const cy = Math.min(arrow.dy - 28, arrow.dy * 0.2);
+    const ang = Math.atan2(arrow.dy - cy, arrow.dx - cx);
+    return {
+      path: `M 0 6 Q ${cx} ${cy}, ${arrow.dx} ${arrow.dy}`,
+      h1: { x: arrow.dx + Math.cos(ang + 2.6) * 9, y: arrow.dy + Math.sin(ang + 2.6) * 9 },
+      h2: { x: arrow.dx + Math.cos(ang - 2.6) * 9, y: arrow.dy + Math.sin(ang - 2.6) * 9 },
+    };
+  })();
+
+  if (minimized) {
+    return (
+      <div
+        ref={ref}
+        className={`mynote mini ${className}`}
+        style={style}
+        role="button"
+        tabIndex={0}
+        title={t('noteMax')}
+        {...handlers}
+        onClick={() => { if (!movedRef.current) setMinimized(false); }}
+        onKeyDown={(e) => { if (e.key === 'Enter') setMinimized(false); }}
+      >
+        <span className="mynote-chip">🗨</span>
+      </div>
+    );
+  }
+
   return (
-    <button
+    <div
+      ref={ref}
       className={`mynote ${className}`}
       style={style}
-      title={onOpen ? 'Sürükleyerek taşı · tıklayınca yorumu açar' : 'Sürükleyerek taşı'}
+      role="button"
+      tabIndex={0}
+      title={`${t('noteDragHint')}${onOpen ? ` · ${t('noteOpenHint')}` : ''}`}
       {...handlers}
       onClick={() => { if (!movedRef.current && onOpen) onOpen(); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' && onOpen) onOpen(); }}
     >
-      <svg className="mynote-arrow" viewBox="0 0 44 34" aria-hidden="true">
-        <path d="M4 30 C 12 22, 24 14, 38 7" fill="none" stroke="currentColor" strokeWidth="1.9" strokeDasharray="5 4" strokeLinecap="round" />
-        <path d="M30 4 L39 6 L36 15" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      {head && arrow && (
+        <svg className="mynote-arrow" width={1} height={1} aria-hidden="true">
+          <path d={head.path} fill="none" stroke="currentColor" strokeWidth="1.9" strokeDasharray="5 4" strokeLinecap="round" />
+          <path d={`M ${head.h1.x} ${head.h1.y} L ${arrow.dx} ${arrow.dy} L ${head.h2.x} ${head.h2.y}`}
+            fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+      {arrow && (
+        <span
+          className="mynote-tip"
+          title="Ok ucunu sürükle"
+          style={{ insetInlineEnd: -arrow.dx - 9, top: arrow.dy - 9 }}
+          {...tipHandlers}
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
+      <button
+        className="mynote-min"
+        title={t('noteMin')}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); setMinimized(true); }}
+      >–</button>
       {children}
-    </button>
+      <span className="mynote-resize" title="Boyutlandır" {...resizeHandlers} onClick={(e) => e.stopPropagation()} />
+    </div>
   );
 }
 
@@ -142,22 +220,112 @@ export function MyNotes({ anchor, words }: { anchor: string; words: SlimWord[] }
   if (!notes?.length) return null;
   return (
     <div className="mynotes">
-      {notes.slice(0, 2).map((n) => (
+      {notes.map((n) => (
         <DraggableNote key={n.id} id={`c${n.id}`}
           onOpen={() => open(n.target_type === 'word'
             ? { type: 'word', key: n.target_key, words }
             : { type: 'ayah', key: anchor, words })}>
           <span className="mynote-text">
-            {n.target_type === 'word' && <em>({n.target_key.split(':')[2]}. kelime)</em>} {n.body.slice(0, 140)}{n.body.length > 140 ? '…' : ''}
+            {n.target_type === 'word' && <em>({n.target_key.split(':')[2]}. kelime)</em>} {n.body}
           </span>
         </DraggableNote>
       ))}
-      {notes.length > 2 && <span className="cmuted">+{notes.length - 2} notun daha…</span>}
     </div>
   );
 }
 
 export { DraggableNote };
+
+// ---------- Kenar şeridi: boş alana tıkla → o noktada not yaz ----------
+// Hâşiye rayındaki (ayetin solundaki boşluk) tıklamayla küçük bir yazma kutusu açılır;
+// kaydedilen not aynı hizada hâşiye olarak belirir.
+export function NoteRail({ anchor }: { anchor: string }) {
+  const { enabled, me, refresh } = useComments();
+  const { settings } = useSettings();
+  const t = useT();
+  const [at, setAt] = useState<number | null>(null);
+  if (!enabled || !settings.notes) return null;
+  return (
+    <>
+      <div
+        className="note-rail"
+        title={t('railHint')}
+        onClick={(e) => {
+          if (e.target !== e.currentTarget) return;
+          setAt(e.clientY - e.currentTarget.getBoundingClientRect().top);
+        }}
+      />
+      {at != null && (
+        <RailComposer
+          anchor={anchor} y={at} me={me}
+          onClose={() => setAt(null)}
+          onSaved={(id) => {
+            if (id) saveNotePos(`c${id}`, { x: 0, y: Math.max(0, at - 16) });
+            setAt(null);
+            refresh();
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function RailComposer({ anchor, y, me, onClose, onSaved }: {
+  anchor: string; y: number; me: Me; onClose: () => void; onSaved: (id: string | null) => void;
+}) {
+  const pathname = usePathname();
+  const t = useT();
+  const [body, setBody] = useState('');
+  const [visibility, setVisibility] = useState<'public' | 'private'>('private');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function submit() {
+    if (!body.trim() || busy) return;
+    setBusy(true); setError('');
+    try {
+      const res = await fetch('/api/social/comments', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ target_type: 'ayah', target_key: anchor, body, visibility }),
+      });
+      if (!res.ok) { setError(t('noteFailed')); return; }
+      const created = (await res.json().catch(() => null)) as { id?: number | string } | null;
+      onSaved(created?.id != null ? String(created.id) : null);
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="rail-composer" style={{ top: y }} onClick={(e) => e.stopPropagation()}>
+      {me ? (
+        <>
+          <b>✎ {anchor} {t('noteTo')}</b>
+          <textarea
+            autoFocus rows={3} maxLength={2000} value={body}
+            placeholder={t('notePh')}
+            onChange={(e) => setBody(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) void submit();
+              if (e.key === 'Escape') onClose();
+            }}
+          />
+          <span className="rail-composer-row">
+            <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}>
+              <option value="private">{t('visPrivateShort')}</option>
+              <option value="public">{t('visPublicShort')}</option>
+            </select>
+            <button className="csubmit" disabled={!body.trim() || busy} onClick={submit}>{t('save')}</button>
+            <button className="cbox-close" style={{ position: 'static' }} onClick={onClose}>✕</button>
+          </span>
+          {error && <span className="cerror">{error}</span>}
+        </>
+      ) : (
+        <a className="clogin" href={`/api/auth/login?next=${encodeURIComponent(pathname)}`}>
+          {t('loginToNote')}
+        </a>
+      )}
+    </div>
+  );
+}
 
 // ---------- Rozet + hover önizleme ----------
 const previewCache = new Map<string, { display_name: string; body: string }[]>();
@@ -330,6 +498,7 @@ function CommentForm({ me, onSubmit, replyTo, quote, onCancelReply, onCancelQuot
   onCancelReply: () => void; onCancelQuote: () => void; extra?: ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useT();
   const [body, setBody] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [error, setError] = useState('');
@@ -338,7 +507,7 @@ function CommentForm({ me, onSubmit, replyTo, quote, onCancelReply, onCancelQuot
     return (
       <div className="cform">
         <a className="clogin" href={`/api/auth/login?next=${encodeURIComponent(pathname)}`}>
-          Yorum yazmak için giriş yapın →
+          {t('loginToComment')}
         </a>
       </div>
     );
@@ -356,16 +525,16 @@ function CommentForm({ me, onSubmit, replyTo, quote, onCancelReply, onCancelQuot
       {extra}
       <textarea
         value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={3}
-        placeholder="Yorumunuz… (Ctrl+Enter ile gönder)"
+        placeholder={t('writePh')}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && body.trim()) void submit(); }}
       />
       <div className="cform-row">
         <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}>
-          <option value="public">🌍 Herkese açık</option>
-          <option value="private">🔒 Özel (yalnızca ben)</option>
+          <option value="public">{t('visPublic')}</option>
+          <option value="private">{t('visPrivate')}</option>
         </select>
         <span className="cmuted">{body.length}/2000</span>
-        <button className="csubmit" disabled={!body.trim()} onClick={submit}>Gönder</button>
+        <button className="csubmit" disabled={!body.trim()} onClick={submit}>{t('send')}</button>
       </div>
       {error && <p className="cerror">{error}</p>}
     </div>
@@ -389,6 +558,7 @@ async function postComment(target: Target, body: string, visibility: string, rep
 // ---------- Ayet kutusu: "Ayet | Kelimeler" sekmeleri ----------
 function AyahWordBox() {
   const { me, counts, target, close, refresh } = useComments();
+  const t = useT();
   const anchor = anchorOf(target!)!;
   const [s] = anchor.split(':').map(Number);
   const words = target!.words ?? [];
@@ -463,29 +633,29 @@ function AyahWordBox() {
   return (
     <div className="cbox" dir="ltr">
       <div className="cbox-head">
-        <b>💬 {anchor} ayeti</b>
-        <span className="cmuted">{ayahCount + wordTotal} yorum</span>
-        <button className="cbox-close" onClick={close} title="Kapat">✕</button>
+        <b>💬 {anchor} {t('verseOf')}</b>
+        <span className="cmuted">{ayahCount + wordTotal} {t('commentCount')}</span>
+        <button className="cbox-close" onClick={close} title={t('close')}>✕</button>
       </div>
       <div className="ctabs">
-        <button className={tab === 'ayet' ? 'on' : ''} onClick={() => setTab('ayet')}>Ayet ({ayahCount})</button>
-        <button className={tab === 'kelime' ? 'on' : ''} onClick={() => setTab('kelime')}>Kelimeler ({wordTotal})</button>
+        <button className={tab === 'ayet' ? 'on' : ''} onClick={() => setTab('ayet')}>{t('tabAyah')} ({ayahCount})</button>
+        <button className={tab === 'kelime' ? 'on' : ''} onClick={() => setTab('kelime')}>{t('tabWords')} ({wordTotal})</button>
       </div>
       <div className="clist">
         {tab === 'ayet' && (
-          ayahItems === null ? <p className="cmuted">Yükleniyor…</p>
-            : ayahItems.length === 0 ? <p className="cmuted">Henüz ayet yorumu yok — ilk yorumu siz yazın.</p>
+          ayahItems === null ? <p className="cmuted">{t('loading')}</p>
+            : ayahItems.length === 0 ? <p className="cmuted">{t('noAyahComments')}</p>
             : <CommentList items={ayahItems} me={me} onChanged={reload} onReply={onReply} onQuote={onQuote} />
         )}
         {tab === 'kelime' && (
-          wordItems === null ? <p className="cmuted">Yükleniyor…</p>
+          wordItems === null ? <p className="cmuted">{t('loading')}</p>
             : [...wordItems.entries()].every(([, v]) => v.length === 0)
-              ? <p className="cmuted">Henüz kelime yorumu yok — aşağıdan kelime seçip ilk yorumu yazın.</p>
+              ? <p className="cmuted">{t('noWordComments')}</p>
               : [...wordItems.entries()].filter(([, v]) => v.length > 0).map(([p, items]) => (
                   <div key={p} className="wgroup">
                     <div className="wgroup-head">
                       <span className="wordchip" dir="rtl">{wordAr(p)}</span>
-                      <span className="cmuted">{p}. kelime · {items.length} yorum</span>
+                      <span className="cmuted">{p}{t('nthWord')} · {items.length} {t('commentCount')}</span>
                     </div>
                     <CommentList items={items} me={me} onChanged={reload} onReply={onReply} onQuote={onQuote} />
                   </div>
@@ -496,7 +666,7 @@ function AyahWordBox() {
         onCancelReply={() => setReplyTo(null)} onCancelQuote={() => setQuote(null)}
         extra={tab === 'kelime' ? (
           <div className="cnote">
-            Hedef kelime:{' '}
+            {t('targetWord')}{' '}
             <select value={writeWord} onChange={(e) => { setWriteWord(Number(e.target.value)); setWordItems(null); }}>
               {words.map((w) => (
                 <option key={w.p} value={w.p}>{w.p}. — {w.ar}{wordCountByPos.get(w.p) ? ` (${wordCountByPos.get(w.p)})` : ''}</option>
@@ -627,6 +797,7 @@ function PageAllComments({ groups, onClose }: { groups: ReaderGroup[]; onClose: 
 // ---------- Hedef düğmeleri ----------
 export function TargetButtons({ groups, pageNumber }: { groups: ReaderGroup[]; pageNumber?: number }) {
   const { enabled, counts, pageCount, target, open } = useComments();
+  const t = useT();
   const [showAll, setShowAll] = useState(false);
   if (!enabled) return null;
   const boxHere = target && (target.type === 'surah' || target.type === 'page');
@@ -650,16 +821,16 @@ export function TargetButtons({ groups, pageNumber }: { groups: ReaderGroup[]; p
       <div className="target-buttons">
         {groups.map((g) => (
           <button key={g.surah.id} onClick={() => { setShowAll(false); open({ type: 'surah', key: String(g.surah.id) }); }}>
-            💬 {g.surah.name_tr} Suresi yorumları ({counts[g.surah.id]?.surah ?? 0})
+            💬 {g.surah.name_tr} {t('surahSuffix')} {t('commentsOf')} ({counts[g.surah.id]?.surah ?? 0})
           </button>
         ))}
         {pageNumber && (
           <>
             <button onClick={() => { setShowAll(false); open({ type: 'page', key: String(pageNumber) }); }}>
-              💬 Sayfa {pageNumber} yorumları ({pageCount ?? 0})
+              💬 {t('page')} {pageNumber} {t('commentsOf')} ({pageCount ?? 0})
             </button>
             <button onClick={() => setShowAll((v) => !v)}>
-              💬 Sayfadaki ayet &amp; kelime yorumları ({inPageTotal})
+              💬 {t('pageComments')} ({inPageTotal})
             </button>
           </>
         )}

@@ -1,9 +1,31 @@
 // İşlenmiş veritabanı üretimi: data/processed/quran.db (node:sqlite, yerel geliştirme)
 // + data/processed/seed.sql.gz (PostgreSQL COPY formatı, CNPG'ye Faz 4'te yüklenir).
 import { DatabaseSync } from 'node:sqlite';
+import { readFileSync, readdirSync } from 'node:fs';
 import { rm, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { PROCESSED, RAW, RECITERS, ensureDir, parseTanzil, readAlign, readJSON } from './lib.mjs';
+
+// Kelime-kelime TR yamaları: kaynak veri setinde (quran.com wbw-tr) Türkçesi eksik olup
+// İngilizce'ye düşen glosslar, patches/wbw-tr-*.json ile makine çevirisinden tamamlanır.
+// Kur'an metnine DOKUNMAZ; yalnız words.tr sütununu, tr==en olduğunda düzeltir.
+const PATCH_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '../patches');
+const wbwTrPatch = new Map();
+for (const f of readdirSync(PATCH_DIR).filter((f) => /^wbw-tr-.*\.json$/.test(f)).sort()) {
+  for (const [en, tr] of Object.entries(JSON.parse(readFileSync(path.join(PATCH_DIR, f), 'utf8')))) {
+    wbwTrPatch.set(en, tr);
+  }
+}
+let wbwTrPatched = 0;
+function fixWordTr(tr, en) {
+  if (tr != null && en != null && tr.toLowerCase() === en.toLowerCase()) {
+    const fixed = wbwTrPatch.get(en);
+    if (fixed !== undefined && fixed !== tr) { wbwTrPatched++; return fixed; }
+  }
+  return tr;
+}
 
 await ensureDir(PROCESSED);
 const DB_PATH = `${PROCESSED}quran.db`;
@@ -82,8 +104,10 @@ for (let ch = 1; ch <= 114; ch++) {
     const aVals = [++ayahId, v.verse_key, s, a, text, wordsEn[0].page_number, v.juz_number, v.hizb_number, v.sajdah_number ?? null];
     insAyah.run(...aVals); row('ayahs', aVals);
     wordsEn.forEach((w, i) => {
+      const en = w.translation?.text ?? null;
+      const tr = fixWordTr(wordsTr[i].translation?.text ?? null, en);
       const wVals = [++wordId, w.location, s, a, i + 1, w.text_uthmani, w.page_number, w.line_number,
-        wordsTr[i].translation?.text ?? null, w.translation?.text ?? null, w.transliteration?.text ?? null];
+        tr, en, w.transliteration?.text ?? null];
       insWord.run(...wVals); row('words', wVals);
     });
     const tVals = [
@@ -96,7 +120,6 @@ for (let ch = 1; ch <= 114; ch++) {
 
 // Ek meal dilleri: /quran/translations yanıtı ayet (verse id) sırasındadır → sıra tanzil sırasıyla eş
 const verseKeysInOrder = [...tanzilByKey.keys()];
-const { readdirSync } = await import('node:fs');
 for (const f of readdirSync(`${RAW}qdc`).filter((x) => /^translation-\w+\.json$/.test(x))) {
   const { lang, source, translations } = await readJSON(`${RAW}qdc/${f}`);
   if (translations.length !== 6236) throw new Error(`${f}: ${translations.length} != 6236`);
@@ -171,4 +194,5 @@ await writeFile(`${PROCESSED}seed.sql.gz`, gzipSync(pgSchema + copyBlocks + inde
 await writeFile(`${PROCESSED}target-limits.json`, JSON.stringify(targetLimits));
 
 console.log('Tablo satır sayıları:', JSON.stringify(counts));
+console.log(`wbw-tr yaması: ${wbwTrPatched} kelime glossu Türkçeleştirildi (${wbwTrPatch.size} kayıtlı çeviri).`);
 console.log(`Üretildi: ${DB_PATH} + ${PROCESSED}seed.sql.gz + target-limits.json`);

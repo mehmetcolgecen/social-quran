@@ -16,6 +16,7 @@ Proje dokümanları: `GOAL.md` (hedefler + faz planı), `ON_HAZIRLIK.md` (doğru
 ## Komutlar
 - Veri boru hattı: `npm run -w packages/quran-data download` / `validate` / `build-db` (detay: `packages/quran-data/README.md`).
 - Ses indirme (uzun sürer, resumable): `npm run -w packages/quran-data download-audio`.
+- Elifba seslendirmeleri (öğren bölümü, Edge neural TTS, resumable): `npm run -w apps/web elifba-tts` → `apps/web/public/elifba/*.mp3`; ses kimlikleri `apps/web/lib/ogren.ts`'te.
 - Web uygulaması: `npm run dev -w apps/web` (http://localhost:3000) / `npm run typecheck -w apps/web` / `npm run build -w apps/web`.
 - Dev yığını (Faz 2+): `npm run -w packages/devstack db` (PG :5433) + `npm run -w packages/devstack oidc` (issuer :7788) + `npm run dev -w apps/api` (API :4000, OpenAPI /docs).
 - E2E kabul testi: `npm run -w apps/api test:e2e` (yığın çalışırken).
@@ -25,7 +26,9 @@ Proje dokümanları: `GOAL.md` (hedefler + faz planı), `ON_HAZIRLIK.md` (doğru
 ## Teknik notlar
 - `node:sqlite` satırları null-prototype döner; client component'e prop geçmeden önce düz nesneye kopyala (`apps/web/lib/db.ts` içindeki `plain()`).
 - Ayarlar (renk modu, dil anahtarları, meal, boyut) CSS sınıflarıyla anında uygulanır; yalnızca renkli↔mahreç geçişi render gerektirir (AyahRow memo'lu).
+- Arayüz kromu çevirileri `apps/web/lib/i18n.ts`'te (ayar: `uiLang`, üst bardaki TR/EN anahtarı); client'ta `useT()`, server bileşen içinde `<Tt k="..."/>` adacığı. İçerik dilleri (meal/kelime) bundan ayrıdır.
 - Mahreç renklendirmesi basitleştirilmiştir (`apps/web/lib/mahrec.ts` başındaki nota bak); tecvid uzmanı doğrulaması bekliyor.
+- `content-visibility: auto` yalnız `.ayah-inner`'da durmalı (Reader.tsx/globals.css): `.ayah`'ın kendisine konursa paint containment, dışarı taşan hâşiye kutularını ve kenar rayını kırpar — notlar ancak popover açılınca görünür olur (bir kez yaşandı, tekrar etme).
 
 ## Ortam notları
 - Bu makinede docker/pnpm yok; npm workspaces kullanılıyor. PostgreSQL seed SQL'i `data/processed/` altında üretilir, CNPG'ye Faz 4'te yüklenir; yerel geliştirme node:sqlite ile.

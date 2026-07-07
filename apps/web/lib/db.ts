@@ -114,63 +114,6 @@ export function isValidReciter(slug: string): boolean {
   return getReciters().some((r) => r.slug === slug);
 }
 
-// ---- Öğren bölümü: harekesiz eşleşmeyle örnek kelime bulma ----
-const AR_MARKS = /[ً-ٰٟۖ-ۭـٕٓٔ]/g;
-const normalizeAr = (s: string) => s
-  .replace(AR_MARKS, '')
-  .replaceAll('ٱ', 'ا').replaceAll('أ', 'ا').replaceAll('إ', 'ا').replaceAll('آ', 'ا')
-  .replaceAll('ؤ', 'و').replaceAll('ئ', 'ي');
-
-export type OgrenWord = { loc: string; ar: string; tr: string | null };
-let ogrenIdx: { byText: Map<string, OgrenWord>; byLetter: Map<string, OgrenWord[]> } | null = null;
-
-function buildOgrenIndex() {
-  if (ogrenIdx) return ogrenIdx;
-  const rows = db.prepare('SELECT location, text_uthmani, tr FROM words ORDER BY id')
-    .all() as unknown as { location: string; text_uthmani: string; tr: string | null }[];
-  const byText = new Map<string, OgrenWord>();
-  const cands = new Map<string, { w: OgrenWord; score: number; n: string }[]>();
-  for (const r of rows) {
-    const n = normalizeAr(r.text_uthmani);
-    if (!n) continue;
-    if (!byText.has(n)) byText.set(n, { loc: r.location, ar: r.text_uthmani, tr: r.tr });
-    // Harf örnekleri: 3-5 harfli, anlamı olan, mushafta erken geçen kelimeler tercih edilir
-    const list = cands.get(n[0]) ?? [];
-    if (list.length < 400) {
-      list.push({ w: { loc: r.location, ar: r.text_uthmani, tr: r.tr }, score: Math.abs(4 - n.length) + (r.tr ? 0 : 3), n });
-      cands.set(n[0], list);
-    }
-  }
-  const byLetter = new Map<string, OgrenWord[]>();
-  for (const [letter, list] of cands) {
-    const seen = new Set<string>();
-    const top = list.sort((a, b) => a.score - b.score)
-      .filter((c) => (seen.has(c.n) ? false : (seen.add(c.n), true)))
-      .slice(0, 3)
-      .map((c) => c.w);
-    byLetter.set(letter, top);
-  }
-  ogrenIdx = { byText, byLetter };
-  return ogrenIdx;
-}
-
-export function ogrenLookup(texts: string[], letters: string[]): {
-  texts: Record<string, OgrenWord | null>; letters: Record<string, OgrenWord[]>;
-} {
-  const idx = buildOgrenIndex();
-  const outT: Record<string, OgrenWord | null> = {};
-  for (const t of texts.slice(0, 60)) {
-    const n = normalizeAr(t.trim());
-    // Tam eşleşme yoksa (çok kelimeli örnekler) ilk eşleşen kelimeyi dene
-    outT[t] = idx.byText.get(n) ?? n.split(' ').map((p) => idx.byText.get(p)).find(Boolean) ?? null;
-  }
-  const outL: Record<string, OgrenWord[]> = {};
-  for (const l of letters.slice(0, 40)) {
-    outL[l] = idx.byLetter.get(normalizeAr(l)[0] ?? '') ?? [];
-  }
-  return { texts: outT, letters: outL };
-}
-
 // ---- Arama ----
 // SQLite LIKE Türkçe harflerde büyük/küçük ayrımı yapar; birkaç varyantla arıyoruz.
 export type SearchResults = {
@@ -209,16 +152,21 @@ export function search(qRaw: string): SearchResults {
     if (row) out.direct = { key, meal: stripNotes(row.text) };
   }
 
-  // Sure adı (JS'te Türkçe-duyarlı): "bakara", "bakara 255", "yasin"
+  // Sure adı (JS'te Türkçe-duyarlı): "bakara", "bakara 255", "yasin".
+  // Şapka/apostrof duyarsız: "yasin" → Yâsîn, "araf" → A'râf, "rad" → Ra'd.
+  const fold = (s: string) => s.toLocaleLowerCase('tr')
+    .replace(/[âàáä]/g, 'a').replace(/[îìíï]/g, 'i').replace(/[ûùúü]/g, 'u')
+    .replace(/[êèéë]/g, 'e').replace(/[ôòóö]/g, 'o')
+    .replace(/[’'ʻ`ʾʿ-]/g, '');
   const nameMatch = /^(.+?)(?:\s+(\d{1,3}))?$/.exec(q);
   if (nameMatch) {
-    const namePart = nameMatch[1].toLocaleLowerCase('tr');
+    const namePart = fold(nameMatch[1]);
     const ayahPart = nameMatch[2] ? Number(nameMatch[2]) : undefined;
     out.surahs = getSurahs()
       .filter((s) =>
-        s.name_tr.toLocaleLowerCase('tr').includes(namePart) ||
-        s.name_simple.toLowerCase().includes(namePart) ||
-        s.name_en.toLowerCase().includes(namePart))
+        fold(s.name_tr).includes(namePart) ||
+        fold(s.name_simple).includes(namePart) ||
+        fold(s.name_en).includes(namePart))
       .slice(0, 8)
       .map((s) => (ayahPart && ayahPart >= 1 && ayahPart <= s.verses_count ? { ...s, matchedAyah: ayahPart } : s));
   }

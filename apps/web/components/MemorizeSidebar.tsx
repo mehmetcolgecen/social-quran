@@ -2,22 +2,26 @@
 // Sayfadaki benzersiz kelimelerin ezber listesi — tikler localStorage'da tutulur (tüm sayfalarda ortak).
 // Üye profili senkronizasyonu ileride eklenebilir.
 import { useEffect, useState } from 'react';
+import { useT } from '@/lib/i18n';
 
 export type UniqueWord = { ar: string; tr: string | null; en: string | null; count: number };
 
 const STORAGE_KEY = 'sk-ezber';
 
-function motivation(done: number, total: number): string {
-  if (total === 0) return '';
-  if (done === 0) return '🌱 Hadi başlayalım! İlk kelimeni ezberle.';
-  if (done < total / 2) return `💪 Harika gidiyorsun! ${total - done} kelime kaldı.`;
-  if (done < total) return `✨ Az kaldı! Sadece ${total - done} kelime daha.`;
-  return '🌟 Mâşâallah! Bu sayfadaki tüm kelimeler ezberinde.';
-}
-
-export default function MemorizeSidebar({ words, title = 'Sayfanın kelimeleri' }: { words: UniqueWord[]; title?: string }) {
+export default function MemorizeSidebar({ words, titleKey = 'memorizeTitlePage' }: {
+  words: UniqueWord[]; titleKey?: 'memorizeTitlePage' | 'memorizeTitleSurah';
+}) {
+  const t = useT();
   const [learned, setLearned] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
+
+  const motivation = (done: number, total: number): string => {
+    if (total === 0) return '';
+    if (done === 0) return t('mot0');
+    if (done < total / 2) return `${t('motHalf')} ${total - done} ${t('motLeft')}`;
+    if (done < total) return `${t('motNear')} ${total - done} ${t('motLeft')}`;
+    return t('motDone');
+  };
 
   useEffect(() => {
     try {
@@ -41,8 +45,8 @@ export default function MemorizeSidebar({ words, title = 'Sayfanın kelimeleri' 
 
   return (
     <aside className="memorize">
-      <h3>📖 {title}</h3>
-      <p className="cmuted">{words.length} benzersiz kelime — ezberlediklerine tik at!</p>
+      <h3>📖 {t(titleKey)}</h3>
+      <p className="cmuted">{words.length} {t('memorizeHint')}</p>
       <div className="mem-progress" title={`%${pct}`}>
         <div className="mem-bar" style={{ width: `${pct}%` }} />
       </div>
@@ -64,7 +68,7 @@ export default function MemorizeSidebar({ words, title = 'Sayfanın kelimeleri' 
           );
         })}
       </ul>
-      {ready && <p className="cmuted">Toplam ezberin: <b>{learned.size}</b> kelime</p>}
+      {ready && <p className="cmuted">{t('memorizeTotal')}: <b>{learned.size}</b> {t('wordsUnit')}</p>}
     </aside>
   );
 }

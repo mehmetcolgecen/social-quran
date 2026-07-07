@@ -11,7 +11,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     <main>
       {hata && (
         <p className="cerror" role="alert">
-          ⚠️ Giriş tamamlanamadı ({hata === 'state' ? 'oturum doğrulaması eşleşmedi' : hata === 'token' ? 'kimlik sunucusuna ulaşılamadı' : 'akış yarıda kesildi'}).
+          ⚠️ Giriş tamamlanamadı ({hata === 'state' ? 'oturum doğrulaması eşleşmedi' : hata === 'token' ? 'kimlik sunucusuna ulaşılamadı' : hata === 'kimlik' ? 'kimlik sunucusu çalışmıyor — yerel geliştirmede dev yığınını başlatın (packages/devstack)' : 'akış yarıda kesildi'}).
           Lütfen tekrar <a href="/api/auth/login?next=/">giriş yapmayı deneyin</a>.
         </p>
       )}

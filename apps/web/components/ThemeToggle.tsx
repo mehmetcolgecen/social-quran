@@ -1,5 +1,6 @@
 'use client';
 import { useSettings } from '@/lib/settings';
+import { t } from '@/lib/i18n';
 
 export default function ThemeToggle() {
   const { settings, update } = useSettings();
@@ -7,7 +8,7 @@ export default function ThemeToggle() {
   return (
     <button
       className="theme-toggle"
-      title={dark ? 'Açık temaya geç' : 'Koyu temaya geç'}
+      title={t(settings.uiLang, dark ? 'themeToLight' : 'themeToDark')}
       onClick={() => update({ theme: dark ? 'acik' : 'koyu' })}
     >
       {dark ? '☀️' : '🌙'}

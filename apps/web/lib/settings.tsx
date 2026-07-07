@@ -15,6 +15,7 @@ export type Settings = {
   theme: 'acik' | 'koyu';
   arFont: 'hafs' | 'amiri' | 'sheherazade' | 'noto' | 'lateef' | 'ruqaa';
   frame: 'klasik' | 'zumrut' | 'gul' | 'gece' | 'firuze' | 'sade';
+  uiLang: 'tr' | 'en'; // arayüz kromu dili (menüler); içerik dilleri ayrı
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -29,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'acik',
   arFont: 'hafs',
   frame: 'klasik',
+  uiLang: 'tr',
 };
 
 // Eski kayıt biçiminden (wordTr/wordEn/meal) göç
@@ -68,7 +70,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.theme = settings.theme;
     document.documentElement.dataset.arfont = settings.arFont;
-  }, [settings.theme, settings.arFont]);
+    document.documentElement.lang = settings.uiLang;
+  }, [settings.theme, settings.arFont, settings.uiLang]);
 
   const update = (patch: Partial<Settings>) => {
     setSettings((prev) => {

@@ -21,8 +21,10 @@ Son doğrulama: 2026-07-06. Değişmez kural: Kur'an metni hiçbir işlemde değ
 | Kelime-kelime UR + HI çevirileri | quran.com API v4 (`language=ur/hi`) | QUL wbw veri setleri | quran.com/QUL atfı |
 
 | Kâri fotoğrafları (5 adet, `apps/web/public/reciters/`) | Wikimedia Commons (lisans script ile doğrulandı) | Husary + Minshawi: Public Domain; Şureym: CC BY-SA 4.0; Sudais: GODL-India; Alafasy: Copyrighted free use | Dosya bazlı atıf `apps/web/lib/reciter-photos.json` manifest'inde (kaynak linkleriyle); CC BY-SA olanlar için atıf sayfası gösterimi |
+| Elifba seslendirmeleri (218 mp3, `apps/web/public/elifba/`) | Microsoft Edge neural TTS (ar-SA-HamedNeural) ile üretildi — `apps/web/scripts/elifba-tts.mts` | Yapay zekâ sentezi; Kur'an tilaveti DEĞİLDİR, yalnız harf/hece/kelime telaffuz eğitimi için. Microsoft'un okuma-amaçlı servisinden üretilmiştir; ticari dağıtım öncesi resmî Azure TTS lisansına geçilmeli | Arayüzde "yapay zekâ seslendirmesi" olarak işaretli; tecvid örnekleri gerçek tilavetten (Husary) verilir |
 
 ## Notlar
 - QUL'ün doğrudan dump indirmeleri ücretsiz üyelik istiyor; aynı verinin açık REST sunumu olan quran.com API v4 kullanıldı. İkisi de aynı kuruluşun (Tarteel/quran.com) altyapısı.
+- Kelime-kelime TR veri setinde ~6.760 kelimenin Türkçesi kaynakta eksikti (İngilizce'ye düşüyordu); bu glosslar makine çevirisiyle tamamlandı ve `packages/quran-data/patches/wbw-tr-*.json` dosyalarında tutuluyor (build-db uygular). Kur'an metnine dokunulmaz; yalnız `words.tr` sütunu.
 - API imlâsı ile Tanzil imlâsı 4301 ayette teknik olarak farklı (ör. hançer elif ٰ için tatweel taşıyıcısı). İçerik farkı değildir; kanonik referans Tanzil, kelime görüntüleme API imlâsıdır.
 - Atıf sayfası (Faz 1'de): Tanzil, quran.com/QUL, Elmalılı, Saheeh International, cpfair/quran-align (CC-BY 4.0), everyayah.com, KFGQPC.

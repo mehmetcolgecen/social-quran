@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "elifba-tts": "node scripts/elifba-tts.mts"
   },
   "dependencies": {
     "jose": "^6.0.0",
@@ -18,6 +19,7 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "msedge-tts": "^2.0.6",
     "typescript": "^5.8.0"
   }
 }

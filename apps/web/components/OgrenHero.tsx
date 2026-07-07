@@ -6,14 +6,14 @@ import { loadJSON } from '@/lib/store';
 
 export default function OgrenHero() {
   const [done, setDone] = useState(0);
-  useEffect(() => { setDone(loadJSON<string[]>('sk-ogren', []).length); }, []);
+  useEffect(() => { setDone(loadJSON<string[]>('sk-ogren-v2', []).length); }, []);
   const pct = Math.round((done / DERSLER.length) * 100);
   return (
     <Link href="/ogren" className="ogren-hero">
       <span className="ogren-hero-icon">🎓</span>
       <span className="ogren-hero-text">
         <b>Kur&rsquo;an okumayı öğren</b>
-        <small>Elifbadan tecvide 10 adım — bol örnekli, sesli pratikli</small>
+        <small>Elifbadan tecvide {DERSLER.length} ders — her harf ve örnek sesli</small>
         <span className="mem-progress"><span className="mem-bar" style={{ width: `${pct}%` }} /></span>
       </span>
       <span className="ogren-hero-cta">{done === 0 ? 'Başla →' : pct === 100 ? 'Tamamlandı 🌟' : `%${pct} · Devam →`}</span>

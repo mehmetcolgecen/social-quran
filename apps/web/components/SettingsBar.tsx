@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useSettings } from '@/lib/settings';
+import { useT, type UiKey } from '@/lib/i18n';
 import { MAHREC_GROUPS } from '@/lib/mahrec';
 import { LANGS, WBW_LANGS, flagOf } from '@/lib/langs';
 import { RECITER_META } from '@/lib/reciters';
@@ -22,14 +23,14 @@ function Medal({ slug, small = false }: { slug: string; small?: boolean }) {
   );
 }
 
-const FRAMES = [
-  ['klasik', 'Klasik (lacivert)'],
-  ['zumrut', 'Zümrüt'],
-  ['gul', 'Gül kurusu'],
-  ['gece', 'Gece'],
-  ['firuze', 'Firuze'],
-  ['sade', 'Sade altın'],
-] as const;
+const FRAMES: readonly (readonly [string, UiKey])[] = [
+  ['klasik', 'frameKlasik'],
+  ['zumrut', 'frameZumrut'],
+  ['gul', 'frameGul'],
+  ['gece', 'frameGece'],
+  ['firuze', 'frameFiruze'],
+  ['sade', 'frameSade'],
+];
 
 const AR_FONTS = [
   ['hafs', 'KFGQPC Hafs'],
@@ -44,8 +45,8 @@ function toggleIn(list: string[], code: string): string[] {
   return list.includes(code) ? list.filter((x) => x !== code) : [...list, code];
 }
 
-const langSummary = (selected: string[]) =>
-  selected.length === 0 ? 'Kapalı' : selected.map(flagOf).join(' ');
+const langSummary = (selected: string[], off: string) =>
+  selected.length === 0 ? off : selected.map(flagOf).join(' ');
 
 const closeDetails = (el: HTMLElement) =>
   (el.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open');
@@ -54,6 +55,7 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
   reciters: Reciter[]; onPlaySurah: () => void; playing: boolean; frameSelect?: boolean;
 }) {
   const { settings, update } = useSettings();
+  const t = useT();
 
   // Açık kalan dropdown'lar dışarı tıklanınca kapanır
   useEffect(() => {
@@ -71,15 +73,15 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
   return (
     <>
       <div className="settings-bar">
-        <label>Mod
+        <label>{t('mode')}
           <select value={settings.mode} onChange={(e) => update({ mode: e.target.value as typeof settings.mode })}>
-            <option value="renkli">Renkli</option>
-            <option value="siyah">Siyah</option>
-            <option value="mahrec">Mahreç</option>
+            <option value="renkli">{t('modeColor')}</option>
+            <option value="siyah">{t('modeBlack')}</option>
+            <option value="mahrec">{t('modeMahrec')}</option>
           </select>
         </label>
         <details className="dd">
-          <summary>Kelime: <b>{langSummary(settings.wordLangs)}</b></summary>
+          <summary>{t('word')}: <b>{langSummary(settings.wordLangs, t('off'))}</b></summary>
           <div className="dd-panel">
             {WBW_LANGS.map((l) => (
               <label key={l.code}>
@@ -91,7 +93,7 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
           </div>
         </details>
         <details className="dd">
-          <summary>Meal: <b>{langSummary(settings.meals)}</b></summary>
+          <summary>{t('meal')}: <b>{langSummary(settings.meals, t('off'))}</b></summary>
           <div className="dd-panel">
             {LANGS.map((l) => (
               <label key={l.code}>
@@ -102,30 +104,30 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
             ))}
           </div>
         </details>
-        <label>Boyut
+        <label>{t('size')}
           <select value={settings.fontScale} onChange={(e) => update({ fontScale: Number(e.target.value) })}>
-            <option value={0.85}>Küçük</option>
-            <option value={1}>Normal</option>
-            <option value={1.2}>Büyük</option>
-            <option value={1.4}>Çok büyük</option>
+            <option value={0.85}>{t('sizeS')}</option>
+            <option value={1}>{t('sizeM')}</option>
+            <option value={1.2}>{t('sizeL')}</option>
+            <option value={1.4}>{t('sizeXL')}</option>
           </select>
         </label>
-        <label>Yazı
+        <label>{t('font')}
           <select value={settings.arFont} onChange={(e) => update({ arFont: e.target.value as typeof settings.arFont })}>
             {AR_FONTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
         </label>
         {frameSelect && (
-          <label>Desen
+          <label>{t('frame')}
             <select value={settings.frame} onChange={(e) => update({ frame: e.target.value as typeof settings.frame })}>
-              {FRAMES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              {FRAMES.map(([v, k]) => <option key={v} value={v}>{t(k)}</option>)}
             </select>
           </label>
         )}
         <details className="dd rdd">
           <summary>
             <Medal slug={settings.reciter} small />
-            <b>{current?.name ?? 'Kâri'}</b>
+            <b>{current?.name ?? t('reciter')}</b>
           </summary>
           <div className="dd-panel rlist">
             {reciters.map((r) => {
@@ -136,17 +138,17 @@ export default function SettingsBar({ reciters, onPlaySurah, playing, frameSelec
                   <Medal slug={r.slug} />
                   <span className="rinfo">
                     <b>{r.name}</b>
-                    <small>{m ? `${m.tagIcon} ${m.tag} · ${m.desc}` : ''}{m?.wordTiming ? ' · 🎯 kelime takibi' : ''}</small>
+                    <small>{m ? `${m.tagIcon} ${m.tag} · ${m.desc}` : ''}{m?.wordTiming ? ` · 🎯 ${t('wordTiming')}` : ''}</small>
                   </span>
                 </button>
               );
             })}
           </div>
         </details>
-        <label><input type="checkbox" checked={settings.comments} onChange={(e) => update({ comments: e.target.checked })} /> Yorumlar</label>
-        <label><input type="checkbox" checked={settings.notes} onChange={(e) => update({ notes: e.target.checked })} /> 📝 Notlar</label>
-        <label><input type="checkbox" checked={settings.science} onChange={(e) => update({ science: e.target.checked })} /> 🔬 İlim</label>
-        <button className="play-btn" onClick={onPlaySurah}>{playing ? '⏹ Durdur' : '▶ Dinle'}</button>
+        <label><input type="checkbox" checked={settings.comments} onChange={(e) => update({ comments: e.target.checked })} /> {t('comments')}</label>
+        <label><input type="checkbox" checked={settings.notes} onChange={(e) => update({ notes: e.target.checked })} /> {t('notes')}</label>
+        <label><input type="checkbox" checked={settings.science} onChange={(e) => update({ science: e.target.checked })} /> {t('science')}</label>
+        <button className="play-btn" onClick={onPlaySurah}>{playing ? t('stop') : t('listen')}</button>
       </div>
       {settings.mode === 'mahrec' && (
         <div className="legend">
