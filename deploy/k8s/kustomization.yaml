@@ -17,9 +17,9 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 images:
-  - name: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-web
+  - name: ghcr.io/mehmetcolgecen/sosyal-kuran-web
     newTag: latest
-  - name: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-api
+  - name: ghcr.io/mehmetcolgecen/sosyal-kuran-api
     newTag: latest
-  - name: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-data
+  - name: ghcr.io/mehmetcolgecen/sosyal-kuran-data
     newTag: latest

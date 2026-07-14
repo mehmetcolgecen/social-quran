@@ -13,14 +13,14 @@ spec:
     spec:
       initContainers:
         - name: migrate
-          image: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-api:latest
+          image: ghcr.io/mehmetcolgecen/sosyal-kuran-api:latest
           command: ["node", "scripts/migrate.mjs"]
           env:
             - name: DATABASE_URL
               valueFrom: { secretKeyRef: { name: sosyal-kuran-db-app, key: uri } }
       containers:
         - name: api
-          image: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-api:latest
+          image: ghcr.io/mehmetcolgecen/sosyal-kuran-api:latest
           env:
             - name: DATABASE_URL
               valueFrom: { secretKeyRef: { name: sosyal-kuran-db-app, key: uri } }

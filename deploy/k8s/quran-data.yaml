@@ -25,7 +25,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: init
-          image: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-data:latest
+          image: ghcr.io/mehmetcolgecen/sosyal-kuran-data:latest
           volumeMounts:
             - name: data
               mountPath: /app/data

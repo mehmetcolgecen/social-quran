@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/DEGISTIR-github-kullanici/sosyal-kuran-web:latest
+          image: ghcr.io/mehmetcolgecen/sosyal-kuran-web:latest
           env:
             - name: QURAN_DATA_ROOT
               value: /srv
