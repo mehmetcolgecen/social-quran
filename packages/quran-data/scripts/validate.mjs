@@ -1,7 +1,7 @@
 // Faz 0 doğrulama — değişmez kural #1: 114 sure / 6236 ayet / kelime tutarlılığı assert edilir,
 // tüm ham dosyaların SHA-256'ları data/checksums.json'a yazılır.
 import { readdir } from 'node:fs/promises';
-import { RAW, ROOT, RECITERS, parseTanzil, readJSON, sha256, writeJSON } from './lib.mjs';
+import { RAW, ROOT, RECITERS, parseTanzil, readAlign, readJSON, sha256, writeJSON } from './lib.mjs';
 
 const errors = [];
 const warnings = [];
@@ -66,13 +66,17 @@ stats.words = { total: totalWords, pages: pages.size, emptyTr, emptyEn, tanzilTe
 // 4) quran-align zamanlamaları (4 MVP kârisi)
 stats.align = {};
 for (const { align } of RECITERS.filter((r) => r.align)) {
-  const data = await readJSON(`${RAW}quran-align/${align}.json`);
+  // readJSON değil: bazı dosyalarda (Sudais) JSON'un önüne ham hata metni sızmıştır
+  const data = await readAlign(`${RAW}quran-align/${align}.json`);
   const keys = new Set(data.map((e) => `${e.surah}:${e.ayah}`));
   const missing = tanzil.filter((a) => !keys.has(`${a.surah}:${a.ayah}`)).length;
-  const badSeg = data.filter((e) => !Array.isArray(e.segments) || e.segments.some((s) => s.length !== 3 && s.length !== 4)).length;
+  // segments alanı olmayan kayıt hizalama hatası artığıdır (ör. Şureym 12:76) —
+  // build-db bunları atlar (ayet takibiyle çalınır); hata değil uyarıdır.
+  const noSeg = data.filter((e) => !Array.isArray(e.segments) || e.segments.length === 0).length;
+  const badSeg = data.filter((e) => Array.isArray(e.segments) && e.segments.some((s) => !Array.isArray(s) || (s.length !== 3 && s.length !== 4))).length;
   assert(badSeg === 0, `${align}: ${badSeg} ayette bozuk segment yapısı`);
-  if (missing) warnings.push(`${align}: ${missing} ayette zamanlama yok`);
-  stats.align[align] = { ayahs: data.length, missing };
+  if (missing || noSeg) warnings.push(`${align}: zamanlaması olmayan ${missing}, segmentsiz ${noSeg} ayet (ayet takibiyle çalınır)`);
+  stats.align[align] = { ayahs: data.length, missing, noSeg };
 }
 
 // 5) SHA-256 kayıtları
