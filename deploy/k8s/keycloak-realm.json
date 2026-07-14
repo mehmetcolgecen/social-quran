@@ -26,10 +26,12 @@
       "directAccessGrantsEnabled": false,
       "redirectUris": [
         "https://sosyal-kuran.com/api/auth/callback",
+        "https://www.sosyal-kuran.com/api/auth/callback",
         "https://social-quran.com/api/auth/callback",
+        "https://www.social-quran.com/api/auth/callback",
         "http://localhost:3000/api/auth/callback"
       ],
-      "webOrigins": ["https://sosyal-kuran.com", "https://social-quran.com"],
+      "webOrigins": ["https://sosyal-kuran.com", "https://www.sosyal-kuran.com", "https://social-quran.com", "https://www.social-quran.com"],
       "protocolMappers": [
         {
           "name": "api-audience",
