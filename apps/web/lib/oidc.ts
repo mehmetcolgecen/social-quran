@@ -1,6 +1,17 @@
 // OIDC istemci yardımcıları (sunucu tarafı) — standart discovery + code flow (PKCE).
 // Dev'de issuer packages/devstack mock'u; prod'da OIDC_ISSUER bir Keycloak realm URL'i olur.
 import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose';
+import type { NextRequest } from 'next/server';
+
+// Proxy (Traefik) arkasında nextUrl.origin bind adresini görür (https://0.0.0.0:3000);
+// mutlak URL'ler x-forwarded-* başlıklarından türetilmeli ki redirect_uri kullanıcının
+// bulunduğu domain'e (sosyal-kuran.com veya social-quran.com) dönsün. Ingress yalnızca
+// tanımlı Host'ları yönlendirdiği için başlığa güvenmek burada güvenlidir.
+export function requestOrigin(req: NextRequest): string {
+  const host = req.headers.get('x-forwarded-host') ?? req.headers.get('host');
+  const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
+  return host ? `${proto}://${host}` : req.nextUrl.origin;
+}
 
 export const OIDC = {
   issuer: process.env.OIDC_ISSUER ?? 'http://localhost:7788',
