@@ -18,3 +18,7 @@ jobs:
         run: npm run typecheck -w apps/web
       - name: Typecheck api
         run: npm run typecheck -w apps/api
+      # DB'siz build: docker imaj derlemesiyle aynı koşul (data/processed yok).
+      # db.ts'in import anında DB açmaya dönmesi gibi gerilemeleri erken yakalar.
+      - name: Build web (DB'siz)
+        run: npm run build -w apps/web

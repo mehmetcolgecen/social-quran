@@ -4,6 +4,9 @@ import { getSurah } from '@/lib/db';
 
 export const metadata = { title: 'Bilimsel Hakikatler' };
 
+// DB'den okur; veri çalışma anında PVC'den gelir, build'de prerender edilemez.
+export const dynamic = 'force-dynamic';
+
 // İlim/tefekkür notlarının toplu dizini — karta tıklayınca ilgili ayete gider.
 export default function HakikatlerPage() {
   const items = Object.entries(MUCIZELER)

@@ -15,9 +15,12 @@ export function repoRoot(): string {
   throw new Error('quran.db bulunamadı — önce çalıştırın: npm run -w packages/quran-data build-db');
 }
 
-// HMR'de bağlantıyı koru
+// HMR'de bağlantıyı koru. Tembel açılır: `next build` route modüllerini DB'siz
+// ortamda (docker imaj derlemesi) da import eder; import anında açmak build'i kırar.
 const g = globalThis as unknown as { __quranDb?: DatabaseSync };
-const db = (g.__quranDb ??= new DatabaseSync(path.join(repoRoot(), 'data/processed/quran.db'), { readOnly: true }));
+function db(): DatabaseSync {
+  return (g.__quranDb ??= new DatabaseSync(path.join(repoRoot(), 'data/processed/quran.db'), { readOnly: true }));
+}
 
 const stripNotes = (t: string) => t.replace(/<sup[^>]*>.*?<\/sup>/g, '');
 
@@ -25,16 +28,16 @@ const stripNotes = (t: string) => t.replace(/<sup[^>]*>.*?<\/sup>/g, '');
 const plain = <T>(row: unknown): T => ({ ...(row as object) }) as T;
 
 export function getSurahs(): Surah[] {
-  return db.prepare('SELECT * FROM surahs ORDER BY id').all().map((r) => plain<Surah>(r));
+  return db().prepare('SELECT * FROM surahs ORDER BY id').all().map((r) => plain<Surah>(r));
 }
 
 export function getSurah(id: number): Surah | null {
-  const row = db.prepare('SELECT * FROM surahs WHERE id = ?').get(id);
+  const row = db().prepare('SELECT * FROM surahs WHERE id = ?').get(id);
   return row ? plain<Surah>(row) : null;
 }
 
 export function getReciters(): Reciter[] {
-  return db.prepare('SELECT slug, name FROM reciters ORDER BY name').all().map((r) => plain<Reciter>(r));
+  return db().prepare('SELECT slug, name FROM reciters ORDER BY name').all().map((r) => plain<Reciter>(r));
 }
 
 type WordRow = { ayah: number; position: number; text_uthmani: string; tr: string | null; en: string | null; transliteration: string | null; page: number };
@@ -42,12 +45,12 @@ type TransRow = { verse_key: string; lang: string; text: string };
 type AyahRow = { ayah: number; verse_key: string; page: number; juz: number };
 
 function buildAyahs(surahId: number, ayahFilter?: Set<number>): Ayah[] {
-  const ayahRows = (db.prepare('SELECT ayah, verse_key, page, juz FROM ayahs WHERE surah = ? ORDER BY ayah')
+  const ayahRows = (db().prepare('SELECT ayah, verse_key, page, juz FROM ayahs WHERE surah = ? ORDER BY ayah')
     .all(surahId) as unknown as AyahRow[]).filter((a) => !ayahFilter || ayahFilter.has(a.ayah));
-  const words = db.prepare('SELECT ayah, position, text_uthmani, tr, en, transliteration, page FROM words WHERE surah = ? ORDER BY ayah, position')
+  const words = db().prepare('SELECT ayah, position, text_uthmani, tr, en, transliteration, page FROM words WHERE surah = ? ORDER BY ayah, position')
     .all(surahId) as unknown as WordRow[];
   const meals = new Map<string, { tr: string; en: string }>();
-  for (const t of db.prepare("SELECT verse_key, lang, text FROM translations WHERE verse_key LIKE ?")
+  for (const t of db().prepare("SELECT verse_key, lang, text FROM translations WHERE verse_key LIKE ?")
     .all(`${surahId}:%`) as unknown as TransRow[]) {
     const m = meals.get(t.verse_key) ?? { tr: '', en: '' };
     m[t.lang as 'tr' | 'en'] = stripNotes(t.text);
@@ -77,7 +80,7 @@ export function getSurahContent(id: number): ReaderGroup | null {
 // Sayfadaki (KFGQPC V2, 1–604) tüm ayetler; sayfa sınırı ayet ortasından geçebilir,
 // ayet en az bir kelimesi bu sayfadaysa bütün olarak dahil edilir.
 export function getPageContent(page: number): ReaderGroup[] {
-  const rows = db.prepare('SELECT DISTINCT surah, ayah FROM words WHERE page = ? ORDER BY surah, ayah')
+  const rows = db().prepare('SELECT DISTINCT surah, ayah FROM words WHERE page = ? ORDER BY surah, ayah')
     .all(page) as unknown as { surah: number; ayah: number }[];
   const bySurah = new Map<number, Set<number>>();
   for (const r of rows) {
@@ -92,20 +95,20 @@ export function getPageContent(page: number): ReaderGroup[] {
 
 // Tembel yüklenen ek meal dilleri — verse_key → metin
 export function getMealMap(lang: string, surah: number): Record<string, string> {
-  const rows = db.prepare('SELECT verse_key, text FROM translations WHERE lang = ? AND verse_key LIKE ?')
+  const rows = db().prepare('SELECT verse_key, text FROM translations WHERE lang = ? AND verse_key LIKE ?')
     .all(lang, `${surah}:%`) as unknown as { verse_key: string; text: string }[];
   return Object.fromEntries(rows.map((r) => [r.verse_key, stripNotes(r.text)]));
 }
 
 // Tembel yüklenen ek kelime-kelime diller (ur/hi) — location → metin
 export function getWordLangMap(lang: string, surah: number): Record<string, string> {
-  const rows = db.prepare('SELECT location, text FROM word_langs WHERE lang = ? AND location LIKE ?')
+  const rows = db().prepare('SELECT location, text FROM word_langs WHERE lang = ? AND location LIKE ?')
     .all(lang, `${surah}:%`) as unknown as { location: string; text: string }[];
   return Object.fromEntries(rows.map((r) => [r.location, r.text]));
 }
 
 export function getTimings(reciter: string, surah: number): AyahTiming[] {
-  const rows = db.prepare('SELECT ayah, segments FROM timings WHERE reciter = ? AND surah = ? ORDER BY ayah')
+  const rows = db().prepare('SELECT ayah, segments FROM timings WHERE reciter = ? AND surah = ? ORDER BY ayah')
     .all(reciter, surah) as unknown as { ayah: number; segments: string }[];
   return rows.map((r) => ({ ayah: r.ayah, segments: JSON.parse(r.segments) }));
 }
@@ -147,7 +150,7 @@ export function search(qRaw: string): SearchResults {
   const ref = /^(\d{1,3})[:\s](\d{1,3})$/.exec(q);
   if (ref) {
     const key = `${Number(ref[1])}:${Number(ref[2])}`;
-    const row = db.prepare("SELECT text FROM translations WHERE verse_key = ? AND lang = 'tr'").get(key) as
+    const row = db().prepare("SELECT text FROM translations WHERE verse_key = ? AND lang = 'tr'").get(key) as
       unknown as { text: string } | undefined;
     if (row) out.direct = { key, meal: stripNotes(row.text) };
   }
@@ -175,7 +178,7 @@ export function search(qRaw: string): SearchResults {
   const variants = likeVariants(q).map((v) => `%${v}%`);
   const mealRows = new Map<string, { verse_key: string; lang: string; text: string }>();
   for (const pattern of variants) {
-    const rows = db.prepare(
+    const rows = db().prepare(
       "SELECT verse_key, lang, text FROM translations WHERE lang IN ('tr','en') AND text LIKE ? LIMIT 40",
     ).all(pattern) as unknown as { verse_key: string; lang: string; text: string }[];
     for (const r of rows) mealRows.set(`${r.verse_key}:${r.lang}`, r);
@@ -186,7 +189,7 @@ export function search(qRaw: string): SearchResults {
 
   const wordRows = new Map<string, { location: string; text_uthmani: string; tr: string }>();
   for (const pattern of variants) {
-    const rows = db.prepare(
+    const rows = db().prepare(
       'SELECT location, text_uthmani, tr FROM words WHERE tr LIKE ? LIMIT 30',
     ).all(pattern) as unknown as { location: string; text_uthmani: string; tr: string }[];
     for (const r of rows) wordRows.set(r.location, r);
