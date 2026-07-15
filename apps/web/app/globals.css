@@ -739,7 +739,8 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
 
 .reader.black .w, .reader.black .w .ar span { color: var(--ink) !important; }
 
-/* "Bu ayetten dinle": ayet numarası play üçgeninin içinde */
+/* "Bu ayetten dinle": ayet numarası play üçgeninin içinde (siyah);
+   o ayet çalarken siyah kare = durdur */
 .num {
   align-self: center;
   display: inline-flex;
@@ -748,11 +749,12 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
   border: none;
   padding: 0;
   cursor: pointer;
-  color: var(--accent);
+  color: var(--ink);
   transition: transform .15s, filter .15s;
 }
 .num svg path { fill: var(--card); stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
 .num svg text { fill: currentColor; }
+.num svg .num-stop { fill: currentColor; }
 .num:hover { transform: scale(1.12); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 45%, transparent)); }
 .num:hover svg path { fill: var(--accent-soft); }
 
@@ -855,9 +857,11 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
   display: inline-flex;
   align-items: center;
 }
-/* Kitap ayracı kırmızı (koyu temada açık ton) */
+/* Kitap ayracı kırmızı, ayet kartı düğmesi lacivert (koyu temada açık tonlar) */
 .bmark { color: #c73a2a; }
 html[data-theme='koyu'] .bmark { color: #ef7b7b; }
+.sharebtn { color: #1d4e79; }
+html[data-theme='koyu'] .sharebtn { color: #7fb2d9; }
 .bmark.on { opacity: .9; }
 .ayah:hover .bmark, .ayah:hover .sharebtn, .bmark:hover, .sharebtn:hover { opacity: 1; transform: scale(1.15); }
 

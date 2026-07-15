@@ -89,12 +89,12 @@ function WordSpan({ word, loc, wi, mode, active, count, wordLangs, wbwExtra, onC
 }
 
 const AyahRow = memo(function AyahRow({
-  surahId, surahName, ayah, mode, activeWord, isActive, gi, ai, onPlay,
+  surahId, surahName, ayah, mode, activeWord, isActive, gi, ai, onPlay, onStop,
   wordCounts, openWord, onWordClick, onWordListen,
   wordLangs, meals, wbwExtra, mealExtra,
 }: {
   surahId: number; surahName: string; ayah: Ayah; mode: Mode; activeWord: number | null;
-  isActive: boolean; gi: number; ai: number; onPlay: (gi: number, ai: number) => void;
+  isActive: boolean; gi: number; ai: number; onPlay: (gi: number, ai: number) => void; onStop: () => void;
   wordCounts: Record<number, number> | undefined; openWord: number | null;
   onWordClick: (gi: number, ai: number, p: number) => void;
   onWordListen: (gi: number, ai: number, p: number) => void;
@@ -122,15 +122,26 @@ const AyahRow = memo(function AyahRow({
             ) : null}
           />
         ))}
-        <button className="num" title={`${surahId}:${ayah.ayah} — bu ayetten dinle`} onClick={() => onPlay(gi, ai)}>
-          {/* Ayet numarası play üçgeninin İÇİNDE yazar */}
-          <svg viewBox="0 0 30 30" width="32" height="32" aria-hidden="true">
-            <path d="M6.5 5.8 Q6.5 3.6 8.4 4.7 L26 14 Q27.8 15 26 16 L8.4 25.3 Q6.5 26.4 6.5 24.2 Z" />
-            <text x="13.4" y="15.1" textAnchor="middle" dominantBaseline="central"
-              fontSize={ayah.ayah >= 100 ? 8.5 : ayah.ayah >= 10 ? 10.5 : 12.5} fontWeight="700">
-              {ayah.ayah}
-            </text>
-          </svg>
+        <button
+          className="num"
+          title={isActive ? '⏹ Durdur' : `${surahId}:${ayah.ayah} — bu ayetten dinle`}
+          onClick={() => (isActive ? onStop() : onPlay(gi, ai))}
+        >
+          {isActive ? (
+            /* Çalarken siyah kare: durdur */
+            <svg viewBox="0 0 30 30" width="32" height="32" aria-hidden="true">
+              <rect className="num-stop" x="7.5" y="7.5" width="15" height="15" rx="3" />
+            </svg>
+          ) : (
+            /* Ayet numarası play üçgeninin İÇİNDE yazar */
+            <svg viewBox="0 0 30 30" width="32" height="32" aria-hidden="true">
+              <path d="M6.5 5.8 Q6.5 3.6 8.4 4.7 L26 14 Q27.8 15 26 16 L8.4 25.3 Q6.5 26.4 6.5 24.2 Z" />
+              <text x="13.4" y="15.1" textAnchor="middle" dominantBaseline="central"
+                fontSize={ayah.ayah >= 100 ? 7.5 : ayah.ayah >= 10 ? 9.5 : 11.5} fontWeight="700">
+                {ayah.ayah}
+              </text>
+            </svg>
+          )}
         </button>
         <AyahBadge surah={surahId} ayah={ayah.ayah} words={slimWords} />
         <BookmarkButton surah={surahId} ayah={ayah.ayah} name={surahName} />
@@ -158,10 +169,11 @@ const AyahRow = memo(function AyahRow({
 });
 
 // Provider içinde çalışan gövde: kelime yorum sayıları için context'e erişir
-function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, playWord, wordLangs, meals, wbwExtra, mealExtra }: {
+function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, stopPlay, playWord, wordLangs, meals, wbwExtra, mealExtra }: {
   groups: ReaderGroup[]; showPageMarkers: boolean; mode: Mode;
   pos: { g: number; a: number } | null; activeWord: number | null;
-  playAt: (g: number, a: number) => void; playWord: (g: number, a: number, p: number) => void;
+  playAt: (g: number, a: number) => void; stopPlay: () => void;
+  playWord: (g: number, a: number, p: number) => void;
   wordLangs: string[]; meals: string[]; wbwExtra: LangMap; mealExtra: LangMap;
 }) {
   const { counts } = useComments();
@@ -221,7 +233,7 @@ function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, pl
                   {marks}
                   <AyahRow surahId={group.surah.id} surahName={group.surah.name_tr} ayah={ayah} mode={mode}
                     activeWord={isActive ? activeWord : null} isActive={isActive}
-                    gi={gi} ai={ai} onPlay={playAt}
+                    gi={gi} ai={ai} onPlay={playAt} onStop={stopPlay}
                     wordCounts={wordCountMap.get(`${group.surah.id}:${ayah.ayah}`)}
                     openWord={rowOpenWord} onWordClick={onWordClick} onWordListen={onWordListen}
                     wordLangs={wordLangs} meals={meals} wbwExtra={wbwExtra} mealExtra={mealExtra} />
@@ -434,7 +446,7 @@ export default function Reader({ groups, showPageMarkers = true, pageNumber, mus
 
   const body = (
     <ReaderBody groups={groups} showPageMarkers={showPageMarkers} mode={settings.mode}
-      pos={pos} activeWord={activeWord} playAt={playAt} playWord={playWord}
+      pos={pos} activeWord={activeWord} playAt={playAt} stopPlay={stop} playWord={playWord}
       wordLangs={settings.wordLangs} meals={settings.meals} wbwExtra={wbwExtra} mealExtra={mealExtra} />
   );
 
