@@ -6,6 +6,7 @@ export type Surah = {
   name_en: string;
   revelation_place: string;
   verses_count: number;
+  start_page?: number; // yalnız getSurahs doldurur (mushaftaki ilk sayfa)
 };
 
 export type Word = {

@@ -326,7 +326,11 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
     if (!seek) {
       document.getElementById(`ayet-${surah}-${ayah}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
-    try { localStorage.setItem('sk-last', JSON.stringify({ surah, ayah, name: groups[g].surah.name_tr })); } catch { /* yoksay */ }
+    try {
+      localStorage.setItem('sk-last', JSON.stringify({
+        surah, ayah, name: groups[g].surah.name_tr, page: groups[g].ayahs[a].page,
+      }));
+    } catch { /* yoksay */ }
   }, [groups, settings.reciter, speed, ensureTimings]);
 
   const playAt = useCallback((g: number, a: number) => startAudio(g, a, null), [startAudio]);
@@ -356,7 +360,12 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
     if (surah) {
       try {
         const prev = JSON.parse(localStorage.getItem('sk-last') ?? '{}');
-        if (prev.surah !== surah.id) localStorage.setItem('sk-last', JSON.stringify({ surah: surah.id, ayah: 1, name: surah.name_tr }));
+        if (prev.surah !== surah.id) {
+          const first = groups[0].ayahs[0];
+          localStorage.setItem('sk-last', JSON.stringify({
+            surah: surah.id, ayah: first?.ayah ?? 1, name: surah.name_tr, page: first?.page,
+          }));
+        }
       } catch { /* yoksay */ }
     }
   }, [groups]);

@@ -23,7 +23,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <ul className="surah-grid">
         {surahs.map((s) => (
           <li key={s.id}>
-            <Link className="surah-card" href={`/sure/${s.id}`}>
+            <Link className="surah-card" href={`/sayfa/${s.start_page}#ayet-${s.id}-1`}>
               <span className="no">{s.id}</span>
               <span className="names">
                 <b>{s.name_tr}</b>

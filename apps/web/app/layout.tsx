@@ -5,7 +5,7 @@ import { SettingsProvider } from '@/lib/settings';
 import PwaRegister from '@/components/PwaRegister';
 import ThemeToggle from '@/components/ThemeToggle';
 import UserMenu from '@/components/UserMenu';
-import { HeaderLinks, HeaderSearch, LangToggle } from '@/components/HeaderNav';
+import { HeaderMenu, HeaderSearch, LangToggle } from '@/components/HeaderNav';
 import './globals.css';
 
 const hafs = localFont({
@@ -61,8 +61,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PwaRegister />
         <SettingsProvider>
           <header className="site-header">
+            <HeaderMenu />
             <Link href="/" className="brand"><span className="brand-mark">۞</span>Sosyal Kur&rsquo;an</Link>
-            <HeaderLinks />
             <HeaderSearch />
             <UserMenu />
             <LangToggle />

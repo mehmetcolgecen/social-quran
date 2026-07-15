@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { getReciters, getSurah, getSurahContent } from '@/lib/db';
 import { Tt } from '@/lib/i18n';
 import Reader from '@/components/Reader';
-import SurahBanner from '@/components/SurahBanner';
 import MemorizeSidebar, { type UniqueWord } from '@/components/MemorizeSidebar';
 
 type Props = { params: Promise<{ id: string }> };
@@ -38,7 +37,6 @@ export default async function SurePage({ params }: Props) {
           {id > 1 ? <Link href={`/sure/${id - 1}`}>← {getSurah(id - 1)!.name_tr}</Link> : <span />}
           {id < 114 ? <Link href={`/sure/${id + 1}`}>{getSurah(id + 1)!.name_tr} →</Link> : <span />}
         </div>
-        <SurahBanner surah={surah} />
         <p className="meta">
           {surah.id}. {surah.name_tr} Suresi ({surah.name_en}) · {surah.verses_count} <Tt k="ayahs" /> ·{' '}
           {surah.revelation_place === 'makkah' ? 'Mekkî' : 'Medenî'}

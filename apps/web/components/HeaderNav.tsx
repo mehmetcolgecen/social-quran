@@ -1,20 +1,51 @@
 'use client';
-// Üst bar menüsü + arama + dil anahtarı — etiketler arayüz diline (tr/en) göre çevrilir.
+// Üst bar: solda hamburger ile açılıp kapanan menü çekmecesi + arama + dil anahtarı.
+// Etiketler arayüz diline (tr/en) göre çevrilir.
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useSettings } from '@/lib/settings';
 import { t } from '@/lib/i18n';
 
-export function HeaderLinks() {
+export function HeaderMenu() {
   const { settings } = useSettings();
   const L = settings.uiLang;
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Sayfa değişince ve Escape'te çekmece kapanır
+  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
   return (
-    <nav>
-      <Link href="/">{t(L, 'surahs')}</Link>
-      <Link href="/ogren">{t(L, 'learn')}</Link>
-      <Link href="/hakikatler" title={t(L, 'truthsTitle')}>{t(L, 'truths')}</Link>
-      <Link href="/yer-imleri">{t(L, 'bookmarks')}</Link>
-      <Link href="/plan">{t(L, 'plan')}</Link>
-    </nav>
+    <>
+      <button
+        className="hmenu-btn"
+        aria-expanded={open}
+        aria-label={t(L, 'menu')}
+        title={t(L, 'menu')}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {open ? '✕' : '☰'}
+      </button>
+      {open && (
+        <>
+          <div className="hmenu-backdrop" onClick={() => setOpen(false)} />
+          <nav className="hmenu-drawer" aria-label={t(L, 'menu')}>
+            <Link href="/">🕮 {t(L, 'surahs')}</Link>
+            <Link href="/ogren">🎓 {t(L, 'learn')}</Link>
+            <Link href="/hakikatler" title={t(L, 'truthsTitle')}>🔬 {t(L, 'truths')}</Link>
+            <Link href="/yer-imleri">🔖 {t(L, 'bookmarks')}</Link>
+            <Link href="/plan">📅 {t(L, 'plan')}</Link>
+          </nav>
+        </>
+      )}
+    </>
   );
 }
 

@@ -28,7 +28,10 @@ const stripNotes = (t: string) => t.replace(/<sup[^>]*>.*?<\/sup>/g, '');
 const plain = <T>(row: unknown): T => ({ ...(row as object) }) as T;
 
 export function getSurahs(): Surah[] {
-  return db().prepare('SELECT * FROM surahs ORDER BY id').all().map((r) => plain<Surah>(r));
+  // start_page: surenin mushaftaki ilk sayfası — ana sayfa kartları sayfa görünümüne bağlanır
+  return db().prepare(
+    'SELECT s.*, (SELECT MIN(page) FROM ayahs a WHERE a.surah = s.id) AS start_page FROM surahs s ORDER BY s.id',
+  ).all().map((r) => plain<Surah>(r));
 }
 
 export function getSurah(id: number): Surah | null {
