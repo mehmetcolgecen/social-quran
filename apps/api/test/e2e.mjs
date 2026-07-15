@@ -134,5 +134,28 @@ check('gizlenen yorum misafir listesinde YOK', !afterHide.some((c) => c.id === b
 const ownAfterHide = await (await json('GET', '/users/me/comments', ali)).json();
 check('sahibi gizlendiğini görür', ownAfterHide.find((c) => c.id === badComment.id)?.hidden === true);
 
+console.log('Yönetim paneli (tüm yorumlar + istatistik):');
+check('üye tüm-yorumlar listesine erişemez (403)', (await json('GET', '/moderation/comments', veli)).status === 403);
+const allComments = await (await json('GET', `/moderation/comments?q=${encodeURIComponent(suffix)}`, mod)).json();
+check('moderatör yorumlarda arar', allComments.items.some((c) => c.id === badComment.id));
+check('private hâşiye panelde LİSTELENMEZ', !allComments.items.some((c) => c.id === privComment.id));
+const hiddenOnly = await (await json('GET', `/moderation/comments?status=hidden&q=${encodeURIComponent(suffix)}`, mod)).json();
+check('gizli filtresi çalışır', hiddenOnly.items.some((c) => c.id === badComment.id));
+const byUser = await (await json('GET', `/moderation/comments?username=e2e_ali_${suffix}`, mod)).json();
+check('kullanıcı filtresi çalışır', byUser.items.length >= 1 && byUser.items.every((c) => c.username === `e2e_ali_${suffix}`));
+check('moderatör geri gösterir', (await json('POST', `/moderation/comments/${badComment.id}`, mod, { action: 'unhide' })).status === 200);
+const afterUnhide = await (await fetch(`${API}/comments?type=ayah&key=1:6`)).json();
+check('geri gösterilen yorum misafir listesinde', afterUnhide.some((c) => c.id === badComment.id));
+check('moderatör siler', (await json('POST', `/moderation/comments/${badComment.id}`, mod, { action: 'delete' })).status === 200);
+const afterDelete = await (await fetch(`${API}/comments?type=ayah&key=1:6`)).json();
+check('silinen yorum misafir listesinde YOK', !afterDelete.some((c) => c.id === badComment.id));
+check('silinen yorum panelde de YOK',
+  !(await (await json('GET', `/moderation/comments?q=${encodeURIComponent(suffix)}`, mod)).json()).items.some((c) => c.id === badComment.id));
+const overview = await (await json('GET', '/moderation/overview', mod)).json();
+check('genel bakış toplamları', overview.totals.users >= 3 && typeof overview.totals.comments === 'number',
+  JSON.stringify(overview.totals));
+const aliStats = overview.users.find((u) => u.username === `e2e_ali_${suffix}`);
+check('kullanıcı istatistikleri', !!aliStats && aliStats.comment_count >= 1, JSON.stringify(aliStats));
+
 console.log(`\nSONUÇ: ${passed} geçti, ${failed} kaldı`);
 process.exit(failed ? 1 : 0);

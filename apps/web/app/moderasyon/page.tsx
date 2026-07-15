@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
-import ModerationList from '@/components/ModerationList';
+import ModerationPanel from '@/components/ModerationPanel';
 
-export const metadata = { title: 'Moderasyon' };
+export const metadata = { title: 'Yönetim' };
 export const dynamic = 'force-dynamic';
 
 export default async function ModerasyonPage() {
@@ -10,8 +10,8 @@ export default async function ModerasyonPage() {
   if (!session) redirect('/api/auth/login?next=/moderasyon');
   return (
     <main>
-      <h1>Moderasyon — açık şikâyetler</h1>
-      <ModerationList />
+      <h1>Yönetim paneli</h1>
+      <ModerationPanel />
     </main>
   );
 }
