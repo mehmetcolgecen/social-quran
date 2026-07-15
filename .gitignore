@@ -14,3 +14,4 @@ data/.dev/
 .env.*
 !.env.example
 deploy/k8s/secrets.yaml
+.oracle/
