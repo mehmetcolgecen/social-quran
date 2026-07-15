@@ -212,10 +212,16 @@ export default function ShareAyah({ verseKey, surahName, words, mealTr }: Props)
   return (
     <>
       <button className="sharebtn" title={t('shareCardTitle')} onClick={() => setOpen(true)}>
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <rect x="3" y="3" width="18" height="18" rx="3.5" />
-          <path d="M3 16 L8.5 10.5 L13 15 L16 12 L21 17" />
-          <circle cx="15.5" cy="7.5" r="1.6" fill="currentColor" stroke="none" />
+        {/* Tezhipli kart minyatürü: çift çerçeve + sekiz kollu yıldız (kartın kendisi gibi) */}
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <rect x="2.6" y="3.6" width="18.8" height="16.8" rx="2.4"
+            fill="none" stroke="currentColor" strokeWidth="1.7" />
+          <rect x="5.4" y="6.4" width="13.2" height="11.2"
+            fill="none" stroke="currentColor" strokeWidth=".9" opacity=".55" />
+          <g transform="translate(12 12)" fill="currentColor">
+            <rect x="-2.5" y="-2.5" width="5" height="5" />
+            <rect x="-2.5" y="-2.5" width="5" height="5" transform="rotate(45)" />
+          </g>
         </svg>
       </button>
       {open && createPortal(

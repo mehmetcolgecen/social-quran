@@ -363,7 +363,14 @@ export function AyahBadge({ surah, ayah, words }: { surah: number; ayah: number;
         title={total ? `${total} yorum (ayet + kelime)` : 'Yorum yaz'}
         onClick={() => { hidePreview(); open({ type: 'ayah', key, words }); }}
       >
-        {total || '+'}
+        {/* Yorum adedi konuşma balonunun içinde yazar */}
+        <svg viewBox="0 0 30 30" width="27" height="27" aria-hidden="true">
+          <path d="M15 4.4 C8.5 4.4 3.4 8.4 3.4 13.4 C3.4 16.3 5.1 18.9 7.8 20.6 L6.5 26 L12.3 22.8 C13.2 22.9 14.1 23 15 23 C21.5 23 26.6 18.7 26.6 13.4 C26.6 8.4 21.5 4.4 15 4.4 Z" />
+          <text x="15" y="13.9" textAnchor="middle" dominantBaseline="central"
+            fontSize={total >= 100 ? 9 : 11} fontWeight="700">
+            {total || '+'}
+          </text>
+        </svg>
       </button>
       {preview && preview.length > 0 && (
         <span className="cpreview">

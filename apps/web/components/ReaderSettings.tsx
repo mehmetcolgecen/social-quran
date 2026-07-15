@@ -83,7 +83,8 @@ export default function ReaderSettings({ frameSelect = false }: { frameSelect?: 
 
   return (
     <div className="hmenu-settings">
-      <label>{t('mode')}
+      <label className="hset">
+        <span className="hset-label">{t('mode')}</span>
         <select value={settings.mode} onChange={(e) => update({ mode: e.target.value as typeof settings.mode })}>
           <option value="renkli">{t('modeColor')}</option>
           <option value="siyah">{t('modeBlack')}</option>
@@ -91,7 +92,7 @@ export default function ReaderSettings({ frameSelect = false }: { frameSelect?: 
         </select>
       </label>
       <details className="dd">
-        <summary>{t('word')}: <b>{langSummary(settings.wordLangs, t('off'))}</b></summary>
+        <summary><span>{t('word')}</span><b className="hset-val">{langSummary(settings.wordLangs, t('off'))}</b></summary>
         <div className="dd-panel">
           {WBW_LANGS.map((l) => (
             <label key={l.code}>
@@ -103,7 +104,7 @@ export default function ReaderSettings({ frameSelect = false }: { frameSelect?: 
         </div>
       </details>
       <details className="dd">
-        <summary>{t('meal')}: <b>{langSummary(settings.meals, t('off'))}</b></summary>
+        <summary><span>{t('meal')}</span><b className="hset-val">{langSummary(settings.meals, t('off'))}</b></summary>
         <div className="dd-panel">
           {LANGS.map((l) => (
             <label key={l.code}>
@@ -114,7 +115,8 @@ export default function ReaderSettings({ frameSelect = false }: { frameSelect?: 
           ))}
         </div>
       </details>
-      <label>{t('size')}
+      <label className="hset">
+        <span className="hset-label">{t('size')}</span>
         <select value={settings.fontScale} onChange={(e) => update({ fontScale: Number(e.target.value) })}>
           <option value={0.85}>{t('sizeS')}</option>
           <option value={1}>{t('sizeM')}</option>
@@ -122,13 +124,15 @@ export default function ReaderSettings({ frameSelect = false }: { frameSelect?: 
           <option value={1.4}>{t('sizeXL')}</option>
         </select>
       </label>
-      <label>{t('font')}
+      <label className="hset">
+        <span className="hset-label">{t('font')}</span>
         <select value={settings.arFont} onChange={(e) => update({ arFont: e.target.value as typeof settings.arFont })}>
           {AR_FONTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       </label>
       {frameSelect && (
-        <label>{t('frame')}
+        <label className="hset">
+          <span className="hset-label">{t('frame')}</span>
           <select value={settings.frame} onChange={(e) => update({ frame: e.target.value as typeof settings.frame })}>
             {FRAMES.map(([v, k]) => <option key={v} value={v}>{t(k)}</option>)}
           </select>

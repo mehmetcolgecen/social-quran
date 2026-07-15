@@ -167,23 +167,55 @@ main > h1, .ogren-head h1 { font-size: 1.45rem; }
   font-size: .84rem;
 }
 .hmenu-settings > label { display: flex; align-items: center; gap: .45rem; }
-/* Seçmeli satırlar (Mod/Boyut/Yazı/Desen) Kelime-Meal kutularıyla aynı görünümde */
-.hmenu-settings > label:has(> select) {
-  border: 1px solid var(--line);
-  border-radius: .45rem;
-  padding: .22rem .3rem .22rem .55rem;
-  background: var(--card);
+/* Seçmeli satırlar (Mod/Boyut/Yazı/Desen): kutunun KENDİSİ select'tir —
+   iç içe şekil yok, satırın her yeri tıklanır açar. Etiket select'in üzerine
+   bindirilir (pointer-events: none), değer sağa yaslanır, ok ::after ile çizilir. */
+.hmenu-settings .hset { position: relative; display: block; padding: 0; }
+.hmenu-settings .hset .hset-label {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: .6rem;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: var(--ink);
+}
+.hmenu-settings .hset::after {
+  content: '▾';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: .55rem;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  pointer-events: none;
+  font-size: .8rem;
+}
+.hmenu-settings .hset select {
+  width: 100%;
+  font: inherit; font-size: .84rem;
+  padding: .34rem 1.5rem .34rem 5.6rem;
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--line); border-radius: .45rem;
+  appearance: none;
+  text-align: end;
+  text-align-last: end;
+  cursor: pointer;
   transition: border-color .15s;
 }
-.hmenu-settings > label:has(> select):hover { border-color: var(--accent); }
-.hmenu-settings > label > select { margin-inline-start: auto; max-width: 10.5rem; }
-.hmenu-settings select {
-  font: inherit; font-size: .8rem;
-  padding: .18rem .3rem;
-  background: none; color: var(--ink);
-  border: none;
-  cursor: pointer;
+.hmenu-settings .hset select:hover { border-color: var(--accent); }
+/* Açılır kutular (Kelime/Meal/kâri): tam genişlik, değer sağa yaslı, ok en sağda */
+.hmenu-settings details.dd { width: 100%; }
+.hmenu-settings .dd summary {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  width: 100%;
+  padding: .34rem .55rem;
+  font-size: .84rem;
 }
+.hmenu-settings .dd summary .hset-val { margin-inline-start: auto; }
+.hmenu-settings .rdd summary::after { margin-inline-start: auto; }
 .hmenu-settings .dd-panel {
   position: static;
   min-width: 0;
@@ -707,26 +739,22 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
 
 .reader.black .w, .reader.black .w .ar span { color: var(--ink) !important; }
 
-/* "Bu ayetten dinle": ▶ + ayet numarası, hap biçimli */
+/* "Bu ayetten dinle": ayet numarası play üçgeninin içinde */
 .num {
   align-self: center;
   display: inline-flex;
   align-items: center;
-  gap: .28rem;
-  font-size: .85rem;
-  font-weight: 600;
-  color: var(--accent);
-  border: 1.5px solid var(--accent);
-  border-radius: .7rem;
-  padding: 0 .6rem;
-  height: 1.9rem;
-  background: var(--card);
+  background: none;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  box-shadow: 0 0 0 3px var(--accent-soft);
-  transition: box-shadow .15s;
+  color: var(--accent);
+  transition: transform .15s, filter .15s;
 }
-.num .num-play { font-size: .62rem; line-height: 1; }
-.num:hover { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent); background: var(--accent-soft); }
+.num svg path { fill: var(--card); stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
+.num svg text { fill: currentColor; }
+.num:hover { transform: scale(1.12); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 45%, transparent)); }
+.num:hover svg path { fill: var(--accent-soft); }
 
 .meal {
   font-size: .87rem;
@@ -794,22 +822,24 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
 .user-menu { margin-inline-start: auto; display: flex; gap: .8rem; font-size: .85rem; align-items: center; }
 .user-menu a { text-decoration: none; }
 
-/* Yorum rozeti: konuşma balonu içinde yorum adedi (sivri köşe = balon kuyruğu) */
+/* Yorum rozeti: yorum adedi konuşma balonu ikonunun içinde */
 .cbadge {
   align-self: center;
-  font-size: .7rem;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  border: 1.4px solid var(--line);
-  border-radius: .7rem .7rem .7rem .12rem;
-  background: var(--card);
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
   color: var(--accent);
   cursor: pointer;
-  opacity: .25;
-  transition: opacity .15s;
+  opacity: .3;
+  transition: opacity .15s, transform .15s;
 }
-.cbadge.has { opacity: .6; border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.cbadge svg path { fill: var(--card); stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+.cbadge svg text { fill: currentColor; }
+.cbadge.has { opacity: .65; }
 .ayah:hover .cbadge, .cbadge:hover { opacity: 1; }
+.cbadge:hover { transform: scale(1.1); }
 
 /* Yer imi + paylaşım düğmeleri (ayet satırında, hover'da belirginleşir) */
 .bmark, .sharebtn {

@@ -123,7 +123,14 @@ const AyahRow = memo(function AyahRow({
           />
         ))}
         <button className="num" title={`${surahId}:${ayah.ayah} — bu ayetten dinle`} onClick={() => onPlay(gi, ai)}>
-          <span className="num-play" aria-hidden>▶</span>{ayah.ayah}
+          {/* Ayet numarası play üçgeninin İÇİNDE yazar */}
+          <svg viewBox="0 0 30 30" width="32" height="32" aria-hidden="true">
+            <path d="M6.5 5.8 Q6.5 3.6 8.4 4.7 L26 14 Q27.8 15 26 16 L8.4 25.3 Q6.5 26.4 6.5 24.2 Z" />
+            <text x="13.4" y="15.1" textAnchor="middle" dominantBaseline="central"
+              fontSize={ayah.ayah >= 100 ? 8.5 : ayah.ayah >= 10 ? 10.5 : 12.5} fontWeight="700">
+              {ayah.ayah}
+            </text>
+          </svg>
         </button>
         <AyahBadge surah={surahId} ayah={ayah.ayah} words={slimWords} />
         <BookmarkButton surah={surahId} ayah={ayah.ayah} name={surahName} />
