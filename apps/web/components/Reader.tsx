@@ -123,7 +123,7 @@ const AyahRow = memo(function AyahRow({
           />
         ))}
         <button className="num" title={`${surahId}:${ayah.ayah} — bu ayetten dinle`} onClick={() => onPlay(gi, ai)}>
-          {ayah.ayah}
+          <span className="num-play" aria-hidden>▶</span>{ayah.ayah}
         </button>
         <AyahBadge surah={surahId} ayah={ayah.ayah} words={slimWords} />
         <BookmarkButton surah={surahId} ayah={ayah.ayah} name={surahName} />
@@ -254,8 +254,8 @@ function Player({ groups, pos, paused, repeat, speed, onStep, onPause, onRepeat,
   );
 }
 
-export default function Reader({ groups, showPageMarkers = true, pageNumber, mushaf = false }: {
-  groups: ReaderGroup[]; showPageMarkers?: boolean; pageNumber?: number; mushaf?: boolean;
+export default function Reader({ groups, showPageMarkers = true, pageNumber, mushaf = false, headExtra }: {
+  groups: ReaderGroup[]; showPageMarkers?: boolean; pageNumber?: number; mushaf?: boolean; headExtra?: ReactNode;
 }) {
   const { settings } = useSettings();
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -441,7 +441,9 @@ export default function Reader({ groups, showPageMarkers = true, pageNumber, mus
     <div className={cls} style={{ ['--ar-scale' as string]: settings.fontScale }}>
       <CommentsProvider groups={groups} pageNumber={pageNumber} enabled={settings.comments}>
         <SettingsBar onPlaySurah={() => (pos ? stop() : playAt(0, 0))} playing={pos !== null}
-          toggleHref={toggleHref} toggleKey={mushaf ? 'toSurahView' : 'toPageView'} />
+          toggleHref={toggleHref} toggleKey={mushaf ? 'toSurahView' : 'toPageView'}>
+          {headExtra}
+        </SettingsBar>
         <TargetButtons groups={groups} pageNumber={pageNumber} />
         {mushaf ? (
           <div className="mushaf-frame" data-frame={settings.frame}>

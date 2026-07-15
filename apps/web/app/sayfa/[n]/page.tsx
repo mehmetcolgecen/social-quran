@@ -36,13 +36,11 @@ export default async function SayfaPage({ params }: Props) {
           <b>Sayfa {n} / 604</b>
           {n < 604 ? <Link href={`/sayfa/${n + 1}`}>Sayfa {n + 1} →</Link> : <span />}
         </div>
-        <p className="meta">
-          <PageReadButton page={n} />
-        </p>
       </div>
       <div className="sayfa-layout">
         <div className="sayfa-content">
-          <Reader groups={groups} showPageMarkers={false} pageNumber={n} mushaf />
+          <Reader groups={groups} showPageMarkers={false} pageNumber={n} mushaf
+            headExtra={<PageReadButton page={n} />} />
         </div>
         <MemorizeSidebar words={[...unique.values()]} />
       </div>

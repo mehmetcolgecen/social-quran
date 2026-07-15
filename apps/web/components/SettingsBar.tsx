@@ -1,22 +1,25 @@
 'use client';
-// İnce üst çubuk: görünüm geçişi + Dinle. Okuma ayarlarının tamamı hamburger
-// çekmecesine taşındı (ReaderSettings.tsx); mahreç lejantı metnin yanında kalır.
+// Okuyucu başlık satırı: görünüm geçişi + Dinle (+ sayfa görünümünde "okudum" düğmesi).
+// Sayfayla birlikte kayar (yapışkan değil); okuma ayarlarının tamamı hamburger
+// çekmecesindedir (ReaderSettings.tsx). Mahreç lejantı metnin yanında kalır.
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useSettings } from '@/lib/settings';
 import { useT, type UiKey } from '@/lib/i18n';
 import { MAHREC_GROUPS } from '@/lib/mahrec';
 
-export default function SettingsBar({ onPlaySurah, playing, toggleHref, toggleKey }: {
-  onPlaySurah: () => void; playing: boolean; toggleHref: string; toggleKey: UiKey;
+export default function SettingsBar({ onPlaySurah, playing, toggleHref, toggleKey, children }: {
+  onPlaySurah: () => void; playing: boolean; toggleHref: string; toggleKey: UiKey; children?: ReactNode;
 }) {
   const { settings } = useSettings();
   const t = useT();
 
   return (
     <>
-      <div className="settings-bar slim">
+      <div className="reader-head">
         <Link className="view-toggle" href={toggleHref}>{t(toggleKey)}</Link>
-        <button className="play-btn" onClick={onPlaySurah}>{playing ? t('stop') : t('listen')}</button>
+        <button className="view-toggle play-btn" onClick={onPlaySurah}>{playing ? t('stop') : t('listen')}</button>
+        {children}
       </div>
       {settings.mode === 'mahrec' && (
         <div className="legend">

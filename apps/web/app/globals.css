@@ -167,12 +167,22 @@ main > h1, .ogren-head h1 { font-size: 1.45rem; }
   font-size: .84rem;
 }
 .hmenu-settings > label { display: flex; align-items: center; gap: .45rem; }
+/* Seçmeli satırlar (Mod/Boyut/Yazı/Desen) Kelime-Meal kutularıyla aynı görünümde */
+.hmenu-settings > label:has(> select) {
+  border: 1px solid var(--line);
+  border-radius: .45rem;
+  padding: .22rem .3rem .22rem .55rem;
+  background: var(--card);
+  transition: border-color .15s;
+}
+.hmenu-settings > label:has(> select):hover { border-color: var(--accent); }
 .hmenu-settings > label > select { margin-inline-start: auto; max-width: 10.5rem; }
 .hmenu-settings select {
   font: inherit; font-size: .8rem;
-  padding: .22rem .45rem;
-  background: var(--card); color: var(--ink);
-  border: 1px solid var(--line); border-radius: .45rem;
+  padding: .18rem .3rem;
+  background: none; color: var(--ink);
+  border: none;
+  cursor: pointer;
 }
 .hmenu-settings .dd-panel {
   position: static;
@@ -296,39 +306,18 @@ html[data-theme='koyu'] .search-page-form button { color: #241c07; }
 }
 .continue-card:hover { border-color: var(--accent); box-shadow: var(--shadow-1); }
 
-/* ---------- Ayar çubuğu ---------- */
-.settings-bar {
-  position: sticky;
-  top: 0;
-  z-index: 5;
+/* ---------- Okuyucu başlık satırı ----------
+   Görünüm geçişi + Dinle (+ sayfa görünümünde "okudum"); sayfayla birlikte kayar. */
+.reader-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .7rem 1rem;
-  padding: .55rem .95rem;
-  background: color-mix(in srgb, var(--card) 94%, transparent);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-1);
-  margin-bottom: 1rem;
-  font-size: .8rem;
+  justify-content: center;
+  gap: .5rem .6rem;
+  margin: 0 0 .9rem;
+  font-size: .85rem;
 }
-@media (min-width: 720px) {
-  .settings-bar { top: 3.45rem; }
-}
-/* İnce hâl: yalnız görünüm geçişi + Dinle, sağa yaslı ve bitişik */
-.settings-bar.slim { justify-content: flex-end; gap: .5rem; }
-.settings-bar.slim .play-btn { margin-inline-start: 0; }
-.settings-bar label { display: flex; align-items: center; gap: .3rem; }
-.settings-bar select, .settings-bar button {
-  font: inherit; padding: .22rem .45rem;
-  background: var(--card); color: var(--ink);
-  border: 1px solid var(--line); border-radius: .45rem;
-  transition: border-color .15s;
-}
-.settings-bar select:hover, .settings-bar button:hover { border-color: var(--accent); }
-.settings-bar .play-btn { margin-inline-start: auto; cursor: pointer; }
+.reader-head .play-btn { font: inherit; cursor: pointer; }
 
 /* Çok-seçimli açılır menü (kelime anlamı dilleri) */
 .dd { position: relative; }
@@ -718,19 +707,25 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
 
 .reader.black .w, .reader.black .w .ar span { color: var(--ink) !important; }
 
+/* "Bu ayetten dinle": ▶ + ayet numarası, hap biçimli */
 .num {
   align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: .28rem;
   font-size: .85rem;
+  font-weight: 600;
   color: var(--accent);
   border: 1.5px solid var(--accent);
-  border-radius: 50%;
-  min-width: 1.9rem;
+  border-radius: .7rem;
+  padding: 0 .6rem;
   height: 1.9rem;
   background: var(--card);
   cursor: pointer;
   box-shadow: 0 0 0 3px var(--accent-soft);
   transition: box-shadow .15s;
 }
+.num .num-play { font-size: .62rem; line-height: 1; }
 .num:hover { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent); background: var(--accent-soft); }
 
 .meal {
@@ -799,20 +794,21 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
 .user-menu { margin-inline-start: auto; display: flex; gap: .8rem; font-size: .85rem; align-items: center; }
 .user-menu a { text-decoration: none; }
 
+/* Yorum rozeti: konuşma balonu içinde yorum adedi (sivri köşe = balon kuyruğu) */
 .cbadge {
   align-self: center;
   font-size: .7rem;
   min-width: 1.5rem;
   height: 1.5rem;
-  border: 1px solid var(--line);
-  border-radius: 50%;
+  border: 1.4px solid var(--line);
+  border-radius: .7rem .7rem .7rem .12rem;
   background: var(--card);
   color: var(--accent);
   cursor: pointer;
   opacity: .25;
   transition: opacity .15s;
 }
-.cbadge.has { opacity: .6; }
+.cbadge.has { opacity: .6; border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 .ayah:hover .cbadge, .cbadge:hover { opacity: 1; }
 
 /* Yer imi + paylaşım düğmeleri (ayet satırında, hover'da belirginleşir) */
@@ -829,6 +825,9 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
   display: inline-flex;
   align-items: center;
 }
+/* Kitap ayracı kırmızı (koyu temada açık ton) */
+.bmark { color: #c73a2a; }
+html[data-theme='koyu'] .bmark { color: #ef7b7b; }
 .bmark.on { opacity: .9; }
 .ayah:hover .bmark, .ayah:hover .sharebtn, .bmark:hover, .sharebtn:hover { opacity: 1; transform: scale(1.15); }
 
@@ -1516,8 +1515,6 @@ html[data-theme='koyu'] .mushaf-band[data-frame='sade'] .mushaf-inner { backgrou
   .hsearch { flex: 1 1 7rem; }
   .hsearch input, .hsearch input:focus { width: 100%; }
   .user-menu { margin-inline-start: 0; gap: .5rem; }
-  /* Ayar çubuğu sabit kalınca ekranın yarısını kaplıyordu */
-  .settings-bar { position: static; }
   .words { gap: .35rem .7rem; }
   .ayah { padding: .55rem .35rem; }
   /* Kelime popover'ı kelimeye göre konumlanınca ekran kenarından taşıyordu;
