@@ -137,7 +137,7 @@ const AyahRow = memo(function AyahRow({
             <svg viewBox="0 0 30 30" width="32" height="32" aria-hidden="true">
               <path d="M6.5 5.8 Q6.5 3.6 8.4 4.7 L26 14 Q27.8 15 26 16 L8.4 25.3 Q6.5 26.4 6.5 24.2 Z" />
               <text x="13.4" y="15.1" textAnchor="middle" dominantBaseline="central"
-                fontSize={ayah.ayah >= 100 ? 7.5 : ayah.ayah >= 10 ? 9.5 : 11.5} fontWeight="700">
+                fontSize={ayah.ayah >= 100 ? 6.5 : ayah.ayah >= 10 ? 8 : 9.5} fontWeight="700">
                 {ayah.ayah}
               </text>
             </svg>

@@ -30,13 +30,18 @@ export default async function SurePage({ params }: Props) {
     }
   }
 
+  // Sure geçişleri hem üstte hem altta (uzun surelerde yukarı kaydırmadan geçilebilsin)
+  const nav = (
+    <div className="nav">
+      {id > 1 ? <Link href={`/sure/${id - 1}`}>← {getSurah(id - 1)!.name_tr}</Link> : <span />}
+      {id < 114 ? <Link href={`/sure/${id + 1}`}>{getSurah(id + 1)!.name_tr} →</Link> : <span />}
+    </div>
+  );
+
   return (
     <main className="sure-main">
       <div className="sure-head">
-        <div className="nav">
-          {id > 1 ? <Link href={`/sure/${id - 1}`}>← {getSurah(id - 1)!.name_tr}</Link> : <span />}
-          {id < 114 ? <Link href={`/sure/${id + 1}`}>{getSurah(id + 1)!.name_tr} →</Link> : <span />}
-        </div>
+        {nav}
         <p className="meta">
           {surah.id}. {surah.name_tr} Suresi ({surah.name_en}) · {surah.verses_count} <Tt k="ayahs" /> ·{' '}
           {surah.revelation_place === 'makkah' ? 'Mekkî' : 'Medenî'}
@@ -48,6 +53,7 @@ export default async function SurePage({ params }: Props) {
         </div>
         <MemorizeSidebar words={[...unique.values()]} titleKey="memorizeTitleSurah" />
       </div>
+      <div className="sure-head foot">{nav}</div>
     </main>
   );
 }

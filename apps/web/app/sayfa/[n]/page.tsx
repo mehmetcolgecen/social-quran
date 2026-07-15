@@ -28,15 +28,18 @@ export default async function SayfaPage({ params }: Props) {
     }
   }
 
+  // Sayfa geçişleri hem üstte hem altta (sayfa sonunda yukarı kaydırmadan geçilebilsin)
+  const nav = (
+    <div className="nav">
+      {n > 1 ? <Link href={`/sayfa/${n - 1}`}>← Sayfa {n - 1}</Link> : <span />}
+      <b>Sayfa {n} / 604</b>
+      {n < 604 ? <Link href={`/sayfa/${n + 1}`}>Sayfa {n + 1} →</Link> : <span />}
+    </div>
+  );
+
   return (
     <main className="sayfa-main">
-      <div className="sure-head">
-        <div className="nav">
-          {n > 1 ? <Link href={`/sayfa/${n - 1}`}>← Sayfa {n - 1}</Link> : <span />}
-          <b>Sayfa {n} / 604</b>
-          {n < 604 ? <Link href={`/sayfa/${n + 1}`}>Sayfa {n + 1} →</Link> : <span />}
-        </div>
-      </div>
+      <div className="sure-head">{nav}</div>
       <div className="sayfa-layout">
         <div className="sayfa-content">
           <Reader groups={groups} showPageMarkers={false} pageNumber={n} mushaf
@@ -44,6 +47,7 @@ export default async function SayfaPage({ params }: Props) {
         </div>
         <MemorizeSidebar words={[...unique.values()]} />
       </div>
+      <div className="sure-head foot">{nav}</div>
     </main>
   );
 }

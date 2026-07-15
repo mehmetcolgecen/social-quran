@@ -404,6 +404,7 @@ html[data-theme='koyu'] .search-page-form button { color: #241c07; }
 .sure-head .ar { font-family: var(--font-ar); font-size: 2.4rem; color: var(--accent); margin: 0; }
 .sure-head .meta { font-size: .85rem; color: var(--muted); }
 .sure-head .nav { display: flex; justify-content: space-between; font-size: .85rem; }
+.sure-head.foot { margin: 1.5rem 0 .3rem; }
 
 .basmala {
   font-family: var(--font-ar);
@@ -752,11 +753,11 @@ html[data-theme='koyu'] .mynotes.science .mynote { color: #a8d06f; }
   color: var(--ink);
   transition: transform .15s, filter .15s;
 }
-.num svg path { fill: var(--card); stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
-.num svg text { fill: currentColor; }
+.num svg path { fill: currentColor; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
+.num svg text { fill: var(--card); }
 .num svg .num-stop { fill: currentColor; }
 .num:hover { transform: scale(1.12); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 45%, transparent)); }
-.num:hover svg path { fill: var(--accent-soft); }
+.num:hover svg path { fill: var(--accent-deep); stroke: var(--accent-deep); }
 
 .meal {
   font-size: .87rem;
