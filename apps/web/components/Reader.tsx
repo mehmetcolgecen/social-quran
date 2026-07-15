@@ -8,7 +8,7 @@ import { useSettings } from '@/lib/settings';
 import { useT } from '@/lib/i18n';
 import { mahrecSegments } from '@/lib/mahrec';
 import { EMBEDDED_MEAL, EMBEDDED_WBW, flagOf } from '@/lib/langs';
-import type { Ayah, ReaderGroup, Reciter, Word } from '@/lib/types';
+import type { Ayah, ReaderGroup, Word } from '@/lib/types';
 import SettingsBar from './SettingsBar';
 import SurahBanner from './SurahBanner';
 import BookmarkButton from './BookmarkButton';
@@ -254,8 +254,8 @@ function Player({ groups, pos, paused, repeat, speed, onStep, onPause, onRepeat,
   );
 }
 
-export default function Reader({ groups, reciters, showPageMarkers = true, pageNumber, mushaf = false }: {
-  groups: ReaderGroup[]; reciters: Reciter[]; showPageMarkers?: boolean; pageNumber?: number; mushaf?: boolean;
+export default function Reader({ groups, showPageMarkers = true, pageNumber, mushaf = false }: {
+  groups: ReaderGroup[]; showPageMarkers?: boolean; pageNumber?: number; mushaf?: boolean;
 }) {
   const { settings } = useSettings();
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -431,10 +431,17 @@ export default function Reader({ groups, reciters, showPageMarkers = true, pageN
       wordLangs={settings.wordLangs} meals={settings.meals} wbwExtra={wbwExtra} mealExtra={mealExtra} />
   );
 
+  // Üst çubuktaki görünüm geçişi: mushaftan sureye (aynı ayete çapalı) / sureden sayfaya
+  const firstAyah = groups[0]?.ayahs[0];
+  const toggleHref = mushaf
+    ? `/sure/${groups[0].surah.id}#ayet-${groups[0].surah.id}-${firstAyah?.ayah ?? 1}`
+    : firstAyah ? `/sayfa/${firstAyah.page}` : '/';
+
   return (
     <div className={cls} style={{ ['--ar-scale' as string]: settings.fontScale }}>
       <CommentsProvider groups={groups} pageNumber={pageNumber} enabled={settings.comments}>
-        <SettingsBar reciters={reciters} onPlaySurah={() => (pos ? stop() : playAt(0, 0))} playing={pos !== null} frameSelect={mushaf} />
+        <SettingsBar onPlaySurah={() => (pos ? stop() : playAt(0, 0))} playing={pos !== null}
+          toggleHref={toggleHref} toggleKey={mushaf ? 'toSurahView' : 'toPageView'} />
         <TargetButtons groups={groups} pageNumber={pageNumber} />
         {mushaf ? (
           <div className="mushaf-frame" data-frame={settings.frame}>

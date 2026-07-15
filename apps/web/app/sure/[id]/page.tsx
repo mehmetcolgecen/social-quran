@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getReciters, getSurah, getSurahContent } from '@/lib/db';
+import { getSurah, getSurahContent } from '@/lib/db';
 import { Tt } from '@/lib/i18n';
 import Reader from '@/components/Reader';
 import MemorizeSidebar, { type UniqueWord } from '@/components/MemorizeSidebar';
@@ -41,13 +41,10 @@ export default async function SurePage({ params }: Props) {
           {surah.id}. {surah.name_tr} Suresi ({surah.name_en}) · {surah.verses_count} <Tt k="ayahs" /> ·{' '}
           {surah.revelation_place === 'makkah' ? 'Mekkî' : 'Medenî'}
         </p>
-        <p className="meta">
-          <Link className="view-toggle" href={`/sayfa/${content.ayahs[0].page}`}><Tt k="toPageView" /></Link>
-        </p>
       </div>
       <div className="sayfa-layout">
         <div className="sayfa-content">
-          <Reader groups={[content]} reciters={getReciters()} />
+          <Reader groups={[content]} />
         </div>
         <MemorizeSidebar words={[...unique.values()]} titleKey="memorizeTitleSurah" />
       </div>

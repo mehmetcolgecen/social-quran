@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getPageContent, getReciters } from '@/lib/db';
-import { Tt } from '@/lib/i18n';
+import { getPageContent } from '@/lib/db';
 import Reader from '@/components/Reader';
 import MemorizeSidebar, { type UniqueWord } from '@/components/MemorizeSidebar';
 import PageReadButton from '@/components/PageReadButton';
@@ -38,15 +37,12 @@ export default async function SayfaPage({ params }: Props) {
           {n < 604 ? <Link href={`/sayfa/${n + 1}`}>Sayfa {n + 1} →</Link> : <span />}
         </div>
         <p className="meta">
-          <Link className="view-toggle" href={`/sure/${groups[0].surah.id}#ayet-${groups[0].surah.id}-${groups[0].ayahs[0].ayah}`}>
-            <Tt k="toSurahView" />
-          </Link>{' '}
           <PageReadButton page={n} />
         </p>
       </div>
       <div className="sayfa-layout">
         <div className="sayfa-content">
-          <Reader groups={groups} reciters={getReciters()} showPageMarkers={false} pageNumber={n} mushaf />
+          <Reader groups={groups} showPageMarkers={false} pageNumber={n} mushaf />
         </div>
         <MemorizeSidebar words={[...unique.values()]} />
       </div>

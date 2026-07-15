@@ -1,11 +1,15 @@
 'use client';
 // Üst bar: solda hamburger ile açılıp kapanan menü çekmecesi + arama + dil anahtarı.
-// Etiketler arayüz diline (tr/en) göre çevrilir.
+// Etiketler arayüz diline (tr/en) göre çevrilir. Çekmece document.body'ye portallanır:
+// üst bardaki backdrop-filter, fixed torunlar için containing block oluşturur ve
+// çekmeceyi barın içine hapseder (bir kez yaşandı, tekrar etme).
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSettings } from '@/lib/settings';
 import { t } from '@/lib/i18n';
+import ReaderSettings from './ReaderSettings';
 
 export function HeaderMenu() {
   const { settings } = useSettings();
@@ -22,6 +26,9 @@ export function HeaderMenu() {
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
+  // Okuma sayfalarında ayarlar da çekmecede gösterilir (üst çubukta yalnız Dinle kaldı)
+  const isReader = pathname.startsWith('/sure/') || pathname.startsWith('/sayfa/');
+
   return (
     <>
       <button
@@ -33,7 +40,7 @@ export function HeaderMenu() {
       >
         {open ? '✕' : '☰'}
       </button>
-      {open && (
+      {open && createPortal(
         <>
           <div className="hmenu-backdrop" onClick={() => setOpen(false)} />
           <nav className="hmenu-drawer" aria-label={t(L, 'menu')}>
@@ -42,8 +49,16 @@ export function HeaderMenu() {
             <Link href="/hakikatler" title={t(L, 'truthsTitle')}>🔬 {t(L, 'truths')}</Link>
             <Link href="/yer-imleri">🔖 {t(L, 'bookmarks')}</Link>
             <Link href="/plan">📅 {t(L, 'plan')}</Link>
+            {isReader && (
+              <>
+                <div className="hmenu-sep" role="separator" />
+                <small className="hmenu-title">{t(L, 'readingSettings')}</small>
+                <ReaderSettings frameSelect={pathname.startsWith('/sayfa/')} />
+              </>
+            )}
           </nav>
-        </>
+        </>,
+        document.body,
       )}
     </>
   );

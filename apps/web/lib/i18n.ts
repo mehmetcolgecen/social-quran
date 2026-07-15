@@ -10,6 +10,7 @@ export type UiLang = 'tr' | 'en';
 const UI = {
   // Üst bar
   menu: { tr: 'Menü', en: 'Menu' },
+  readingSettings: { tr: 'Okuma ayarları', en: 'Reading settings' },
   surahs: { tr: 'Sureler', en: 'Surahs' },
   learn: { tr: 'Öğren', en: 'Learn' },
   truths: { tr: 'Hakikatler', en: 'Scientific Signs' },
