@@ -26,6 +26,12 @@ export async function GET(req: NextRequest) {
       httpOnly: true, sameSite: 'lax', path: '/', maxAge,
       secure: origin.startsWith('https:'),
     });
+    // id_token ayrı çerezde tutulur: çıkışta id_token_hint olarak gerekir
+    // (oturum çerezine eklemek 4 KB çerez sınırını zorlar).
+    res.cookies.set('sk_idt', tokens.id_token, {
+      httpOnly: true, sameSite: 'lax', path: '/', maxAge,
+      secure: origin.startsWith('https:'),
+    });
     res.cookies.delete('sk_auth');
     return res;
   } catch {

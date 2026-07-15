@@ -32,6 +32,9 @@
         "http://localhost:3000/api/auth/callback"
       ],
       "webOrigins": ["https://sosyal-kuran.com", "https://www.sosyal-kuran.com", "https://social-quran.com", "https://www.social-quran.com"],
+      "attributes": {
+        "post.logout.redirect.uris": "https://sosyal-kuran.com/*##https://www.sosyal-kuran.com/*##https://social-quran.com/*##https://www.social-quran.com/*##http://localhost:3000/*"
+      },
       "protocolMappers": [
         {
           "name": "api-audience",
