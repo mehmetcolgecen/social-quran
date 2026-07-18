@@ -5,7 +5,7 @@
 // İlerleme localStorage'da; "Sırayla dinle" dersin tüm seslerini kuyrukla çalar.
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ALFABE, BOLUMLER, DERSLER, type Ders, type Ornek } from '@/lib/ogren';
+import { AILELER, ALFABE, BOLUMLER, DERSLER, type Ders, type Ornek } from '@/lib/ogren';
 import { loadJSON, saveJSON } from '@/lib/store';
 
 const KEY = 'sk-ogren-v2';
@@ -107,6 +107,8 @@ export default function OgrenPage() {
 
   return (
     <main className="ogren-main">
+      {/* Çiçekli mushaf çerçevesi: altın dış çerçeve → gül/papatya/lale bandı → iç kâğıt */}
+      <div className="ogren-frame"><div className="ogren-band"><div className="ogren-inner">
       <header className="ogren-head">
         <div>
           <h1>🎓 Kur&rsquo;an Okumayı Öğren</h1>
@@ -125,17 +127,21 @@ export default function OgrenPage() {
       <section className="alfabe" aria-label="Elifba alfabesi">
         <div className="alfabe-head">
           <h2>۞ Elifba: 28 Harf</h2>
-          <small className="cmuted">Harfe dokunun, adını dinleyin — dersler aşağıda aile aile ilerler.</small>
+          <small className="cmuted">Harfe dokunun, adını dinleyin — renkler ilk beş harf dersinin aileleridir.</small>
         </div>
-        <div className="tezhip-band" aria-hidden="true" />
+        <div className="alfabe-lejant">
+          {Object.entries(AILELER).map(([no, a]) => (
+            <span key={no} style={{ ['--h' as string]: a.hue }}><i />{no}. {a.ad}</span>
+          ))}
+        </div>
         <div className="alfabe-grid">
-          {ALFABE.map((h, i) => {
+          {ALFABE.map((h) => {
             const k = `e:${h.ses}`;
             return (
               <button key={h.ses} type="button"
                 className={`alfabe-harf${playing === k ? ' playing' : ''}`}
-                style={{ ['--h' as string]: Math.round((i * 360) / ALFABE.length) }}
-                title={`${h.name} harfini dinle`} onClick={() => toggle(k)}>
+                style={{ ['--h' as string]: AILELER[h.aile].hue }}
+                title={`${h.name} — ${AILELER[h.aile].ad} (${h.aile}. ders)`} onClick={() => toggle(k)}>
                 <span dir="rtl">{h.ar}</span>
                 <small>{playing === k ? '⏸' : ''} {h.name}</small>
               </button>
@@ -169,7 +175,6 @@ export default function OgrenPage() {
               </button>
             )}
           </div>
-          <div className="tezhip-band slim" aria-hidden="true" />
           <p className="ogren-intro">{ders.intro}</p>
 
           {ders.harfler && (
@@ -229,6 +234,7 @@ export default function OgrenPage() {
           </div>
         </article>
       </div>
+      </div></div></div>
 
       <audio ref={audioRef} onEnded={advance} onError={() => { if (playing) advance(); }} />
     </main>
