@@ -17,3 +17,8 @@ deploy/k8s/secrets.yaml
 .oracle/
 # Kullanıcının verdiği ham imam fotoğrafları (kırpılmışları apps/web/public/reciters/)
 images/
+# Çalışma taslakları — yerelde kalır, GitHub'a gitmez
+CLAUDE.md
+GOAL.md
+ON_HAZIRLIK.md
+FABLE5_PROMPT.md
