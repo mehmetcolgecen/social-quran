@@ -55,10 +55,8 @@ html[data-theme='koyu'] {
 /* Arapça font seçimi (ayarlardan). --ar-boost: küçük ölçekli üretilmiş fontlar için düzeltme. */
 html { --font-ar: var(--font-hafs), serif; --ar-boost: 1; }
 html[data-arfont='amiri'] { --font-ar: var(--font-amiri), serif; --ar-boost: 1.08; }
-html[data-arfont='sheherazade'] { --font-ar: var(--font-sheherazade), serif; }
-html[data-arfont='lateef'] { --font-ar: var(--font-lateef), serif; --ar-boost: 1.12; }
-html[data-arfont='ruqaa'] { --font-ar: var(--font-ruqaa), serif; --ar-boost: 1.1; }
-html[data-arfont='noto'] { --font-ar: 'Noto Naskh Arabic', 'Noto Naskh Arabic UI', serif; }
+html[data-arfont='amiri-renkli'] { --font-ar: var(--font-amiri-renkli), serif; --ar-boost: 1.08; }
+html[data-arfont='dkhatt'] { --font-ar: var(--font-dkhatt), serif; --ar-boost: 1.06; }
 
 * { box-sizing: border-box; }
 

@@ -11,10 +11,9 @@ Son doğrulama: 2026-07-06. Değişmez kural: Kur'an metni hiçbir işlemde değ
 | Kelime-seviyesi ses zamanlamaları (4 kâri) | [quran-align](https://github.com/cpfair/quran-align) (cpfair) | **CC-BY 4.0** | Atıf zorunlu: "Word timings by cpfair/quran-align, CC-BY 4.0" |
 | Ayet-ayet mp3 (Husary 64k, Abdul Basit Murattal 64k, Alafasy 128k, Minshawy Murattal 128k) | [everyayah.com](https://everyayah.com) | Ücretsiz dağıtılan tilavet arşivi; sayfada ticari kısıt belirtilmiyor | everyayah.com atfı; kâri isimleri arayüzde gösterilir |
 | Font: KFGQPC Uthmanic Hafs v18 (woff2, `apps/web/fonts/`) | [quran.com-frontend-next](https://github.com/quran/quran.com-frontend-next) deposu (kaynak: KFGQPC) | KFGQPC fontları serbest kullanımlı dağıtılır; quran.com da aynı dosyayı kullanıyor | KFGQPC atfı (footer'da mevcut) |
-| Font: Amiri Quran | [aliftype/amiri](https://github.com/aliftype/amiri) | SIL OFL 1.1 | OFL bildirimi |
-| Font: Scheherazade New | [silnrsi/font-scheherazade](https://github.com/silnrsi/font-scheherazade) | SIL OFL 1.1 | OFL bildirimi |
-| Font: Lateef | [silnrsi/font-lateef](https://github.com/silnrsi/font-lateef) | SIL OFL 1.1 | OFL bildirimi |
-| Font: Aref Ruqaa | [google/fonts](https://github.com/google/fonts/tree/main/ofl/arefruqaa) | SIL OFL 1.1 | OFL bildirimi |
+| Font: Amiri Quran + Amiri Quran Colored (v1.003) | [aliftype/amiri](https://github.com/aliftype/amiri) | SIL OFL 1.1 | OFL bildirimi |
+| Font: DigitalKhatt Madina (`madina.otf`) | [DigitalKhatt/digitalkhatt.org](https://github.com/DigitalKhatt/digitalkhatt.org) | MIT | MIT bildirimi |
+| ~~Font: Scheherazade New, Lateef, Aref Ruqaa, Noto Naskh~~ | — | Mushaf imlasını yanlış bastıkları için ÜRÜNDEN ÇIKARILDI (2026-07-18): hareke+hançer elif birlikte basılıyor, vasıl hemzesi ve şeddeli esre hatalı görünüyordu | — |
 | Font: Caveat (el yazısı notlar) | [google/fonts](https://github.com/google/fonts/tree/main/ofl/caveat) | SIL OFL 1.1 | OFL bildirimi |
 | ~~Font: Hüsrev Hattı Arapça~~ | — | Kalite yetersiz + lisans belirsiz olduğundan ÜRÜNDEN ÇIKARILDI (2026-07-07). Gerçek Hüsrev hattı fontu için Hayrat Vakfı'ndan resmî lisans gerekir | — |
 | Ek mealler: DE Bubenheim&Elyas (27), FR Hamidullah (31), IT Piccardo (153), ES Isa García (83), UR Jalandhari (234), HI al-Umari (122), KO Hamed Choi (219), JA Saeed Sato (218), ZH Ma Jian (56) | quran.com API v4 `/quran/translations/{id}` | Kaynak bazında; quran.com üzerinden açık sunulan çeviriler | Çevirmen atfı meal satırında kaynak adı olarak saklanıyor |

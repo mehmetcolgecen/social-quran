@@ -19,21 +19,17 @@ const amiriQuran = localFont({
   display: 'swap',
   preload: false,
 });
-const sheherazade = localFont({
-  src: '../fonts/ScheherazadeNew-Regular.woff2',
-  variable: '--font-sheherazade',
+// Mushaf imlasını (hançer elif, vasıl hemzesi, gizli hareke kuralları) doğru basan
+// fontlar dışındakiler kaldırıldı — genel Arapça fontlar Kur'an işaretlerini bozuyor.
+const amiriQuranColored = localFont({
+  src: '../fonts/AmiriQuranColored.ttf',
+  variable: '--font-amiri-renkli',
   display: 'swap',
   preload: false,
 });
-const lateef = localFont({
-  src: '../fonts/Lateef-Regular.woff2',
-  variable: '--font-lateef',
-  display: 'swap',
-  preload: false,
-});
-const ruqaa = localFont({
-  src: '../fonts/ArefRuqaa-Regular.ttf',
-  variable: '--font-ruqaa',
+const digitalKhatt = localFont({
+  src: '../fonts/DigitalKhattMadina.otf',
+  variable: '--font-dkhatt',
   display: 'swap',
   preload: false,
 });
@@ -56,7 +52,7 @@ export const viewport = { themeColor: '#8a6d1d' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${sheherazade.variable} ${lateef.variable} ${ruqaa.variable} ${caveat.variable}`}>
+    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${amiriQuranColored.variable} ${digitalKhatt.variable} ${caveat.variable}`}>
       <body>
         <PwaRegister />
         <SettingsProvider>

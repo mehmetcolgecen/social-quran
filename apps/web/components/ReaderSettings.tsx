@@ -34,13 +34,12 @@ const FRAMES: readonly (readonly [string, UiKey])[] = [
   ['sade', 'frameSade'],
 ];
 
+// Yalnız mushaf imlasını doğru basan fontlar (hançer elif, vasıl hemzesi vb.)
 const AR_FONTS = [
-  ['hafs', 'KFGQPC Hafs'],
-  ['amiri', 'Amiri Quran'],
-  ['sheherazade', 'Scheherazade'],
-  ['lateef', 'Lateef'],
-  ['ruqaa', 'Aref Ruqaa'],
-  ['noto', 'Noto Naskh'],
+  ['hafs', 'Hafs (Medine)'],
+  ['amiri', 'Amiri Kur’an'],
+  ['amiri-renkli', 'Amiri (renkli hareke)'],
+  ['dkhatt', 'Dijital Hat (Medine)'],
 ] as const;
 
 function toggleIn(list: string[], code: string): string[] {
