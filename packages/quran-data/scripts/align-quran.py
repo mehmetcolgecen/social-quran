@@ -152,6 +152,25 @@ def main():
                     cursor = real_sp[-1][1] + 5
                     out["istiaze_ms"] = real_sp[-1][1] * 20
 
+    # İlk öğede belirsiz önek (cüz ortasında besmele okunmuş mu?): iki varyantı
+    # aynı pencerede yarıştır, kaybeden önek atılır.
+    if items and items[0].get("probe_prefix") and items[0].get("drop_prefix", 0) > 0:
+        it0 = items[0]
+        dp = it0["drop_prefix"]
+        win0 = em[cursor: cursor + min(T - cursor, 40 * FPS)]
+
+        def variant_score(words):
+            toks_v = romanize_words(words)
+            ids_v = [DICT[c] for c in "".join(toks_v)] + [STAR_ID]
+            a_v, s_v = align_tokens(win0, ids_v)
+            return mean_score(a_v, s_v)
+
+        if variant_score(it0["words"]) < variant_score(it0["words"][dp:]) - 0.15:
+            it0["words"] = it0["words"][dp:]
+            it0["drop_prefix"] = 0
+            roman[0] = romanize_words(it0["words"])
+            print("  önek probu: besmele okunmamış varsayıldı", file=sys.stderr)
+
     for idx, it in enumerate(items):
         toks = roman[idx]
         n_tok = len("".join(toks))
