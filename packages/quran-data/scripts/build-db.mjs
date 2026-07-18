@@ -183,9 +183,11 @@ for (const { slug, name, align, local } of RECITERS) {
     if (skipped) console.log(`${slug}: ${skipped} ayette kelime zamanlaması yok (ayet takibiyle çalınır)`);
     continue;
   }
-  // Yerel MMS hizalama zamanlamaları (data/audio/<slug>/timings/SSS.json) — varsa yüklenir
+  // Yerel MMS hizalama zamanlamaları (data/audio/<slug>/timings/SSS.json) — varsa yüklenir.
+  // Yalnız yerel kâriler değil: quran-align'ı olmayan everyayah kârileri (Maher, Ghamadi)
+  // için de aynı yolla kelime takibi üretilebilir.
   const tdir = `${AUDIO}${slug}/timings`;
-  if (local && existsSync(tdir)) {
+  if (existsSync(tdir)) {
     let n = 0, low = 0;
     for (const f of readdirSync(tdir).filter((x) => /^\d{3}\.json$/.test(x))) {
       const { surah, timings } = JSON.parse(readFileSync(`${tdir}/${f}`, 'utf8'));
