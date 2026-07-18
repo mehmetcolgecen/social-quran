@@ -11,6 +11,14 @@ export type ReciterMeta = {
 };
 
 export const RECITER_META: Record<string, ReciterMeta> = {
+  Ishak_Danis: {
+    slug: 'Ishak_Danis', short: 'إد', tag: 'Türkiye', tagIcon: '🇹🇷',
+    desc: 'Büyük Çamlıca Camii emekli imam-hatibi, Darulkurra Vakfı başkanı', wordTiming: true, hue: 10,
+  },
+  Mehmet_Emin_Ay: {
+    slug: 'Mehmet_Emin_Ay', short: 'مأ', tag: 'Türkiye', tagIcon: '🇹🇷',
+    desc: 'İlahiyatçı — Türkiye\'nin sevilen Kur\'an ve ilahi sesi', wordTiming: true, hue: 210,
+  },
   Husary_64kbps: {
     slug: 'Husary_64kbps', short: 'حص', tag: 'Tecvid üstadı', tagIcon: '🏆',
     desc: 'Mısır — Kur’an tilavetinin klasik hocası', wordTiming: true, hue: 205,

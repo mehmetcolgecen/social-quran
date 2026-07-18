@@ -6,7 +6,8 @@ import { rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
-import { PROCESSED, RAW, RECITERS, ensureDir, parseTanzil, readAlign, readJSON } from './lib.mjs';
+import { existsSync } from 'node:fs';
+import { AUDIO, PROCESSED, RAW, RECITERS, ensureDir, parseTanzil, readAlign, readJSON } from './lib.mjs';
 
 // Kelime-kelime TR yamaları: kaynak veri setinde (quran.com wbw-tr) Türkçesi eksik olup
 // İngilizce'ye düşen glosslar, patches/wbw-tr-*.json ile makine çevirisinden tamamlanır.
@@ -163,17 +164,42 @@ for (const lang of ['ur', 'hi']) {
 
 const insReciter = db.prepare('INSERT INTO reciters VALUES (?,?)');
 const insTiming = db.prepare('INSERT INTO timings VALUES (?,?,?,?)');
-for (const { slug, name, align } of RECITERS) {
-  insReciter.run(slug, name); row('reciters', [slug, name]);
-  if (!align) continue; // kelime zamanlaması olmayan kâri: yalnızca ayet takibi
-  let skipped = 0;
-  for (const e of await readAlign(`${RAW}quran-align/${align}.json`)) {
-    // quran-align bazı ayetlerde hizalama hatası kaydı bırakır (segments dizi değildir) → atla
-    if (!Array.isArray(e.segments) || e.segments.length === 0) { skipped++; continue; }
-    const vals = [slug, e.surah, e.ayah, JSON.stringify(e.segments)];
-    insTiming.run(...vals); row('timings', vals);
+for (const { slug, name, align, local } of RECITERS) {
+  if (local) {
+    // Yerel kâri: ayet mp3'leri elle sağlanır — tam set yoksa listeye girmez
+    let files = [];
+    try { files = readdirSync(`${AUDIO}${slug}`).filter((f) => /^\d{6}\.mp3$/.test(f)); } catch { /* dizin yok */ }
+    if (files.length !== 6236) { console.log(`${slug}: yerel ses ${files.length}/6236 — kâri ATLANDI`); continue; }
   }
-  if (skipped) console.log(`${slug}: ${skipped} ayette kelime zamanlaması yok (ayet takibiyle çalınır)`);
+  insReciter.run(slug, name); row('reciters', [slug, name]);
+  if (align) {
+    let skipped = 0;
+    for (const e of await readAlign(`${RAW}quran-align/${align}.json`)) {
+      // quran-align bazı ayetlerde hizalama hatası kaydı bırakır (segments dizi değildir) → atla
+      if (!Array.isArray(e.segments) || e.segments.length === 0) { skipped++; continue; }
+      const vals = [slug, e.surah, e.ayah, JSON.stringify(e.segments)];
+      insTiming.run(...vals); row('timings', vals);
+    }
+    if (skipped) console.log(`${slug}: ${skipped} ayette kelime zamanlaması yok (ayet takibiyle çalınır)`);
+    continue;
+  }
+  // Yerel MMS hizalama zamanlamaları (data/audio/<slug>/timings/SSS.json) — varsa yüklenir
+  const tdir = `${AUDIO}${slug}/timings`;
+  if (local && existsSync(tdir)) {
+    let n = 0, low = 0;
+    for (const f of readdirSync(tdir).filter((x) => /^\d{3}\.json$/.test(x))) {
+      const { surah, timings } = JSON.parse(readFileSync(`${tdir}/${f}`, 'utf8'));
+      for (const [ayah, t] of Object.entries(timings)) {
+        // Düşük hizalama skoru = güvenilmez kelime takibi → ayet takibine düş
+        // (MMS_FA jeton log-olasılık ölçeğinde -2..-3.5 normaldir; -5.5 altı şüpheli)
+        if (!Array.isArray(t.words) || t.words.length === 0 || t.score < -5.5) { low++; continue; }
+        const segs = t.words.map(([p, ws, we]) => [p - 1, p, Math.max(0, ws), Math.max(0, we)]);
+        const vals = [slug, surah, Number(ayah), JSON.stringify(segs)];
+        insTiming.run(...vals); row('timings', vals); n++;
+      }
+    }
+    console.log(`${slug}: ${n} ayette yerel kelime zamanlaması${low ? `, ${low} düşük skorlu ayet takibinde` : ''}`);
+  }
 }
 
 db.exec('COMMIT');

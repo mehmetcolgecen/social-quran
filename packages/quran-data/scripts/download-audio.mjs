@@ -6,7 +6,8 @@ import { AUDIO, RECITERS, ensureDir, exists } from './lib.mjs';
 
 const EXPECTED_FILES = 6236;
 
-for (const { slug } of RECITERS) {
+for (const { slug, local } of RECITERS) {
+  if (local) { console.log(`${slug}: yerel kâri (everyayah'ta yok), indirme atlandı`); continue; }
   const dir = `${AUDIO}${slug}`;
   if (await exists(`${dir}/.complete`)) { console.log(`${slug}: tamam, atlandı`); continue; }
   await ensureDir(`${AUDIO}zips`);

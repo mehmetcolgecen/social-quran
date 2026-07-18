@@ -7,7 +7,11 @@ export const PROCESSED = `${ROOT}data/processed/`;
 export const AUDIO = `${ROOT}data/audio/`;
 
 // align: quran-align kelime zamanlaması dosya adı (null = yalnızca ayet takibi)
+// local: everyayah'ta yok — ayet mp3'leri elle sağlanır (MMS hizalamasıyla bölünmüş);
+//        6236 dosya data/audio/<slug>/ altında değilse build-db kâriyi atlar.
 export const RECITERS = [
+  { slug: 'Ishak_Danis', name: 'İshak Danış', align: null, local: true },
+  { slug: 'Mehmet_Emin_Ay', name: 'Mehmet Emin Ay', align: null, local: true },
   { slug: 'Husary_64kbps', name: 'Mahmoud Khalil Al-Husary', align: 'Husary_64kbps' },
   { slug: 'Abdul_Basit_Murattal_64kbps', name: 'Abdul Basit (Murattal)', align: 'Abdul_Basit_Murattal_64kbps' },
   { slug: 'Alafasy_128kbps', name: 'Mishary Rashid Alafasy', align: 'Alafasy_128kbps' },
