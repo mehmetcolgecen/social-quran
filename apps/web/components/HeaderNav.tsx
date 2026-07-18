@@ -19,6 +19,12 @@ export function HeaderMenu() {
 
   // Sayfa değişince ve Escape'te çekmece kapanır
   useEffect(() => { setOpen(false); }, [pathname]);
+  // Okuyucu başlığındaki ⚙ Ayarlar düğmesi çekmeceyi buradan açar
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener('sk-open-menu', onOpen);
+    return () => window.removeEventListener('sk-open-menu', onOpen);
+  }, []);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };

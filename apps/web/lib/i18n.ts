@@ -11,6 +11,7 @@ const UI = {
   // Üst bar
   menu: { tr: 'Menü', en: 'Menu' },
   readingSettings: { tr: 'Okuma ayarları', en: 'Reading settings' },
+  settingsBtn: { tr: '⚙ Ayarlar', en: '⚙ Settings' },
   surahs: { tr: 'Sureler', en: 'Surahs' },
   learn: { tr: 'Öğren', en: 'Learn' },
   truths: { tr: 'Hakikatler', en: 'Scientific Signs' },

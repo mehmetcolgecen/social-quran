@@ -18,6 +18,12 @@ export default function SettingsBar({ onPlaySurah, playing, toggleHref, toggleKe
     <>
       <div className="reader-head">
         <Link className="view-toggle" href={toggleHref}>{t(toggleKey)}</Link>
+        <button
+          className="view-toggle"
+          onClick={() => window.dispatchEvent(new CustomEvent('sk-open-menu'))}
+        >
+          {t('settingsBtn')}
+        </button>
         <button className="view-toggle play-btn" onClick={onPlaySurah}>{playing ? t('stop') : t('listen')}</button>
         {children}
       </div>
