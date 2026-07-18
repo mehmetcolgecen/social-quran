@@ -1,0 +1,109 @@
+/* Sosyal Kur'an giriş teması — keycloak.v2 (PatternFly v5) üzerine krem/lacivert/altın.
+   Renkler apps/web/app/globals.css paletiyle akrabadır: kart #fffdf6, çizgi #d8cca9,
+   vurgu #8a6a1c, lacivert #16324f, altın #d9b64a, kırmızı #b03a2e. */
+
+:root {
+  --sk-navy: #16324f;
+  --sk-navy-2: #1d4368;
+  --sk-gold: #d9b64a;
+  --sk-accent: #8a6a1c;
+  --sk-accent-deep: #6d5312;
+  --sk-line: #d8cca9;
+  --sk-card: #fffdf6;
+  --sk-ink: #2b2418;
+
+  /* PatternFly global renkleri — düğme/odak/bağlantılar bunlardan türetilir */
+  --pf-v5-global--primary-color--100: var(--sk-navy);
+  --pf-v5-global--primary-color--200: var(--sk-navy-2);
+  --pf-v5-global--link--Color: var(--sk-accent);
+  --pf-v5-global--link--Color--hover: var(--sk-accent-deep);
+  --pf-v5-global--FontFamily--sans-serif: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Zemin: lacivert üzerine soluk altın sekiz köşeli yıldızlar (tezhip esintisi) */
+body#keycloak-bg {
+  background: var(--sk-navy) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect width='56' height='56' fill='%2316324f'/%3E%3Cg opacity='.13'%3E%3Crect x='22' y='22' width='12' height='12' fill='%23d9b64a'/%3E%3Crect x='22' y='22' width='12' height='12' fill='%23d9b64a' transform='rotate(45 28 28)'/%3E%3C/g%3E%3Ccircle cx='28' cy='28' r='1.5' fill='%23b03a2e' opacity='.3'/%3E%3C/svg%3E") repeat !important;
+  background-size: 56px 56px !important;
+}
+
+/* Marka: realm adı — hat hissi veren altın serif */
+#kc-header-wrapper.pf-v5-c-brand {
+  color: var(--sk-gold);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.9rem;
+  letter-spacing: .12em;
+  text-align: center;
+  text-shadow: 0 1px 8px rgb(0 0 0 / .5);
+}
+#kc-header-wrapper.pf-v5-c-brand::before { content: '۞  '; color: var(--sk-gold); }
+#kc-header-wrapper.pf-v5-c-brand::after { content: '  ۞'; color: var(--sk-gold); }
+
+/* Kart: krem zemin, altın çerçeve, üstte tezhip bandı */
+.pf-v5-c-login__main {
+  background: var(--sk-card);
+  border: 1px solid var(--sk-line);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgb(0 0 0 / .38);
+  overflow: hidden;
+}
+.pf-v5-c-login__main::before {
+  content: '';
+  display: block;
+  height: 12px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Crect width='24' height='12' fill='%2316324f'/%3E%3Crect x='8.5' y='2.5' width='7' height='7' transform='rotate(45 12 6)' fill='%23d9b64a'/%3E%3Ccircle cx='12' cy='6' r='1.2' fill='%23b03a2e'/%3E%3C/svg%3E") repeat-x;
+  background-size: 24px 12px;
+}
+#kc-page-title { color: var(--sk-ink); font-family: Georgia, 'Times New Roman', serif; }
+
+/* Girdi alanları: krem uyumlu çerçeve */
+.pf-v5-c-form-control { border-radius: 8px; }
+.pf-v5-c-form-control > input { background: #fffefa; }
+
+/* Ana düğme: lacivert, yumuşak köşe */
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--sk-navy);
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:focus { background-color: var(--sk-navy-2); }
+
+/* "Veya giriş yap" bandı */
+.pf-v5-c-login__main-footer-band { color: var(--sk-accent-deep); }
+
+/* Google düğmesi: beyaz hap, resmî renkli G logosu (temadaki tek renk ikon gizlenir) */
+#kc-social-providers .pf-v5-c-login__main-footer-links {
+  display: flex;
+  justify-content: center;
+  padding-bottom: .4rem;
+}
+#kc-social-providers .pf-v5-c-login__main-footer-links-item-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  border: 1px solid var(--sk-line);
+  border-radius: 999px;
+  padding: .55rem 1.3rem;
+  background: #fff;
+  color: var(--sk-ink);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgb(0 0 0 / .1);
+  transition: border-color .15s, box-shadow .15s;
+}
+#kc-social-providers .pf-v5-c-login__main-footer-links-item-link:hover {
+  border-color: var(--sk-accent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / .15);
+}
+#kc-social-providers .pf-v5-c-login__main-footer-links-item-link svg { display: none; }
+#kc-social-providers .pf-v5-c-login__main-footer-links-item-link::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  flex: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+/* Alt bağlantılar (kayıt ol, şifremi unuttum) */
+#kc-registration a, .pf-v5-c-login__main-body a { font-weight: 600; }

@@ -1,5 +1,7 @@
 {
   "realm": "sosyal-kuran",
+  "displayName": "Sosyal Kur'an",
+  "loginTheme": "sosyal-kuran",
   "enabled": true,
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
@@ -53,6 +55,7 @@
     {
       "alias": "google",
       "providerId": "google",
+      "displayName": "Google ile devam et",
       "enabled": true,
       "config": {
         "clientId": "105518586721-jopmsbg8k98hlrq2als68qrapeohvg13.apps.googleusercontent.com",
