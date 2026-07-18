@@ -1,11 +1,11 @@
 'use client';
-// Kur'an okumayı öğrenme bölümü — 22 ders, 7 bölüm (lib/ogren.ts).
+// Kur'an okumayı öğrenme bölümü — 46 ders, 7 bölüm (lib/ogren.ts) + başta renkli alfabe tablosu.
 // İki ses kaynağı: /elifba/<id>.mp3 (yapay zekâ seslendirmesi: harf adları, heceler,
 // kelimeler) ve Husary'nin TAM ayet tilaveti (tecvid örnekleri — kırpma yok).
 // İlerleme localStorage'da; "Sırayla dinle" dersin tüm seslerini kuyrukla çalar.
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { BOLUMLER, DERSLER, type Ders, type Ornek } from '@/lib/ogren';
+import { ALFABE, BOLUMLER, DERSLER, type Ders, type Ornek } from '@/lib/ogren';
 import { loadJSON, saveJSON } from '@/lib/store';
 
 const KEY = 'sk-ogren-v2';
@@ -122,6 +122,28 @@ export default function OgrenPage() {
         </div>
       </header>
 
+      <section className="alfabe" aria-label="Elifba alfabesi">
+        <div className="alfabe-head">
+          <h2>۞ Elifba: 28 Harf</h2>
+          <small className="cmuted">Harfe dokunun, adını dinleyin — dersler aşağıda aile aile ilerler.</small>
+        </div>
+        <div className="tezhip-band" aria-hidden="true" />
+        <div className="alfabe-grid">
+          {ALFABE.map((h, i) => {
+            const k = `e:${h.ses}`;
+            return (
+              <button key={h.ses} type="button"
+                className={`alfabe-harf${playing === k ? ' playing' : ''}`}
+                style={{ ['--h' as string]: Math.round((i * 360) / ALFABE.length) }}
+                title={`${h.name} harfini dinle`} onClick={() => toggle(k)}>
+                <span dir="rtl">{h.ar}</span>
+                <small>{playing === k ? '⏸' : ''} {h.name}</small>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <div className="ogren-layout">
         <nav className="ogren-nav" aria-label="Dersler">
           {BOLUMLER.map((bolum) => (
@@ -147,6 +169,7 @@ export default function OgrenPage() {
               </button>
             )}
           </div>
+          <div className="tezhip-band slim" aria-hidden="true" />
           <p className="ogren-intro">{ders.intro}</p>
 
           {ders.harfler && (

@@ -999,6 +999,45 @@ html[data-theme='koyu'] .sharebtn { color: #7fb2d9; }
 .ogren-play-all:hover { border-color: var(--accent); box-shadow: var(--shadow-1); }
 .ogren-intro { color: var(--ink-soft); max-width: 52rem; }
 
+/* Tezhip bandı — lacivert zemin, altın baklava, kırmızı nokta (sure başlığı motifleriyle akraba) */
+.tezhip-band {
+  height: 12px;
+  border-radius: 999px;
+  margin: .7rem 0 1rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Crect width='24' height='12' fill='%2316324f'/%3E%3Crect x='8.5' y='2.5' width='7' height='7' transform='rotate(45 12 6)' fill='%23d9b64a'/%3E%3Ccircle cx='12' cy='6' r='1.2' fill='%23b03a2e'/%3E%3C/svg%3E") repeat-x;
+  background-size: 24px 12px;
+}
+.tezhip-band.slim { height: 8px; background-size: 16px 8px; margin: .2rem 0 .9rem; }
+
+/* Elifba: renkli alfabe tablosu (Öğren sayfasının başı) */
+.alfabe {
+  margin: 0 0 1.3rem;
+  padding: .95rem 1.15rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.alfabe-head { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; }
+.alfabe-head h2 { margin: 0; font-size: 1.12rem; color: var(--accent-deep); }
+.alfabe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: .5rem; }
+.alfabe-harf {
+  --h: 40;
+  display: flex; flex-direction: column; align-items: center; gap: .1rem;
+  padding: .5rem .3rem .45rem;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--h) 45% 68%);
+  background: hsl(var(--h) 85% 93%);
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+.alfabe-harf span { font-family: var(--font-ar); font-size: 1.9rem; line-height: 1.2; color: hsl(var(--h) 60% 27%); }
+.alfabe-harf small { color: hsl(var(--h) 45% 33%); font-weight: 600; }
+.alfabe-harf:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgb(0 0 0 / .14); }
+.alfabe-harf.playing { outline: 2px solid var(--accent); outline-offset: 1px; }
+html[data-theme='koyu'] .alfabe-harf { background: hsl(var(--h) 28% 19%); border-color: hsl(var(--h) 28% 33%); }
+html[data-theme='koyu'] .alfabe-harf span { color: hsl(var(--h) 70% 76%); }
+html[data-theme='koyu'] .alfabe-harf small { color: hsl(var(--h) 30% 62%); }
+
 /* Harf kartları */
 .harf-grid {
   display: grid;

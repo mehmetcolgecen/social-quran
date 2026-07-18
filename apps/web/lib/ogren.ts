@@ -1,5 +1,6 @@
-// Kur'an okumayı öğrenme müfredatı — 22 ders: harf aileleri, harekeler, işaretler,
-// uzatmalar, okuma kuralları, tecvid ve Fatiha pratiği.
+// Kur'an okumayı öğrenme müfredatı — 46 ders: harf aileleri, harekeler, işaretler,
+// uzatmalar, okuma kuralları, tecvid ve kısa surelerle okuma pratiği.
+// Sayfanın başındaki renkli alfabe tablosu ALFABE sabitinden gelir.
 //
 // Ses modeli (iki kaynak, karışmaz):
 //  - `ses`  → /elifba/<ses>.mp3 — yapay zekâ (Microsoft neural, ar-SA) seslendirmesi.
@@ -29,6 +30,39 @@ export type Ders = {
   id: string; icon: string; bolum: string; title: string; intro: string;
   harfler?: Harf[]; examples?: Ornek[]; tip?: string;
 };
+
+// Hicâ sırasıyla 28 harf — sayfa başındaki renkli alfabe tablosu.
+// Ses kimlikleri harf derslerindekilerle aynıdır (yeni TTS gerektirmez).
+export const ALFABE: { ar: string; name: string; ses: string }[] = [
+  { ar: 'ا', name: 'elif', ses: 'h-elif' },
+  { ar: 'ب', name: 'be', ses: 'h-be' },
+  { ar: 'ت', name: 'te', ses: 'h-te' },
+  { ar: 'ث', name: 'se', ses: 'h-se' },
+  { ar: 'ج', name: 'cim', ses: 'h-cim' },
+  { ar: 'ح', name: 'ha', ses: 'h-ha' },
+  { ar: 'خ', name: 'hı', ses: 'h-hi' },
+  { ar: 'د', name: 'dal', ses: 'h-dal' },
+  { ar: 'ذ', name: 'zel', ses: 'h-zel' },
+  { ar: 'ر', name: 'ra', ses: 'h-ra' },
+  { ar: 'ز', name: 'ze', ses: 'h-ze' },
+  { ar: 'س', name: 'sin', ses: 'h-sin' },
+  { ar: 'ش', name: 'şın', ses: 'h-sin2' },
+  { ar: 'ص', name: 'sad', ses: 'h-sad' },
+  { ar: 'ض', name: 'dad', ses: 'h-dad' },
+  { ar: 'ط', name: 'tı', ses: 'h-ti' },
+  { ar: 'ظ', name: 'zı', ses: 'h-zi' },
+  { ar: 'ع', name: 'ayn', ses: 'h-ayn' },
+  { ar: 'غ', name: 'ğayn', ses: 'h-gayn' },
+  { ar: 'ف', name: 'fe', ses: 'h-fe' },
+  { ar: 'ق', name: 'kaf', ses: 'h-kaf' },
+  { ar: 'ك', name: 'kef', ses: 'h-kef' },
+  { ar: 'ل', name: 'lam', ses: 'h-lam' },
+  { ar: 'م', name: 'mim', ses: 'h-mim' },
+  { ar: 'ن', name: 'nun', ses: 'h-nun' },
+  { ar: 'هـ', name: 'he', ses: 'h-he' },
+  { ar: 'و', name: 'vav', ses: 'h-vav' },
+  { ar: 'ي', name: 'ye', ses: 'h-ye' },
+];
 
 export const DERSLER: Ders[] = [
   // ---------------- BÖLÜM 1: HARFLER ----------------
@@ -337,6 +371,25 @@ export const DERSLER: Ders[] = [
     ],
     tip: 'Günde 10 dakika sesli hece çalışması, birkaç haftada akıcılık kazandırır. Bir kelimeyi üç kez dinleyip üç kez tekrar etmek, on kez art arda dinlemekten iyidir.',
   },
+  {
+    id: 'kelime-akici', icon: '🏃', bolum: 'Harekeler', title: 'Akıcı Kelime Okuma',
+    intro: 'Hece hece okuduğunuz kelimeleri artık tek nefeste okuma zamanı. Hepsi Kur\'an kökenli bu kelimelerde yalnız üç hareke var — med yok, şedde yok. Önce dinleyin, sonra kitaba bakmadan sesli tekrar edin; takıldığınız kelimeyi üç kez üst üste okuyun.',
+    examples: [
+      { ar: 'قَرَأَ', latin: 'ka-ra-e', not: 'okudu (96:1 kökü)', ses: 'k-karae' },
+      { ar: 'زَعَمَ', latin: 'ze-a-me', not: 'iddia etti (64:7)', ses: 'k-zeame' },
+      { ar: 'جَمَعَ', latin: 'ce-me-a', not: 'topladı (104:2)', ses: 'k-cemea' },
+      { ar: 'خَتَمَ', latin: 'ha-te-me', not: 'mühürledi (2:7)', ses: 'k-hateme' },
+      { ar: 'نَظَرَ', latin: 'na-za-ra', not: 'baktı (74:21)', ses: 'k-nazara' },
+      { ar: 'عَبَدَ', latin: 'a-be-de', not: 'kulluk etti (5:60)', ses: 'k-abede' },
+      { ar: 'شَكَرَ', latin: 'şe-ke-ra', not: 'şükretti (27:40)', ses: 'k-sekera' },
+      { ar: 'صَبَرَ', latin: 'sa-be-ra', not: 'sabretti (42:43)', ses: 'k-sabera' },
+      { ar: 'حَمَلَ', latin: 'ha-me-le', not: 'taşıdı (33:72 kökü)', ses: 'k-hamele' },
+      { ar: 'غَفَرَ', latin: 'ğa-fe-ra', not: 'bağışladı', ses: 'k-gafera' },
+      { ar: 'خَلَقَكَ', latin: 'ha-la-ka-ke', not: 'seni yarattı (82:7)', ses: 'k-halakake' },
+      { ar: 'وَجَدَكَ', latin: 've-ce-de-ke', not: 'seni buldu (93:7 kökü)', ses: 'k-vecedeke' },
+    ],
+    tip: 'Akıcılığın sırrı gözün harekeden önce harfi yakalamasıdır: kelimeye bakın, içinizden harfleri sayın, sonra tek nefeste okuyun. Dört heceli kelimeleri başarabiliyorsanız harekeler bölümünü gerçekten bitirdiniz demektir.',
+  },
 
   // ---------------- BÖLÜM 3: İŞARETLER ----------------
   {
@@ -449,6 +502,51 @@ export const DERSLER: Ders[] = [
     ],
     tip: 'Pratik kural: takıdan sonraki harfte şedde varsa lam okunmaz (şemsî), cezm ya da hareke varsa okunur (kamerî). Ezber gerekmez — yazı size söyler.',
   },
+  {
+    id: 'istiaze', icon: '🤲', bolum: 'Kurallar', title: 'İstiâze ve Besmele',
+    intro: 'Kur\'an okumaya iki cümleyle başlanır: istiâze (eûzü…) kovulmuş şeytandan Allah\'a sığınmak, besmele (bismillâh…) Rahmân ve Rahîm olan Allah\'ın adıyla başlamaktır. Nahl 98, okumaya başlarken istiâzeyi emreder; Tevbe suresi hariç her surenin başında besmele çekilir.',
+    examples: [
+      { ar: 'أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ', latin: 'eûzü billâhi mineş-şeytânir-racîm', not: 'istiâze — okumaya başlarken söylenir', ses: 'k-euzu' },
+      { ar: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', latin: 'bismillâhir-rahmânir-rahîm', not: 'besmele — Fatiha\'nın 1. ayeti', ayet: '1:1' },
+      { ar: 'فَإِذَا قَرَأْتَ الْقُرْآنَ فَاسْتَعِذْ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ', latin: 'feizâ kara\'tel-kur\'âne festeız billâhi mineş-şeytânir-racîm', not: 'istiâze emri', ayet: '16:98' },
+    ],
+    tip: 'Sure ortasından okumaya başlarken de istiâze çekilir; besmele ise surenin başındaysanız okunur. İkisini de sesli söyleyip kâri ile karşılaştırın.',
+  },
+  {
+    id: 'lam-ra', icon: '⚖️', bolum: 'Kurallar', title: 'Kalın mı İnce mi? Allah Lafzı ve Ra',
+    intro: 'İki harfin iki yüzü vardır. Allah lafzındaki lam, öncesindeki hareke üstün veya ötre ise KALIN (Allâh), esre ise İNCE (billâh) okunur. Ra da harekesine göre renk değiştirir: üstün ve ötreyle kalın, esreyle ince; sakin ra kendinden önceki harekeye bakar.',
+    examples: [
+      { ar: 'نَصْرُ اللَّهِ', latin: 'nasrullâh', not: 'ötreden sonra Allah lafzı kalın', ayet: '110:1' },
+      { ar: 'بِسْمِ اللَّهِ', latin: 'bismillâh', not: 'esreden sonra Allah lafzı ince', ayet: '1:1' },
+      { ar: 'رَبِّ الْعَالَمِينَ', latin: 'rabbil-âlemîn', not: 'üstünlü ra kalın', ayet: '1:2' },
+      { ar: 'وَالْفَجْرِ', latin: 'vel-fecr', not: 'esreli ra ince (vakıfta da önceki esreye bakar)', ayet: '89:1' },
+      { ar: 'لَخَبِيرٌ', latin: 'le-habîr', not: 'vakıfta sakin ra: öncesi esreli med → ince', ayet: '100:11' },
+    ],
+    tip: 'Kulak pratiği: "nasrullâh" ile "bismillâh"ı art arda dinleyin — aynı lafzın kalın ve ince halini duyacaksınız. Ra için "rabbi" (kalın) ile "fecri" (ince) iyi bir çifttir.',
+  },
+  {
+    id: 'zamir', icon: '➿', bolum: 'Kurallar', title: 'Zamir He\'si: Medd-i Sıla',
+    intro: '"Onun" anlamı katan kelime sonu he\'si (ــهُ / ــهِ) iki harekeli harf ARASINDA kalırsa bir elif miktarı uzatılır: mâlühû, innehû. Sonrasında hemze gelirse uzatma daha da büyür (sıla-i kübrâ). Mushaf\'ta bu uzatma he\'nin yanındaki küçük vav (ۥ) ve küçük ye (ۦ) ile gösterilir.',
+    examples: [
+      { ar: 'مَالُهُۥ وَمَا كَسَبَ', latin: 'mâlühû ve mâ keseb', not: 'sıla-i suğrâ: he küçük vav ile uzar', ayet: '111:2' },
+      { ar: 'أَنَّ مَالَهُۥٓ أَخْلَدَهُۥ', latin: 'enne mâlehû ahledeh', not: 'sıla-i kübrâ: he\'den sonra hemze', ayet: '104:3' },
+      { ar: 'إِنَّهُۥ كَانَ تَوَّابًا', latin: 'innehû kâne tevvâbâ', not: 'suğrâ — ayet sonunda tevvâbâ diye durulur', ayet: '110:3' },
+      { ar: 'لَّهُۥ كُفُوًا أَحَدٌ', latin: 'lehû küfüven ehad', not: 'suğrâ', ayet: '112:4' },
+    ],
+    tip: 'Uzatma yalnız iki HAREKELİ harf arasında: önünde sakin harf varsa (فِيهِ gibi mushafta küçük vav yoksa) he kısa kalır. Küçük vav/ye işaretini görürseniz uzatın, görmezseniz uzatmayın.',
+  },
+  {
+    id: 'mukattaa', icon: '🔡', bolum: 'Kurallar', title: 'Hurûf-u Mukattaa: Harf Harf Açılışlar',
+    intro: '29 sure, tek tek HARF ADLARIYLA okunan harflerle açılır: الٓمٓ "elif-lâm-mîm" diye okunur, "elm" diye değil. Çoğunda medd-i lâzım vardır — harf adları uzun uzun çekilir. Anlamları Allah katındadır; tefsirler hikmeti üzerine yorum yapar.',
+    examples: [
+      { ar: 'الٓمٓ', latin: 'elif lâââm mîîîm', not: 'Bakara\'nın açılışı — lâzım medler', ayet: '2:1' },
+      { ar: 'يسٓ', latin: 'yâ sîîîn', not: 'Yâsîn\'in açılışı', ayet: '36:1' },
+      { ar: 'طه', latin: 'tâ hâ', not: 'kısa (tabii) medlerle', ayet: '20:1' },
+      { ar: 'قٓ', latin: 'kâââf', not: 'tek harf, lâzım med', ayet: '50:1' },
+      { ar: 'نٓ', latin: 'nûûûn', not: 'tek harf, lâzım med', ayet: '68:1' },
+    ],
+    tip: 'Harf adlarını 5. derse kadar öğrendiniz — mukattaa açılışları o adların tilavetidir. Kâri ile birlikte sayarak uzatın: lâzım medler 4 elif (8 vuruş) çekilir.',
+  },
 
   // ---------------- BÖLÜM 6: TECVİD ----------------
   {
@@ -475,7 +573,53 @@ export const DERSLER: Ders[] = [
       { ar: 'الَّذِينَ هُمْ عَنْ صَلَاتِهِمْ سَاهُونَ', latin: 'an(g)-salâtihim', not: 'ihfa: نْ + ص genizden gizlenir', ayet: '107:5' },
       { ar: 'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ…', latin: 'en-amte', not: 'izhar: نْ + ع (boğaz harfi)', ayet: '1:7' },
     ],
-    tip: 'Ezber kolaylığı: boğaz harfleri (ء ه ع ح غ خ) → izhar; يرملون → idgam; ب → iklab; geri kalan 15 harf → ihfa. Kulağınız kâriden bu dört rengi ayırt etmeyi öğrenecek.',
+    tip: 'Ezber kolaylığı: boğaz harfleri (ء ه ع ح غ خ) → izhar; يرملون → idgam; ب → iklab; geri kalan 15 harf → ihfa. Sonraki dört ders bu halleri tek tek derinleştirir.',
+  },
+  {
+    id: 'izhar', icon: '💎', bolum: 'Tecvid', title: 'İzhar: Açık Okuyuş',
+    intro: 'Sakin nun veya tenvinden sonra altı boğaz harfinden (ء ه ع ح غ خ) biri gelirse nun SAKLANMADAN, ğunnesiz ve net okunur. Boğaz harfleri geniz yolundan uzak çıktığı için nun onlara karışmaz — bu yüzden açık kalır.',
+    examples: [
+      { ar: 'خَلَقَ الْإِنْسَانَ مِنْ عَلَقٍ', latin: 'min alak', not: 'نْ + ع → net "n"', ayet: '96:2' },
+      { ar: 'أَنْعَمْتَ عَلَيْهِمْ', latin: 'en-amte', not: 'نْ + ع kelime içinde', ayet: '1:7' },
+      { ar: 'سَلَٰمٌ هِيَ حَتَّىٰ مَطْلَعِ الْفَجْرِ', latin: 'selâmün hiye', not: 'tenvin + ه', ayet: '97:5' },
+      { ar: 'وَآمَنَهُمْ مِنْ خَوْفٍ', latin: 'min havf', not: 'نْ + خ', ayet: '106:4' },
+      { ar: 'كُفُوًا أَحَدٌ', latin: 'küfüven ehad', not: 'tenvin + ء', ayet: '112:4' },
+    ],
+    tip: 'İzharı test etmek kolaydır: "min alak" derken "n" tam duyuluyor, geniz tınısı sürmüyorsa doğru okuyorsunuz. Tını uzuyorsa ihfaya kaymışsınız demektir.',
+  },
+  {
+    id: 'idgam', icon: '🌪️', bolum: 'Tecvid', title: 'İdgam: Katarak Okuyuş',
+    intro: 'Sakin nun/tenvinden sonra يرملون harflerinden biri gelirse nun okunmaz, sonraki harfe katılır. ي ن م و ile ĞUNNELİ idgam (geniz tınısı iki vuruş sürer), ل ر ile ĞUNNESİZ idgam (tını olmadan doğrudan geçilir).',
+    examples: [
+      { ar: 'خَيْرًا يَرَهُ', latin: 'hayray-yerah', not: 'ğunneli: tenvin + ي', ayet: '99:7' },
+      { ar: 'لَهَبٍ وَتَبَّ', latin: 'lehebiv-ve tebb', not: 'ğunneli: tenvin + و', ayet: '111:1' },
+      { ar: 'بِحِجَارَةٍ مِنْ سِجِّيلٍ', latin: 'bi-hicâratim-min', not: 'ğunneli: tenvin + م', ayet: '105:4' },
+      { ar: 'وَيْلٌ لِكُلِّ هُمَزَةٍ', latin: 'veylül-li-külli', not: 'ğunnesiz: tenvin + ل', ayet: '104:1' },
+      { ar: 'عَلَىٰ هُدًى مِنْ رَبِّهِمْ', latin: 'hüdem-mir-rabbihim', not: 'aynı ayette tenvin + م (ğunneli) ve نْ + ر (ğunnesiz)', ayet: '2:5' },
+    ],
+    tip: 'İdgam yalnız İKİ KELİME arasında olur; مِنْ رَبِّهِمْ "mir-rabbihim" okunur ama tek kelimelik دُنْيَا "dünyâ" izharla kalır (buna izhar-ı kelime-i vâhide denir).',
+  },
+  {
+    id: 'iklab', icon: '🔄', bolum: 'Tecvid', title: 'İklab: Nun\'un Mim\'e Dönüşü',
+    intro: 'Sakin nun veya tenvinden sonra ب gelirse nun MİM\'e dönüşür ve ğunneyle, dudaklar hafif gevşek tutularak okunur. Mushaf\'taki ipucu: nunun/tenvinin üzerine küçük bir م (ۢ) konur.',
+    examples: [
+      { ar: 'لَنَسْفَعًا بِالنَّاصِيَةِ', latin: 'lenesfeam-bin-nâsiyeh', not: 'tenvin + ب → "m"', ayet: '96:15' },
+      { ar: 'لَيُنْبَذَنَّ فِي الْحُطَمَةِ', latin: 'le-yümbezenne', not: 'kelime İÇİNDE iklab: نْ + ب', ayet: '104:4' },
+      { ar: 'كِرَامٍ بَرَرَةٍ', latin: 'kirâmim-berarah', not: 'tenvin + ب', ayet: '80:16' },
+    ],
+    tip: 'Dudaklarınızı tam yummayın: iklabın mimi hafif aralıklı dudakla, genizden tınlayarak çıkar. "Lenesfean-bin" değil "lenesfeam-bin" — kâri ile karşılaştırın.',
+  },
+  {
+    id: 'ihfa', icon: '🌫️', bolum: 'Tecvid', title: 'İhfa: Genizden Gizleme',
+    intro: 'Kalan 15 harften biri gelirse nun ne açık okunur ne katılır: dil, nun makamına değmeden geriye çekilir ve ses 1,5-2 vuruş boyunca GENİZDEN gizlenir — "n" ile "ng" arası bir tını. Türkçedeki "renk" derkenki genize kaçan n\'ye benzer.',
+    examples: [
+      { ar: 'مِنْ شَرِّ مَا خَلَقَ', latin: 'min(g)-şerri', not: 'نْ + ش', ayet: '113:2' },
+      { ar: 'عَنْ صَلَاتِهِمْ سَاهُونَ', latin: 'an(g)-salâtihim', not: 'نْ + ص (kalın harfe ihfa kalın tınlar)', ayet: '107:5' },
+      { ar: 'وَلَا أَنْتُمْ عَابِدُونَ', latin: 'en(g)-tüm', not: 'نْ + ت kelime içinde', ayet: '109:3' },
+      { ar: 'مِنْ سِجِّيلٍ', latin: 'min(g)-siccîl', not: 'نْ + س', ayet: '105:4' },
+      { ar: 'أَطْعَمَهُمْ مِنْ جُوعٍ', latin: 'min(g)-cû', not: 'نْ + ج', ayet: '106:4' },
+    ],
+    tip: 'İhfa sırasında dil ucunuz üst dişlere DEĞMEMELİ — değerse izhar olur. Burnunuzu hafifçe tutup "min şerri" deyin: tını kayboluyorsa ihfayı genizden değil ağızdan yapıyorsunuz.',
   },
   {
     id: 'mim-sakin', icon: '🎶', bolum: 'Tecvid', title: 'Mim-i Sakin ve Ğunne',
@@ -502,6 +646,17 @@ export const DERSLER: Ders[] = [
       { ar: 'إِنَّا أَنْزَلْنَاهُ فِي لَيْلَةِ الْقَدْرِ', latin: 'el-kadr(i)', not: 'vakıfta dal kalkalesi', ayet: '97:1' },
     ],
     tip: 'Kalkaleyi abartmayın: seke, tam bir "ı" harekesi değil kısa bir yaylanmadır. Kâriyi dinlerken ayet sonlarındaki bu küçük "zıplamayı" yakalamaya çalışın.',
+  },
+  {
+    id: 'sekte', icon: '🤫', bolum: 'Tecvid', title: 'Sekte: Nefessiz Duruş',
+    intro: 'Hafs rivayetinde dört yerde ses bir an kesilir ama NEFES ALINMAZ, sonra devam edilir; Mushaf\'ta kelimenin üzerinde küçük س (سكتة) yazar. Amaç, kelimeler birbirine karışıp yanlış anlam doğmasın diyedir.',
+    examples: [
+      { ar: 'وَقِيلَ مَنْ ۜ رَاقٍ', latin: 'men (sekte) râk', not: 'sekte olmasa نْ + ر idgamla "merrâk" okunurdu', ayet: '75:27' },
+      { ar: 'بَلْ ۜ رَانَ عَلَىٰ قُلُوبِهِمْ', latin: 'bel (sekte) râne', not: 'lam ile ra ayrı tutulur', ayet: '83:14' },
+      { ar: 'مِنْ مَرْقَدِنَا ۜ هَٰذَا', latin: 'merkadinâ (sekte) hâzâ', not: 'kabirden kalkış sözü ile cevap ayrılır', ayet: '36:52' },
+      { ar: 'عِوَجًا ۜ قَيِّمًا', latin: 'ivecâ (sekte) kayyimen', not: 'sure geçişinde: 18:1 sonu ile 18:2 başı', ayet: '18:1' },
+    ],
+    tip: 'Sekte bir saniyeden kısadır: ses kesilir, göğüs nefesi tutulur, hemen devam edilir. Kâriyi dinlerken bu "yutkunma anını" yakalayın — dördü de ezberlenecek kadar azdır.',
   },
   {
     id: 'vakif', icon: '🛑', bolum: 'Tecvid', title: 'Durak (Vakıf) İşaretleri',
@@ -532,6 +687,178 @@ export const DERSLER: Ders[] = [
       { ar: 'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ', latin: '…veleddâllîn', not: 'izhar (نْ+ع) + medd-i lâzım ile bitiş', ayet: '1:7' },
     ],
     tip: 'Sure sayfasında ▶ Dinle ile kâri eşliğinde okuyun; kelime takibi hangi kelimede olduğunuzu gösterir. Her gün 10 dakika — birkaç haftada Fatiha\'yı akıcı okuyacaksınız.',
+  },
+  // Kısa sure pratikleri — ayet metinleri quran.db'den birebirdir (değişmezlik kuralı),
+  // ses Husary'nin tam ayet tilavetidir. İlk ayetler besmele ile başlar (mushaf kaydı).
+  {
+    id: 'pratik-ihlas', icon: '1️⃣', bolum: 'Pratik', title: 'İhlâs Suresi: Tevhidin Özü',
+    intro: 'Dört ayetlik İhlâs, Allah\'ın birliğini en yalın haliyle anlatır ve "Kur\'an\'ın üçte birine denk" diye övülmüştür. Cezmler ve idgam üzerine güzel bir pratiktir.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ قُلْ هُوَ ٱللَّهُ أَحَدٌ', latin: 'bismillâhir-rahmânir-rahîm · kul hüvellâhü ehad', not: 'De ki: O Allah birdir — kalın Allah lafzı', ayet: '112:1' },
+      { ar: 'ٱللَّهُ ٱلصَّمَدُ', latin: 'allâhüs-samed', not: 'Samed: her şey O\'na muhtaç, O hiçbir şeye muhtaç değil', ayet: '112:2' },
+      { ar: 'لَمْ يَلِدْ وَلَمْ يُولَدْ', latin: 'lem yelid ve lem yûled', not: 'dal\'larda vakıf kalkalesi', ayet: '112:3' },
+      { ar: 'وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ', latin: 'velem yekül-lehû küfüven ehad', not: 'نْ + ل ğunnesiz idgam + izhar (tenvin+hemze)', ayet: '112:4' },
+    ],
+    tip: 'Namaz surelerinin ilki genellikle İhlâs\'tır. Dört ayeti art arda, durmadan okumayı deneyin — "yekül-lehû" idgamına dikkat.',
+  },
+  {
+    id: 'pratik-kevser', icon: '🏞️', bolum: 'Pratik', title: 'Kevser Suresi: En Kısa Sure',
+    intro: 'Üç ayetiyle Kur\'an\'ın en kısa suresi. Medd-i muttasıl, ğunne ve kalkale bir arada — kısa ama tecvid yüklü.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ إِنَّآ أَعْطَيْنَٰكَ ٱلْكَوْثَرَ', latin: 'bismillâhir-rahmânir-rahîm · innâ a\'taynâkel-kevser', not: 'şeddeli nun ğunnesi + munfasıl med', ayet: '108:1' },
+      { ar: 'فَصَلِّ لِرَبِّكَ وَٱنْحَرْ', latin: 'fesalli li-rabbike venhar', not: 'نْ + ح izhar (venhar)', ayet: '108:2' },
+      { ar: 'إِنَّ شَانِئَكَ هُوَ ٱلْأَبْتَرُ', latin: 'inne şânieke hüvel-ebter', not: 'vakıfta ebter — ra öncesi cezmli te', ayet: '108:3' },
+    ],
+    tip: 'İlk ayetteki "innââ" uzatmasını sayarak çalışın: şedde + med birleşince acele etmeyin.',
+  },
+  {
+    id: 'pratik-asr', icon: '⏳', bolum: 'Pratik', title: 'Asr Suresi: Zamana Yemin',
+    intro: 'İmam Şafiî "insanlar yalnız bu sureyi düşünselerdi yeterdi" der. Üç ayette hüsran ve kurtuluş reçetesi: iman, salih amel, hakkı ve sabrı tavsiye.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ وَٱلْعَصْرِ', latin: 'bismillâhir-rahmânir-rahîm · vel-asr', not: 'kamerî lam + vakıfta ince ra', ayet: '103:1' },
+      { ar: 'إِنَّ ٱلْإِنسَٰنَ لَفِى خُسْرٍ', latin: 'innel-insâne lefî husr', not: 'ğunne + نْ + س ihfa (insân)', ayet: '103:2' },
+      { ar: 'إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّٰلِحَٰتِ وَتَوَاصَوْا۟ بِٱلْحَقِّ وَتَوَاصَوْا۟ بِٱلصَّبْرِ', latin: 'illellezîne âmenû ve amilüs-sâlihâti ve tevâsav bil-hakkı ve tevâsav bis-sabr', not: 'uzun ayette nefes planı: tevâsav\'lardan önce durabilirsiniz', ayet: '103:3' },
+    ],
+    tip: 'Üçüncü ayeti iki nefeste okuyun: "…sâlihât" sonrası nefes tazeleyip "ve tevâsav…" ile devam edin.',
+  },
+  {
+    id: 'pratik-fil', icon: '🐘', bolum: 'Pratik', title: 'Fîl Suresi: Ebrehe\'nin Ordusu',
+    intro: 'Kâbe\'yi yıkmaya gelen fil ordusunun kuşlarla helâkı. Lîn harfleri (keyfe, tayran) ve idgamlar için birebir.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَٰبِ ٱلْفِيلِ', latin: 'bismillâhir-rahmânir-rahîm · elem tera keyfe feale rabbüke bi-ashâbil-fîl', not: 'lîn yesi (keyfe) + mim izharı (elem tera)', ayet: '105:1' },
+      { ar: 'أَلَمْ يَجْعَلْ كَيْدَهُمْ فِى تَضْلِيلٍ', latin: 'elem yec\'al keydehüm fî tadlîl', not: 'cim kalkalesi (yec\'al)', ayet: '105:2' },
+      { ar: 'وَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ', latin: 've ersele aleyhim tayran ebâbîl', not: 'tenvin + hemze izhar (tayran ebâbîl)', ayet: '105:3' },
+      { ar: 'تَرْمِيهِم بِحِجَارَةٍ مِّن سِجِّيلٍ', latin: 'termîhim bi-hicâratim-min siccîl', not: 'مْ + ب ihfa-i şefevî + tenvin idgamı', ayet: '105:4' },
+      { ar: 'فَجَعَلَهُمْ كَعَصْفٍ مَّأْكُولٍۭ', latin: 'fe-cealehüm ke-asfim-me\'kûl', not: 'tenvin + م ğunneli idgam', ayet: '105:5' },
+    ],
+    tip: 'Bu sure mim-i sakin hallerinin sergisidir: "termîhim bi" (ihfa-i şefevî) ile "aleyhim tayran" (izhar) farkını dinleyerek yakalayın.',
+  },
+  {
+    id: 'pratik-kureys', icon: '🐫', bolum: 'Pratik', title: 'Kureyş Suresi: Emniyet ve Rızık',
+    intro: 'Fîl suresinin devamı gibidir: Kureyş\'in kış-yaz kervanları, Kâbe\'nin Rabbine kulluk çağrısı. İzhar ve ihfa örnekleri iç içedir.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ لِإِيلَٰفِ قُرَيْشٍ', latin: 'bismillâhir-rahmânir-rahîm · li-îlâfi kurayş', not: 'kalın kaf + vakıfta şın', ayet: '106:1' },
+      { ar: 'إِۦلَٰفِهِمْ رِحْلَةَ ٱلشِّتَآءِ وَٱلصَّيْفِ', latin: 'îlâfihim rihleteş-şitâi ves-sayf', not: 'şemsî lamlar + muttasıl med (şitââi)', ayet: '106:2' },
+      { ar: 'فَلْيَعْبُدُوا۟ رَبَّ هَٰذَا ٱلْبَيْتِ', latin: 'fel-ya\'büdû rabbe hâzel-beyt', not: 'hançer elif (hâzâ) + lîn (beyt)', ayet: '106:3' },
+      { ar: 'ٱلَّذِىٓ أَطْعَمَهُم مِّن جُوعٍ وَءَامَنَهُم مِّنْ خَوْفٍۭ', latin: 'ellezî at\'amehüm-min cûiv-ve âmenehüm-min havf', not: 'idgam (hüm-min) + ihfa (min cû) + izhar (min havf) tek ayette', ayet: '106:4' },
+    ],
+    tip: 'Son ayet nun-i sakin hallerinin üçünü art arda içerir — kâriyi iki kez dinleyip her birini işaretleyin.',
+  },
+  {
+    id: 'pratik-maun', icon: '🍲', bolum: 'Pratik', title: 'Mâûn Suresi: Dini Yalanlayan Kim?',
+    intro: 'Yetimi itip yoksulu doyurmayanı, gösteriş için namaz kılanı sorgular. Şeddeli harfler (yükezzibü, yeduu\'u, yehuddu) dil pratiği ister.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَرَءَيْتَ ٱلَّذِى يُكَذِّبُ بِٱلدِّينِ', latin: 'bismillâhir-rahmânir-rahîm · eraeytellezî yükezzibü bid-dîn', not: 'şeddeli zel + şemsî dal', ayet: '107:1' },
+      { ar: 'فَذَٰلِكَ ٱلَّذِى يَدُعُّ ٱلْيَتِيمَ', latin: 'fe-zâlikellezî yedu\'ul-yetîm', not: 'şeddeli ayn — yedu\'u', ayet: '107:2' },
+      { ar: 'وَلَا يَحُضُّ عَلَىٰ طَعَامِ ٱلْمِسْكِينِ', latin: 've lâ yehuddu alâ taâmil-miskîn', not: 'şeddeli kalın dad', ayet: '107:3' },
+      { ar: 'فَوَيْلٌ لِّلْمُصَلِّينَ', latin: 'fe-veylül-lil-musallîn', not: 'tenvin + ل ğunnesiz idgam', ayet: '107:4' },
+      { ar: 'ٱلَّذِينَ هُمْ عَن صَلَاتِهِمْ سَاهُونَ', latin: 'ellezîne hüm an salâtihim sâhûn', not: 'نْ + ص ihfa', ayet: '107:5' },
+      { ar: 'ٱلَّذِينَ هُمْ يُرَآءُونَ', latin: 'ellezîne hüm yürâûn', not: 'muttasıl med (yürâââûn)', ayet: '107:6' },
+      { ar: 'وَيَمْنَعُونَ ٱلْمَاعُونَ', latin: 've yemneûnel-mâûn', not: 'mâûn: en küçük yardım eşyası', ayet: '107:7' },
+    ],
+    tip: 'Şeddeli harflere basmadan geçmek bu surede anlamı bozar: "yedu\'u" (itip kakar) ile "yed\'û" (çağırır) farklı kelimelerdir.',
+  },
+  {
+    id: 'pratik-kafirun', icon: '🚪', bolum: 'Pratik', title: 'Kâfirûn Suresi: Sizin Dininiz Size',
+    intro: 'İnançta net ayrışmanın suresi. Tekrarlı yapısı okuma otomatikliği kazandırır; medd-i munfasıllar (lâ â\'büdü) boldur.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ قُلْ يَٰٓأَيُّهَا ٱلْكَٰفِرُونَ', latin: 'bismillâhir-rahmânir-rahîm · kul yâ eyyühel-kâfirûn', not: 'nida uzatması: yâââ eyyühâ', ayet: '109:1' },
+      { ar: 'لَآ أَعْبُدُ مَا تَعْبُدُونَ', latin: 'lâ a\'büdü mâ ta\'büdûn', not: 'munfasıl med (lâââ a\'büdü)', ayet: '109:2' },
+      { ar: 'وَلَآ أَنتُمْ عَٰبِدُونَ مَآ أَعْبُدُ', latin: 've lâ entüm âbidûne mâ a\'büd', not: 'نْ + ت ihfa (entüm)', ayet: '109:3' },
+      { ar: 'وَلَآ أَنَا۠ عَابِدٌ مَّا عَبَدتُّمْ', latin: 've lâ ene âbidüm-mâ abettüm', not: 'tenvin + م idgam; دتّ → "abettüm"', ayet: '109:4' },
+      { ar: 'وَلَآ أَنتُمْ عَٰبِدُونَ مَآ أَعْبُدُ', latin: 've lâ entüm âbidûne mâ a\'büd', not: 'tekrar ayeti — pekiştirme', ayet: '109:5' },
+      { ar: 'لَكُمْ دِينُكُمْ وَلِىَ دِينِ', latin: 'leküm dînüküm ve liye dîn', not: 'mim izharı + vakıfta dîn', ayet: '109:6' },
+    ],
+    tip: '"Abedtüm" yazılır, "abettüm" okunur: dal, te\'ye katılır (idgam-ı mütecâniseyn). Bu incelik kulaktan öğrenilir — 4. ayeti üç kez dinleyin.',
+  },
+  {
+    id: 'pratik-nasr', icon: '🏳️', bolum: 'Pratik', title: 'Nasr Suresi: Zafer ve Veda',
+    intro: 'İnen son surelerdendir: fetih müjdesi ile Peygamberimize veda iması bir arada. Muttasıl med (câe) ve zamir sılası (innehû) içerir.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ إِذَا جَآءَ نَصْرُ ٱللَّهِ وَٱلْفَتْحُ', latin: 'bismillâhir-rahmânir-rahîm · izâ câe nasrullâhi vel-feth', not: 'muttasıl med (câââe) + kalın Allah lafzı', ayet: '110:1' },
+      { ar: 'وَرَأَيْتَ ٱلنَّاسَ يَدْخُلُونَ فِى دِينِ ٱللَّهِ أَفْوَاجًا', latin: 've raeyten-nâse yedhulûne fî dînillâhi efvâcâ', not: 'ince Allah lafzı (dînillâh) — esreden sonra', ayet: '110:2' },
+      { ar: 'فَسَبِّحْ بِحَمْدِ رَبِّكَ وَٱسْتَغْفِرْهُ إِنَّهُۥ كَانَ تَوَّابًۢا', latin: 'fe-sebbih bi-hamdi rabbike vestağfirh innehû kâne tevvâbâ', not: 'zamir sılası (innehû) + vakıfta tevvâbâ', ayet: '110:3' },
+    ],
+    tip: 'Aynı surede Allah lafzının kalın (nasrullâh) ve ince (dînillâh) halini duyacaksınız — Kurallar bölümündeki dersin canlı örneği.',
+  },
+  {
+    id: 'pratik-tebbet', icon: '🔥', bolum: 'Pratik', title: 'Tebbet Suresi: Ebu Leheb\'in Sonu',
+    intro: 'İslam\'ın azılı düşmanı Ebu Leheb ile karısının akıbeti. İdgamlar (lehebiv-ve) ve zamir sılası (mâlühû) için zengin bir metin.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ تَبَّتْ يَدَآ أَبِى لَهَبٍ وَتَبَّ', latin: 'bismillâhir-rahmânir-rahîm · tebbet yedâ ebî lehebiv-ve tebb', not: 'tenvin + و idgam + vakıfta şeddeli be kalkalesi', ayet: '111:1' },
+      { ar: 'مَآ أَغْنَىٰ عَنْهُ مَالُهُۥ وَمَا كَسَبَ', latin: 'mâ ağnâ anhü mâlühû ve mâ keseb', not: 'نْ + ه izhar (anhü) + sıla (mâlühû)', ayet: '111:2' },
+      { ar: 'سَيَصْلَىٰ نَارًا ذَاتَ لَهَبٍ', latin: 'se-yaslâ nâran zâte leheb', not: 'tenvin + ذ ihfa (nâran zâte)', ayet: '111:3' },
+      { ar: 'وَٱمْرَأَتُهُۥ حَمَّالَةَ ٱلْحَطَبِ', latin: 'vemraetühû hammâletel-hatab', not: 'şeddeli mim ğunnesi (hammâle)', ayet: '111:4' },
+      { ar: 'فِى جِيدِهَا حَبْلٌ مِّن مَّسَدٍۭ', latin: 'fî cîdihâ hablüm-mim-mesed', not: 'çifte idgam: tenvin + م ve نْ + م', ayet: '111:5' },
+    ],
+    tip: 'Son ayet ğunne maratonudur: "hablüm-mim-mesed" boyunca geniz tınısı neredeyse hiç kesilmez. Burnunuzu tutup deneyin!',
+  },
+  {
+    id: 'pratik-felak', icon: '🌅', bolum: 'Pratik', title: 'Felak Suresi: Sabahın Rabbine Sığınış',
+    intro: 'İki koruyucu sureden (muavvizeteyn) ilki: yaratılmışların, karanlığın, düğümlere üfleyenlerin ve hasetçinin şerrinden sığınma. Şeddeli ra\'lar (şerri) kalın okunur.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ', latin: 'bismillâhir-rahmânir-rahîm · kul eûzü bi-rabbil-felak', not: 'vakıfta kaf kalkalesi (felak)', ayet: '113:1' },
+      { ar: 'مِن شَرِّ مَا خَلَقَ', latin: 'min şerri mâ halak', not: 'نْ + ش ihfa + kalkale (halak)', ayet: '113:2' },
+      { ar: 'وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ', latin: 've min şerri ğâsikın izâ vekab', not: 'tenvin + hemze izhar (ğâsikın izâ)', ayet: '113:3' },
+      { ar: 'وَمِن شَرِّ ٱلنَّفَّٰثَٰتِ فِى ٱلْعُقَدِ', latin: 've min şerrin-neffâsâti fil-ukad', not: 'şemsî nun ğunnesi (şerrin-nef…)', ayet: '113:4' },
+      { ar: 'وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ', latin: 've min şerri hâsidin izâ hased', not: 'tenvin + hemze izhar', ayet: '113:5' },
+    ],
+    tip: 'Dört kez geçen "min şerri"de ihfa + şeddeli kalın ra art arda gelir — sureyi ezberlemenin en hızlı yolu bu kalıbı oturtmaktır.',
+  },
+  {
+    id: 'pratik-nas', icon: '🛡️', bolum: 'Pratik', title: 'Nâs Suresi: İnsanların Rabbine Sığınış',
+    intro: 'Kur\'an\'ın son suresi ve ikinci muavvize: sinsi vesvesecinin şerrinden insanların Rabbine, Melikine, İlahına sığınma. Her ayet "nâs" ile biter — ârız med pratiği.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ', latin: 'bismillâhir-rahmânir-rahîm · kul eûzü bi-rabbin-nâs', not: 'şemsî nun + ayet sonu ârız med (nâââs)', ayet: '114:1' },
+      { ar: 'مَلِكِ ٱلنَّاسِ', latin: 'melikin-nâs', not: 'insanların hükümdarı', ayet: '114:2' },
+      { ar: 'إِلَٰهِ ٱلنَّاسِ', latin: 'ilâhin-nâs', not: 'hançer elif (ilâh)', ayet: '114:3' },
+      { ar: 'مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ', latin: 'min şerril-vesvâsil-hannâs', not: 'ihfa + şeddeli nun ğunnesi (hannâs)', ayet: '114:4' },
+      { ar: 'ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ', latin: 'ellezî yüvesvisü fî sudûrin-nâs', not: 'fısıltıyı taklit eden ses dokusu', ayet: '114:5' },
+      { ar: 'مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ', latin: 'minel-cinneti ven-nâs', not: 'cinlerden ve insanlardan', ayet: '114:6' },
+    ],
+    tip: 'Her ayet sonundaki "nâs" vakıfta 2-4 vuruş uzatılır (ârız med) — kâri ne kadar uzatıyorsa siz de o kadar uzatın, sureyi bir nefes ritmine oturtun.',
+  },
+  {
+    id: 'pratik-kadr', icon: '🌌', bolum: 'Pratik', title: 'Kadir Suresi: Bin Aydan Hayırlı Gece',
+    intro: 'Kur\'an\'ın indirildiği Kadir gecesinin şerefi. "Leyletül-kadr" üç kez tekrarlanır; tenvin idgamları ve zamir sılası içerir.',
+    examples: [
+      { ar: 'بِّسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ إِنَّآ أَنزَلْنَٰهُ فِى لَيْلَةِ ٱلْقَدْرِ', latin: 'bismillâhir-rahmânir-rahîm · innâ enzelnâhü fî leyletil-kadr', not: 'نْ + ز ihfa (enzelnâ) + vakıfta ra: öncesi cezmli dal', ayet: '97:1' },
+      { ar: 'وَمَآ أَدْرَىٰكَ مَا لَيْلَةُ ٱلْقَدْرِ', latin: 've mâ edrâke mâ leyletül-kadr', not: 'munfasıl med (mâ edrâke)', ayet: '97:2' },
+      { ar: 'لَيْلَةُ ٱلْقَدْرِ خَيْرٌ مِّنْ أَلْفِ شَهْرٍ', latin: 'leyletül-kadri hayrum-min elfi şehr', not: 'tenvin + م idgam + نْ + hemze izhar', ayet: '97:3' },
+      { ar: 'تَنَزَّلُ ٱلْمَلَٰٓئِكَةُ وَٱلرُّوحُ فِيهَا بِإِذْنِ رَبِّهِم مِّن كُلِّ أَمْرٍ', latin: 'tenezzelül-melâiketü ver-rûhu fîhâ bi-izni rabbihim-min külli emr', not: 'lâzım med (melâââike) + mim idgamı', ayet: '97:4' },
+      { ar: 'سَلَٰمٌ هِىَ حَتَّىٰ مَطْلَعِ ٱلْفَجْرِ', latin: 'selâmün hiye hattâ matleil-fecr', not: 'tenvin + ه izhar + esreli ince ra (fecr)', ayet: '97:5' },
+    ],
+    tip: '"Leyletül-kadr"de dal cezimlidir: vakıfta dal kalkalesi + ince ra birlikte gelir. Ayet sonlarını kâri gibi kapatmaya çalışın.',
+  },
+  {
+    id: 'pratik-tin', icon: '🫒', bolum: 'Pratik', title: 'Tîn Suresi: En Güzel Kıvamda Yaratılış',
+    intro: 'İncire, zeytine, Sina dağına ve güvenli beldeye yemin: insan en güzel kıvamda yaratıldı. Yeminli açılışlar med ve şemsî lam pratiğidir.',
+    examples: [
+      { ar: 'بِّسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ وَٱلتِّينِ وَٱلزَّيْتُونِ', latin: 'bismillâhir-rahmânir-rahîm · vet-tîni vez-zeytûn', not: 'şemsî te ve ze + lîn (zeytûn)', ayet: '95:1' },
+      { ar: 'وَطُورِ سِينِينَ', latin: 've tûri sînîn', not: 'kalın tı + uzun î\'ler', ayet: '95:2' },
+      { ar: 'وَهَٰذَا ٱلْبَلَدِ ٱلْأَمِينِ', latin: 've hâzel-beledil-emîn', not: 'hançer elif + kamerî lamlar', ayet: '95:3' },
+      { ar: 'لَقَدْ خَلَقْنَا ٱلْإِنسَٰنَ فِىٓ أَحْسَنِ تَقْوِيمٍ', latin: 'lekad halaknel-insâne fî ahseni takvîm', not: 'kelime içi kaf kalkalesi (halaknâ)', ayet: '95:4' },
+      { ar: 'ثُمَّ رَدَدْنَٰهُ أَسْفَلَ سَٰفِلِينَ', latin: 'sümme radednâhü esfele sâfilîn', not: 'şeddeli mim ğunnesi (sümme)', ayet: '95:5' },
+      { ar: 'إِلَّا ٱلَّذِينَ ءَامَنُوا۟ وَعَمِلُوا۟ ٱلصَّٰلِحَٰتِ فَلَهُمْ أَجْرٌ غَيْرُ مَمْنُونٍ', latin: 'illellezîne âmenû ve amilüs-sâlihâti fe-lehüm ecrun ğayru memnûn', not: 'tenvin + غ izhar (ecrun ğayru)', ayet: '95:6' },
+      { ar: 'فَمَا يُكَذِّبُكَ بَعْدُ بِٱلدِّينِ', latin: 'fe-mâ yükezzibüke ba\'dü bid-dîn', not: 'şeddeli zel + şemsî dal', ayet: '95:7' },
+      { ar: 'أَلَيْسَ ٱللَّهُ بِأَحْكَمِ ٱلْحَٰكِمِينَ', latin: 'eleysallâhü bi-ahkemil-hâkimîn', not: 'üstünden sonra kalın Allah lafzı', ayet: '95:8' },
+    ],
+    tip: 'Son ayete cevap vermek sünnettir: "belâ ve ene alâ zâlike mineş-şâhidîn" (evet, ben buna şahidim).',
+  },
+  {
+    id: 'pratik-insirah', icon: '🌤️', bolum: 'Pratik', title: 'İnşirâh Suresi: Her Zorlukla Bir Kolaylık',
+    intro: 'Peygamberimize teselli: göğsün açılması, yükün alınması ve iki kez tekrarlanan müjde — "zorlukla beraber kolaylık vardır". Kısa ayetler cezm ve kalkale doludur.',
+    examples: [
+      { ar: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلَمْ نَشْرَحْ لَكَ صَدْرَكَ', latin: 'bismillâhir-rahmânir-rahîm · elem neşrah leke sadrek', not: 'mim izharı (elem neşrah) + vakıfta kef sakin', ayet: '94:1' },
+      { ar: 'وَوَضَعْنَا عَنكَ وِزْرَكَ', latin: 've vada\'nâ anke vizrek', not: 'نْ + ك ihfa (anke)', ayet: '94:2' },
+      { ar: 'ٱلَّذِىٓ أَنقَضَ ظَهْرَكَ', latin: 'ellezî enkada zahrek', not: 'نْ + ق ihfa (enkada) + kalın zı', ayet: '94:3' },
+      { ar: 'وَرَفَعْنَا لَكَ ذِكْرَكَ', latin: 've rafa\'nâ leke zikrek', not: 'ayn sakin — boğazdan kapatın', ayet: '94:4' },
+      { ar: 'فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا', latin: 'fe-inne meal-usri yüsrâ', not: 'ğunne + vakıfta yüsrâ (tenvin â olur)', ayet: '94:5' },
+      { ar: 'إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا', latin: 'inne meal-usri yüsrâ', not: 'müjdenin tekrarı — bir zorluğa iki kolaylık', ayet: '94:6' },
+      { ar: 'فَإِذَا فَرَغْتَ فَٱنصَبْ', latin: 'fe-izâ ferağte fensab', not: 'نْ + ص ihfa (fensab) + vakıfta be kalkalesi', ayet: '94:7' },
+      { ar: 'وَإِلَىٰ رَبِّكَ فَٱرْغَب', latin: 've ilâ rabbike ferğab', not: 'vakıfta be kalkalesi (ferğab)', ayet: '94:8' },
+    ],
+    tip: 'Ayet sonlarındaki sakin kef ve be\'ler kalkale-vakıf pratiğidir: "sadrek, vizrek, zahrek, zikrek" dörtlüsünü ritimle okuyun.',
   },
 ];
 
