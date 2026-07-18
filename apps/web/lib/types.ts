@@ -11,7 +11,8 @@ export type Surah = {
 
 export type Word = {
   p: number; // ayet içi pozisyon (1-tabanlı) — kelime anahtarı: `${surah}:${ayah}:${p}`
-  ar: string;
+  ar: string;         // kanonik Uthmani (Medine mushafı) — anahtar/mahrec bunun üstünden
+  ari: string | null; // imlâî (Türkiye imlasına yakın) — görüntüleme varsayılanı
   tr: string | null;
   en: string | null;
   tl: string | null; // transliterasyon (kelime popover'ında gösterilir)

@@ -16,7 +16,8 @@ import MiracleNote from './MiracleNote';
 import ShareAyah from './ShareAyah';
 import { AyahBadge, CommentsProvider, InlineComments, MyNotes, NoteRail, TargetButtons, useComments } from './Comments';
 
-const BASMALA = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
+const BASMALA = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';           // Medine (Uthmani)
+const BASMALA_IMLAEI = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';      // Türkiye imlası (imlâî)
 const pad3 = (n: number) => String(n).padStart(3, '0');
 
 type Mode = 'renkli' | 'siyah' | 'mahrec';
@@ -27,6 +28,11 @@ function wordText(word: Word, loc: string, lang: string, extra: LangMap): string
   if (lang === 'en') return word.en;
   return extra[lang]?.[loc] ?? null;
 }
+
+// Görüntülenecek Arapça: Türkiye imlası (imlâî) varsayılan, Medine seçilirse Uthmani.
+// Anahtarlar/ezber her zaman kanonik `ar` (Uthmani) üzerinden kalır.
+type Imla = 'turkiye' | 'medine';
+const arOf = (w: Word, imla: Imla) => (imla === 'medine' ? w.ar : w.ari ?? w.ar);
 
 function WordPopover({ surah, ayah, word, words, count, wbwExtra, onListen, onClose }: {
   surah: number; ayah: number; word: Word; words: { p: number; ar: string }[];
@@ -45,7 +51,7 @@ function WordPopover({ surah, ayah, word, words, count, wbwExtra, onListen, onCl
   const loc = `${surah}:${ayah}:${word.p}`;
   return (
     <span className="wpop" dir="ltr" onClick={(e) => e.stopPropagation()}>
-      <span className="wpop-ar" dir="rtl">{word.ar}</span>
+      <span className="wpop-ar" dir="rtl">{arOf(word, settings.imla)}</span>
       {word.tl && <i className="wpop-tl">{word.tl}</i>}
       <span className="wpop-meanings">
         {settings.wordLangs.map((lang) => {
@@ -64,20 +70,21 @@ function WordPopover({ surah, ayah, word, words, count, wbwExtra, onListen, onCl
   );
 }
 
-function WordSpan({ word, loc, wi, mode, active, count, wordLangs, wbwExtra, onClick, popover }: {
-  word: Word; loc: string; wi: number; mode: Mode; active: boolean; count: number;
+function WordSpan({ word, loc, wi, mode, imla, active, count, wordLangs, wbwExtra, onClick, popover }: {
+  word: Word; loc: string; wi: number; mode: Mode; imla: Imla; active: boolean; count: number;
   wordLangs: string[]; wbwExtra: LangMap; onClick: () => void; popover: ReactNode;
 }) {
   const color = mode === 'renkli' ? `var(--w${wi % 10})` : undefined;
+  const ar = arOf(word, imla);
   return (
     <span className={`w${active ? ' hl' : ''}${popover ? ' wopen' : ''}`} style={color ? { color } : undefined}>
       {count > 0 && <sup className="wcount" title={`${count} kelime yorumu`}>{count}</sup>}
       <button className="ar" dir="rtl" onClick={onClick} title="Kelime seçenekleri">
         {mode === 'mahrec'
-          ? mahrecSegments(word.ar).map((s, i) => (
+          ? mahrecSegments(ar).map((s, i) => (
               <span key={i} style={s.group ? { color: `var(--mh-${s.group})` } : undefined}>{s.text}</span>
             ))
-          : word.ar}
+          : ar}
       </button>
       {wordLangs.map((lang) => {
         const text = wordText(word, loc, lang, wbwExtra);
@@ -89,18 +96,18 @@ function WordSpan({ word, loc, wi, mode, active, count, wordLangs, wbwExtra, onC
 }
 
 const AyahRow = memo(function AyahRow({
-  surahId, surahName, ayah, mode, activeWord, isActive, gi, ai, onPlay, onStop,
+  surahId, surahName, ayah, mode, imla, activeWord, isActive, gi, ai, onPlay, onStop,
   wordCounts, openWord, onWordClick, onWordListen,
   wordLangs, meals, wbwExtra, mealExtra,
 }: {
-  surahId: number; surahName: string; ayah: Ayah; mode: Mode; activeWord: number | null;
+  surahId: number; surahName: string; ayah: Ayah; mode: Mode; imla: Imla; activeWord: number | null;
   isActive: boolean; gi: number; ai: number; onPlay: (gi: number, ai: number) => void; onStop: () => void;
   wordCounts: Record<number, number> | undefined; openWord: number | null;
   onWordClick: (gi: number, ai: number, p: number) => void;
   onWordListen: (gi: number, ai: number, p: number) => void;
   wordLangs: string[]; meals: string[]; wbwExtra: LangMap; mealExtra: LangMap;
 }) {
-  const slimWords = useMemo(() => ayah.words.map((w) => ({ p: w.p, ar: w.ar })), [ayah.words]);
+  const slimWords = useMemo(() => ayah.words.map((w) => ({ p: w.p, ar: arOf(w, imla) })), [ayah.words, imla]);
   return (
     <div id={`ayet-${surahId}-${ayah.ayah}`} className={`ayah${isActive ? ' active' : ''}${openWord != null ? ' pop-open' : ''}`}>
       {/* Ağır içerik .ayah-inner'da: content-visibility oraya uygulanır, böylece
@@ -109,7 +116,7 @@ const AyahRow = memo(function AyahRow({
       <div className="words" dir="rtl">
         {ayah.words.map((w, wi) => (
           <WordSpan
-            key={w.p} word={w} loc={`${surahId}:${ayah.ayah}:${w.p}`} wi={wi} mode={mode}
+            key={w.p} word={w} loc={`${surahId}:${ayah.ayah}:${w.p}`} wi={wi} mode={mode} imla={imla}
             active={isActive && activeWord === w.p}
             count={wordCounts?.[w.p] ?? 0}
             wordLangs={wordLangs} wbwExtra={wbwExtra}
@@ -169,8 +176,8 @@ const AyahRow = memo(function AyahRow({
 });
 
 // Provider içinde çalışan gövde: kelime yorum sayıları için context'e erişir
-function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, stopPlay, playWord, wordLangs, meals, wbwExtra, mealExtra }: {
-  groups: ReaderGroup[]; showPageMarkers: boolean; mode: Mode;
+function ReaderBody({ groups, showPageMarkers, mode, imla, pos, activeWord, playAt, stopPlay, playWord, wordLangs, meals, wbwExtra, mealExtra }: {
+  groups: ReaderGroup[]; showPageMarkers: boolean; mode: Mode; imla: Imla;
   pos: { g: number; a: number } | null; activeWord: number | null;
   playAt: (g: number, a: number) => void; stopPlay: () => void;
   playWord: (g: number, a: number, p: number) => void;
@@ -210,7 +217,7 @@ function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, st
               </Link>
             )}
             {group.ayahs[0]?.ayah === 1 && group.surah.id !== 1 && group.surah.id !== 9 && (
-              <p className="basmala" dir="rtl">{BASMALA}</p>
+              <p className="basmala" dir="rtl">{imla === 'medine' ? BASMALA : BASMALA_IMLAEI}</p>
             )}
             {group.ayahs.map((ayah, ai) => {
               const marks = [];
@@ -231,7 +238,7 @@ function ReaderBody({ groups, showPageMarkers, mode, pos, activeWord, playAt, st
               return (
                 <div key={ayah.ayah}>
                   {marks}
-                  <AyahRow surahId={group.surah.id} surahName={group.surah.name_tr} ayah={ayah} mode={mode}
+                  <AyahRow surahId={group.surah.id} surahName={group.surah.name_tr} ayah={ayah} mode={mode} imla={imla}
                     activeWord={isActive ? activeWord : null} isActive={isActive}
                     gi={gi} ai={ai} onPlay={playAt} onStop={stopPlay}
                     wordCounts={wordCountMap.get(`${group.surah.id}:${ayah.ayah}`)}
@@ -445,7 +452,7 @@ export default function Reader({ groups, showPageMarkers = true, pageNumber, mus
   ].filter(Boolean).join(' ');
 
   const body = (
-    <ReaderBody groups={groups} showPageMarkers={showPageMarkers} mode={settings.mode}
+    <ReaderBody groups={groups} showPageMarkers={showPageMarkers} mode={settings.mode} imla={settings.imla}
       pos={pos} activeWord={activeWord} playAt={playAt} stopPlay={stop} playWord={playWord}
       wordLangs={settings.wordLangs} meals={settings.meals} wbwExtra={wbwExtra} mealExtra={mealExtra} />
   );

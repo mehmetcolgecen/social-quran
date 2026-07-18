@@ -124,6 +124,13 @@ export default function ReaderSettings({ frameSelect = false }: { frameSelect?: 
         </select>
       </label>
       <label className="hset">
+        <span className="hset-label">{t('imla')}</span>
+        <select value={settings.imla} onChange={(e) => update({ imla: e.target.value as typeof settings.imla })}>
+          <option value="turkiye">{t('imlaTurkiye')}</option>
+          <option value="medine">{t('imlaMedine')}</option>
+        </select>
+      </label>
+      <label className="hset">
         <span className="hset-label">{t('font')}</span>
         <select value={settings.arFont} onChange={(e) => update({ arFont: e.target.value as typeof settings.arFont })}>
           {AR_FONTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}

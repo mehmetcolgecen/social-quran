@@ -26,7 +26,7 @@ export default async function SurePage({ params }: Props) {
     for (const w of ayah.words) {
       const existing = unique.get(w.ar);
       if (existing) existing.count++;
-      else unique.set(w.ar, { ar: w.ar, tr: w.tr, en: w.en, count: 1 });
+      else unique.set(w.ar, { ar: w.ar, ari: w.ari, tr: w.tr, en: w.en, count: 1 });
     }
   }
 

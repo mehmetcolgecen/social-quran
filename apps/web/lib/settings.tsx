@@ -14,6 +14,7 @@ export type Settings = {
   science: boolean;  // ilim/tefekkür notları (bilimsel işaret hâşiyeleri)
   theme: 'acik' | 'koyu';
   arFont: 'hafs' | 'amiri' | 'amiri-renkli' | 'dkhatt';
+  imla: 'turkiye' | 'medine'; // Arapça metin imlası — varsayılan Türkiye (imlâî)
   frame: 'klasik' | 'zumrut' | 'gul' | 'gece' | 'firuze' | 'sade';
   uiLang: 'tr' | 'en'; // arayüz kromu dili (menüler); içerik dilleri ayrı
 };
@@ -29,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   science: true,
   theme: 'acik',
   arFont: 'hafs',
+  imla: 'turkiye',
   frame: 'klasik',
   uiLang: 'tr',
 };

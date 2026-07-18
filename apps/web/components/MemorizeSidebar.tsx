@@ -2,9 +2,11 @@
 // Sayfadaki benzersiz kelimelerin ezber listesi — tikler localStorage'da tutulur (tüm sayfalarda ortak).
 // Üye profili senkronizasyonu ileride eklenebilir.
 import { useEffect, useState } from 'react';
+import { useSettings } from '@/lib/settings';
 import { useT } from '@/lib/i18n';
 
-export type UniqueWord = { ar: string; tr: string | null; en: string | null; count: number };
+// `ar` kanonik Uthmani (ilerleme anahtarı), `ari` imlâî görüntü metni
+export type UniqueWord = { ar: string; ari?: string | null; tr: string | null; en: string | null; count: number };
 
 const STORAGE_KEY = 'sk-ezber';
 
@@ -12,6 +14,7 @@ export default function MemorizeSidebar({ words, titleKey = 'memorizeTitlePage' 
   words: UniqueWord[]; titleKey?: 'memorizeTitlePage' | 'memorizeTitleSurah';
 }) {
   const t = useT();
+  const { settings } = useSettings();
   const [learned, setLearned] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
 
@@ -58,7 +61,7 @@ export default function MemorizeSidebar({ words, titleKey = 'memorizeTitlePage' 
             <li key={w.ar} className={ok ? 'done' : ''}>
               <label>
                 <input type="checkbox" checked={ok} onChange={() => toggle(w.ar)} />
-                <span className="mem-ar" dir="rtl">{w.ar}</span>
+                <span className="mem-ar" dir="rtl">{settings.imla === 'medine' ? w.ar : w.ari ?? w.ar}</span>
                 <span className="mem-meta">
                   {w.tr ?? w.en ?? ''}
                   {w.count > 1 && <small> ×{w.count}</small>}

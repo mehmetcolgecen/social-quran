@@ -63,6 +63,28 @@ if (emptyTr || emptyEn) warnings.push(`boş kelime çevirisi: TR=${emptyTr}, EN=
 if (textMismatch) warnings.push(`API text_uthmani ile Tanzil farklı olan ayet: ${textMismatch} (imlâ farkı olabilir; kanonik metin Tanzil)`);
 stats.words = { total: totalWords, pages: pages.size, emptyTr, emptyEn, tanzilTextMismatch: textMismatch };
 
+// 3b) İmlâî metin — ayet sayısı, boş metin, kelime sayısının words-en ile birebir eşleşmesi
+let imlaeiVerses = 0, imlaeiWords = 0;
+for (let ch = 1; ch <= 114; ch++) {
+  const { verses } = await readJSON(`${RAW}qdc/imlaei/${String(ch).padStart(3, '0')}.json`);
+  assert(verses.length === metaCount.get(ch), `imlaei ${ch}: ayet ${verses.length} != ${metaCount.get(ch)}`);
+  for (const v of verses) {
+    imlaeiVerses++;
+    assert(v.text_imlaei?.trim(), `imlaei ${v.verse_key}: ayet metni boş`);
+    const words = v.words.filter((w) => w.char_type_name === 'word');
+    assert(words.length === wordCounts.en.get(v.verse_key),
+      `imlaei ${v.verse_key}: kelime ${words.length} != ${wordCounts.en.get(v.verse_key)}`);
+    words.forEach((w, i) => {
+      assert(w.location === `${v.verse_key}:${i + 1}`, `imlaei ${v.verse_key}: konum sırası bozuk (${w.location})`);
+      assert(w.text_imlaei?.trim(), `imlaei ${w.location}: kelime metni boş`);
+      imlaeiWords++;
+    });
+  }
+}
+assert(imlaeiVerses === 6236, `imlaei: toplam ayet ${imlaeiVerses} != 6236`);
+assert(imlaeiWords === totalWords, `imlaei: toplam kelime ${imlaeiWords} != ${totalWords}`);
+stats.imlaei = { ayahs: imlaeiVerses, words: imlaeiWords };
+
 // 4) quran-align zamanlamaları (4 MVP kârisi)
 stats.align = {};
 for (const { align } of RECITERS.filter((r) => r.align)) {
@@ -90,6 +112,7 @@ files['tanzil/quran-uthmani.txt'] = await sha256(`${RAW}tanzil/quran-uthmani.txt
 await hashDir('qdc', 'qdc/');
 await hashDir('qdc/words-tr', 'qdc/words-tr/');
 await hashDir('qdc/words-en', 'qdc/words-en/');
+await hashDir('qdc/imlaei', 'qdc/imlaei/');
 await hashDir('quran-align', 'quran-align/');
 await writeJSON(`${ROOT}data/checksums.json`, { stats, files });
 

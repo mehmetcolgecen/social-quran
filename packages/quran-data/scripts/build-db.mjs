@@ -39,12 +39,13 @@ db.exec(`
     verses_count INTEGER NOT NULL);
   CREATE TABLE ayahs (
     id INTEGER PRIMARY KEY, verse_key TEXT NOT NULL UNIQUE, surah INTEGER NOT NULL REFERENCES surahs(id),
-    ayah INTEGER NOT NULL, text_uthmani TEXT NOT NULL, page INTEGER NOT NULL,
+    ayah INTEGER NOT NULL, text_uthmani TEXT NOT NULL, text_imlaei TEXT NOT NULL, page INTEGER NOT NULL,
     juz INTEGER NOT NULL, hizb INTEGER NOT NULL, sajdah INTEGER);
   CREATE TABLE words (
     id INTEGER PRIMARY KEY, location TEXT NOT NULL UNIQUE, surah INTEGER NOT NULL,
     ayah INTEGER NOT NULL, position INTEGER NOT NULL, text_uthmani TEXT NOT NULL,
-    page INTEGER NOT NULL, line INTEGER NOT NULL, tr TEXT, en TEXT, transliteration TEXT);
+    text_imlaei TEXT NOT NULL, page INTEGER NOT NULL, line INTEGER NOT NULL,
+    tr TEXT, en TEXT, transliteration TEXT);
   CREATE TABLE translations (
     verse_key TEXT NOT NULL, lang TEXT NOT NULL, source TEXT NOT NULL, text TEXT NOT NULL,
     PRIMARY KEY (verse_key, lang));
@@ -79,8 +80,8 @@ for (const c of chaptersEn) {
 }
 
 const tanzilByKey = new Map((await parseTanzil()).map((a) => [`${a.surah}:${a.ayah}`, a.text]));
-const insAyah = db.prepare('INSERT INTO ayahs VALUES (?,?,?,?,?,?,?,?,?)');
-const insWord = db.prepare('INSERT INTO words VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+const insAyah = db.prepare('INSERT INTO ayahs VALUES (?,?,?,?,?,?,?,?,?,?)');
+const insWord = db.prepare('INSERT INTO words VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
 const insTrans = db.prepare('INSERT INTO translations VALUES (?,?,?,?)');
 let ayahId = 0, wordId = 0;
 // Yorum hedefi doğrulaması için limitler (API kullanır): sure→ayet sayısı, ayet→kelime sayısı
@@ -91,22 +92,30 @@ for (let ch = 1; ch <= 114; ch++) {
   const pad = String(ch).padStart(3, '0');
   const { verses: versesEn } = await readJSON(`${RAW}qdc/words-en/${pad}.json`);
   const { verses: versesTr } = await readJSON(`${RAW}qdc/words-tr/${pad}.json`);
+  const { verses: versesImla } = await readJSON(`${RAW}qdc/imlaei/${pad}.json`);
   const trByKey = new Map(versesTr.map((v) => [v.verse_key, v]));
+  // İmlâî metin (görüntüleme varsayılanı): ayet metni + konum→kelime haritası
+  const imlaByKey = new Map(versesImla.map((v) => [v.verse_key, v]));
   for (const v of versesEn) {
     const vTr = trByKey.get(v.verse_key);
+    const vImla = imlaByKey.get(v.verse_key);
     const [s, a] = v.verse_key.split(':').map(Number);
     const text = tanzilByKey.get(v.verse_key);
     if (!text) throw new Error(`Tanzil metni yok: ${v.verse_key}`);
+    if (!vImla?.text_imlaei) throw new Error(`İmlâî metin yok: ${v.verse_key}`);
+    const imlaWords = new Map(vImla.words.filter((w) => w.char_type_name === 'word').map((w) => [w.location, w.text_imlaei]));
     const wordsEn = v.words.filter((w) => w.char_type_name === 'word');
     const wordsTr = vTr.words.filter((w) => w.char_type_name === 'word');
     if (wordsEn.length !== wordsTr.length) throw new Error(`kelime sayısı uyuşmuyor: ${v.verse_key}`);
     targetLimits.ayahWords[v.verse_key] = wordsEn.length;
-    const aVals = [++ayahId, v.verse_key, s, a, text, wordsEn[0].page_number, v.juz_number, v.hizb_number, v.sajdah_number ?? null];
+    const aVals = [++ayahId, v.verse_key, s, a, text, vImla.text_imlaei, wordsEn[0].page_number, v.juz_number, v.hizb_number, v.sajdah_number ?? null];
     insAyah.run(...aVals); row('ayahs', aVals);
     wordsEn.forEach((w, i) => {
       const en = w.translation?.text ?? null;
       const tr = fixWordTr(wordsTr[i].translation?.text ?? null, en);
-      const wVals = [++wordId, w.location, s, a, i + 1, w.text_uthmani, w.page_number, w.line_number,
+      const imla = imlaWords.get(w.location);
+      if (!imla) throw new Error(`İmlâî kelime yok: ${w.location}`);
+      const wVals = [++wordId, w.location, s, a, i + 1, w.text_uthmani, imla, w.page_number, w.line_number,
         tr, en, w.transliteration?.text ?? null];
       insWord.run(...wVals); row('words', wVals);
     });
@@ -176,8 +185,8 @@ db.close();
 const pgSchema = `BEGIN;
 DROP TABLE IF EXISTS timings, reciters, translations, words, ayahs, surahs CASCADE;
 CREATE TABLE surahs (id INT PRIMARY KEY, name_arabic TEXT NOT NULL, name_simple TEXT NOT NULL, name_tr TEXT NOT NULL, name_en TEXT NOT NULL, revelation_place TEXT NOT NULL, verses_count INT NOT NULL);
-CREATE TABLE ayahs (id INT PRIMARY KEY, verse_key TEXT NOT NULL UNIQUE, surah INT NOT NULL REFERENCES surahs(id), ayah INT NOT NULL, text_uthmani TEXT NOT NULL, page INT NOT NULL, juz INT NOT NULL, hizb INT NOT NULL, sajdah INT);
-CREATE TABLE words (id INT PRIMARY KEY, location TEXT NOT NULL UNIQUE, surah INT NOT NULL, ayah INT NOT NULL, position INT NOT NULL, text_uthmani TEXT NOT NULL, page INT NOT NULL, line INT NOT NULL, tr TEXT, en TEXT, transliteration TEXT);
+CREATE TABLE ayahs (id INT PRIMARY KEY, verse_key TEXT NOT NULL UNIQUE, surah INT NOT NULL REFERENCES surahs(id), ayah INT NOT NULL, text_uthmani TEXT NOT NULL, text_imlaei TEXT NOT NULL, page INT NOT NULL, juz INT NOT NULL, hizb INT NOT NULL, sajdah INT);
+CREATE TABLE words (id INT PRIMARY KEY, location TEXT NOT NULL UNIQUE, surah INT NOT NULL, ayah INT NOT NULL, position INT NOT NULL, text_uthmani TEXT NOT NULL, text_imlaei TEXT NOT NULL, page INT NOT NULL, line INT NOT NULL, tr TEXT, en TEXT, transliteration TEXT);
 CREATE TABLE translations (verse_key TEXT NOT NULL, lang TEXT NOT NULL, source TEXT NOT NULL, text TEXT NOT NULL, PRIMARY KEY (verse_key, lang));
 CREATE TABLE reciters (slug TEXT PRIMARY KEY, name TEXT NOT NULL);
 CREATE TABLE timings (reciter TEXT NOT NULL REFERENCES reciters(slug), surah INT NOT NULL, ayah INT NOT NULL, segments JSONB NOT NULL, PRIMARY KEY (reciter, surah, ayah));

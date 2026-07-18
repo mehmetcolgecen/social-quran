@@ -107,6 +107,29 @@ async function downloadWbwExtra() {
   }
 }
 
+// İmlâî (Türkiye mushafı imlasına yakın) metin: ayet + kelime düzeyinde.
+// Görüntüleme varsayılanıdır; kanonik metin Tanzil Uthmani olarak kalır.
+async function downloadImlaei() {
+  await ensureDir(`${RAW}qdc/imlaei`);
+  for (let ch = 1; ch <= 114; ch++) {
+    const path = `${RAW}qdc/imlaei/${String(ch).padStart(3, '0')}.json`;
+    if (await exists(path)) continue;
+    const verses = [];
+    let page = 1;
+    while (page) {
+      const url = `${API}/verses/by_chapter/${ch}?words=true&word_fields=location,text_imlaei` +
+        `&fields=text_imlaei&per_page=50&page=${page}`;
+      const data = await fetchWithRetry(url);
+      verses.push(...data.verses);
+      page = data.pagination.next_page;
+      await sleep(60);
+    }
+    await writeJSON(path, { chapter: ch, verses });
+    if (ch % 30 === 0) console.log(`imlaei: ${ch}/114`);
+  }
+  console.log('imlaei: tamamlandı');
+}
+
 async function downloadAlign() {
   const dir = `${RAW}quran-align`;
   const zip = `${dir}/quran-align-data.zip`;
@@ -126,5 +149,6 @@ await downloadChapters();
 await downloadWords();
 await downloadMeals();
 await downloadWbwExtra();
+await downloadImlaei();
 await downloadAlign();
 console.log('İndirme tamam. Sıradaki: npm run -w packages/quran-data validate');
