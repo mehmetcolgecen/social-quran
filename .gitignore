@@ -15,3 +15,5 @@ data/.dev/
 !.env.example
 deploy/k8s/secrets.yaml
 .oracle/
+# Kullanıcının verdiği ham imam fotoğrafları (kırpılmışları apps/web/public/reciters/)
+images/
