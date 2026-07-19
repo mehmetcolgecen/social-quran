@@ -34,12 +34,15 @@ const FRAMES: readonly (readonly [string, UiKey])[] = [
   ['sade', 'frameSade'],
 ];
 
-// Yalnız mushaf imlasını doğru basan fontlar (hançer elif, vasıl hemzesi vb.)
+// Kur'an işaret kapsamı doğrulanmış fontlar. Son ikisi metin (naskh) fontudur:
+// Türkiye imlasında çok iyi basarlar; Medine (Uthmani) seçiliyken ilk dördü önerilir.
 const AR_FONTS = [
   ['hafs', 'Hafs (Medine)'],
   ['amiri', 'Amiri Kur’an'],
   ['amiri-renkli', 'Amiri (renkli hareke)'],
   ['dkhatt', 'Dijital Hat (Medine)'],
+  ['amiri-metin', 'Amiri Metin'],
+  ['harmattan', 'Harmattan'],
 ] as const;
 
 function toggleIn(list: string[], code: string): string[] {

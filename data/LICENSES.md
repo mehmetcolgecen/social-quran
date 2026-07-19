@@ -14,6 +14,8 @@ Son doğrulama: 2026-07-06. Değişmez kural: Kur'an metni hiçbir işlemde değ
 | Font: KFGQPC Uthmanic Hafs v18 (woff2, `apps/web/fonts/`) | [quran.com-frontend-next](https://github.com/quran/quran.com-frontend-next) deposu (kaynak: KFGQPC) | KFGQPC fontları serbest kullanımlı dağıtılır; quran.com da aynı dosyayı kullanıyor | KFGQPC atfı (footer'da mevcut) |
 | Font: Amiri Quran + Amiri Quran Colored (v1.003) | [aliftype/amiri](https://github.com/aliftype/amiri) | SIL OFL 1.1 | OFL bildirimi |
 | Font: DigitalKhatt Madina (`madina.otf`) | [DigitalKhatt/digitalkhatt.org](https://github.com/DigitalKhatt/digitalkhatt.org) | MIT | MIT bildirimi |
+| Font: Amiri Regular (metin) v1.003 | [aliftype/amiri](https://github.com/aliftype/amiri) | SIL OFL 1.1 | OFL bildirimi |
+| Font: Harmattan v4.400 | [silnrsi/font-harmattan](https://github.com/silnrsi/font-harmattan) | SIL OFL 1.1 | OFL bildirimi; U+0670 + U+06D6-06DA kapsamı fontTools ile doğrulandı |
 | ~~Font: Scheherazade New, Lateef, Aref Ruqaa, Noto Naskh~~ | — | Mushaf imlasını yanlış bastıkları için ÜRÜNDEN ÇIKARILDI (2026-07-18): hareke+hançer elif birlikte basılıyor, vasıl hemzesi ve şeddeli esre hatalı görünüyordu | — |
 | Font: Caveat (el yazısı notlar) | [google/fonts](https://github.com/google/fonts/tree/main/ofl/caveat) | SIL OFL 1.1 | OFL bildirimi |
 | ~~Font: Hüsrev Hattı Arapça~~ | — | Kalite yetersiz + lisans belirsiz olduğundan ÜRÜNDEN ÇIKARILDI (2026-07-07). Gerçek Hüsrev hattı fontu için Hayrat Vakfı'ndan resmî lisans gerekir | — |

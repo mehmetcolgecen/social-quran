@@ -33,6 +33,20 @@ const digitalKhatt = localFont({
   display: 'swap',
   preload: false,
 });
+// İmlâî (Türkiye) metinle parlayan metin fontları — hançer elif + durak işaretleri
+// kapsamı fontTools ile doğrulandı (U+0670, U+06D6-06DA)
+const amiriMetin = localFont({
+  src: '../fonts/Amiri-Regular.ttf',
+  variable: '--font-amiri-metin',
+  display: 'swap',
+  preload: false,
+});
+const harmattan = localFont({
+  src: '../fonts/Harmattan-Regular.ttf',
+  variable: '--font-harmattan',
+  display: 'swap',
+  preload: false,
+});
 // El yazısı not fontu (hâşiye görünümü) — latin-ext, Türkçe karakterleri kapsar
 const caveat = localFont({
   src: '../fonts/Caveat.ttf',
@@ -52,7 +66,7 @@ export const viewport = { themeColor: '#8a6d1d' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${amiriQuranColored.variable} ${digitalKhatt.variable} ${caveat.variable}`}>
+    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${amiriQuranColored.variable} ${digitalKhatt.variable} ${amiriMetin.variable} ${harmattan.variable} ${caveat.variable}`}>
       <body>
         <PwaRegister />
         <SettingsProvider>
