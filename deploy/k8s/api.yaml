@@ -27,6 +27,9 @@ spec:
             # Issuer'a cluster içinden erişim; public URL ile aynı realm
             - name: OIDC_ISSUER
               value: https://sosyal-kuran.com/auth/realms/sosyal-kuran
+            # Dinamik Keycloak hostname: dört domain'in issuer'ı da geçerli
+            - name: OIDC_ISSUERS
+              value: "https://sosyal-kuran.com/auth/realms/sosyal-kuran,https://www.sosyal-kuran.com/auth/realms/sosyal-kuran,https://social-quran.com/auth/realms/sosyal-kuran,https://www.social-quran.com/auth/realms/sosyal-kuran"
             - name: OIDC_AUDIENCE
               value: sosyal-kuran-api
             - name: TARGET_LIMITS_PATH

@@ -18,6 +18,7 @@ configMapGenerator:
     files:
       - theme.properties=keycloak-theme/theme.properties
       - sosyal-kuran.css=keycloak-theme/sosyal-kuran.css
+      - brand.js=keycloak-theme/brand.js
 generatorOptions:
   disableNameSuffixHash: true
 images:

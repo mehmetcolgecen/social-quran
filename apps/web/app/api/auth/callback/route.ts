@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
   if (saved.state !== state) return NextResponse.redirect(new URL('/?hata=state', origin));
 
   try {
-    const tokens = await exchangeCode(code, saved.verifier, `${origin}/api/auth/callback`);
-    const claims = await verifyIdToken(tokens.id_token);
+    const tokens = await exchangeCode(code, saved.verifier, `${origin}/api/auth/callback`, origin);
+    const claims = await verifyIdToken(tokens.id_token, origin);
     const maxAge = Math.max(60, (tokens.expires_in ?? 3600) - 30);
     const sealed = await sealSession({ ...claims, at: tokens.access_token }, maxAge);
     // Yalnızca site-içi göreli yola dön (open redirect engeli)

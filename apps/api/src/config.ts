@@ -16,6 +16,10 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   databaseUrl: process.env.DATABASE_URL ?? 'postgres://postgres:postgres@localhost:5433/sosyal_kuran',
   oidcIssuer: process.env.OIDC_ISSUER ?? 'http://localhost:7788',
+  // Çift domain (sosyal-kuran.com + social-quran.com): Keycloak hostname'i dinamik olduğundan
+  // token iss'i kullanıcının girdiği domain'i taşır — hepsi kabul listesinde olmalı
+  oidcIssuers: (process.env.OIDC_ISSUERS ?? process.env.OIDC_ISSUER ?? 'http://localhost:7788')
+    .split(',').map((s) => s.trim()).filter(Boolean),
   // Keycloak'ta audience eşlemesi realm ayarına bağlıdır; boş bırakılırsa aud kontrolü yapılmaz
   oidcAudience: process.env.OIDC_AUDIENCE ?? 'sosyal-kuran-api',
   limitsPath: findLimitsFile(),

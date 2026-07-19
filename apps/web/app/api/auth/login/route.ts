@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   // Kimlik sunucusuna ulaşılamıyorsa 500 yerine ana sayfaya anlaşılır hatayla dön
   let disc;
   try {
-    disc = await getDiscovery();
+    disc = await getDiscovery(origin);
   } catch {
     return NextResponse.redirect(new URL('/?hata=kimlik', origin));
   }
@@ -24,6 +24,8 @@ export async function GET(req: NextRequest) {
   url.searchParams.set('state', state);
   url.searchParams.set('code_challenge', challenge);
   url.searchParams.set('code_challenge_method', 'S256');
+  // Giriş ekranı dili: social-quran'da İngilizce açılır (Keycloak yereli)
+  url.searchParams.set('ui_locales', origin.includes('social-quran') ? 'en' : 'tr');
 
   const res = NextResponse.redirect(url);
   res.cookies.set('sk_auth', JSON.stringify({ state, verifier, next }), {

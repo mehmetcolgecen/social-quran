@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const origin = requestOrigin(req);
   let target = new URL('/', origin);
   try {
-    const disc = await getDiscovery();
+    const disc = await getDiscovery(origin);
     if (disc.end_session_endpoint) {
       target = new URL(disc.end_session_endpoint);
       target.searchParams.set('post_logout_redirect_uri', `${origin}/`);

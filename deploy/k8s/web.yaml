@@ -19,8 +19,9 @@ spec:
               value: /srv
             - name: API_URL
               value: http://api:4000
+            # {origin}: istekteki domain — her site kendi /auth adresini kullanır
             - name: OIDC_ISSUER
-              value: https://sosyal-kuran.com/auth/realms/sosyal-kuran
+              value: "{origin}/auth/realms/sosyal-kuran"
             - name: OIDC_CLIENT_ID
               value: sosyal-kuran-web
             - name: OIDC_CLIENT_SECRET

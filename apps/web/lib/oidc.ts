@@ -14,10 +14,15 @@ export function requestOrigin(req: NextRequest): string {
 }
 
 export const OIDC = {
+  // "{origin}" yer tutucusu istek origin'iyle değiştirilir: her domain (sosyal-kuran.com /
+  // social-quran.com) KENDİ /auth adresini kullanır; Keycloak tarafında hostname dinamiktir
+  // (KC_HOSTNAME_STRICT=false). Dev'de sabit mock issuer.
   issuer: process.env.OIDC_ISSUER ?? 'http://localhost:7788',
   clientId: process.env.OIDC_CLIENT_ID ?? 'sosyal-kuran-web',
   clientSecret: process.env.OIDC_CLIENT_SECRET, // Keycloak confidential client için
 };
+
+export const issuerFor = (origin: string) => OIDC.issuer.replace('{origin}', origin);
 
 type Discovery = {
   issuer: string;
@@ -27,20 +32,23 @@ type Discovery = {
   end_session_endpoint?: string;
 };
 
-let discovery: Discovery | null = null;
-let jwks: JWTVerifyGetKey | null = null;
+const discoveryCache = new Map<string, Discovery>();
+const jwksCache = new Map<string, JWTVerifyGetKey>();
 
-export async function getDiscovery(): Promise<Discovery> {
-  if (!discovery) {
-    const res = await fetch(`${OIDC.issuer}/.well-known/openid-configuration`);
+export async function getDiscovery(origin = ''): Promise<Discovery> {
+  const iss = issuerFor(origin);
+  let d = discoveryCache.get(iss);
+  if (!d) {
+    const res = await fetch(`${iss}/.well-known/openid-configuration`);
     if (!res.ok) throw new Error(`OIDC discovery başarısız: ${res.status}`);
-    discovery = (await res.json()) as Discovery;
+    d = (await res.json()) as Discovery;
+    discoveryCache.set(iss, d);
   }
-  return discovery;
+  return d;
 }
 
-export async function exchangeCode(code: string, verifier: string, redirectUri: string) {
-  const disc = await getDiscovery();
+export async function exchangeCode(code: string, verifier: string, redirectUri: string, origin = '') {
+  const disc = await getDiscovery(origin);
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
     code,
@@ -58,9 +66,13 @@ export async function exchangeCode(code: string, verifier: string, redirectUri: 
   return (await res.json()) as { access_token: string; id_token: string; expires_in: number };
 }
 
-export async function verifyIdToken(idToken: string) {
-  const disc = await getDiscovery();
-  jwks ??= createRemoteJWKSet(new URL(disc.jwks_uri));
+export async function verifyIdToken(idToken: string, origin = '') {
+  const disc = await getDiscovery(origin);
+  let jwks = jwksCache.get(disc.jwks_uri);
+  if (!jwks) {
+    jwks = createRemoteJWKSet(new URL(disc.jwks_uri));
+    jwksCache.set(disc.jwks_uri, jwks);
+  }
   const { payload } = await jwtVerify(idToken, jwks, { issuer: disc.issuer, audience: OIDC.clientId });
   return {
     sub: String(payload.sub),

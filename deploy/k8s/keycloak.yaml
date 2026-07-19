@@ -28,8 +28,10 @@ spec:
               valueFrom: { secretKeyRef: { name: sosyal-kuran-db-app, key: username } }
             - name: KC_DB_PASSWORD
               valueFrom: { secretKeyRef: { name: sosyal-kuran-db-app, key: password } }
-            - name: KC_HOSTNAME
-              value: https://sosyal-kuran.com/auth
+            # Dinamik hostname: her domain (sosyal-kuran/social-quran) kendi /auth'unu görür;
+            # issuer istekteki Host'tan türetilir (ingress yalnız tanımlı hostları yönlendirir)
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
             - name: KC_HTTP_RELATIVE_PATH
               value: /auth
             - name: KC_PROXY_HEADERS
@@ -51,6 +53,9 @@ spec:
             - name: theme
               mountPath: /opt/keycloak/themes/sosyal-kuran/login/resources/css/sosyal-kuran.css
               subPath: sosyal-kuran.css
+            - name: theme
+              mountPath: /opt/keycloak/themes/sosyal-kuran/login/resources/js/brand.js
+              subPath: brand.js
           readinessProbe:
             httpGet: { path: /auth/realms/master, port: 8080 }
             initialDelaySeconds: 30

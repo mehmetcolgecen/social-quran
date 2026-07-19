@@ -78,7 +78,7 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const { payload } = await jwtVerify(token, await getJwks(), {
-        issuer: config.oidcIssuer,
+        issuer: config.oidcIssuers,
         ...(config.oidcAudience ? { audience: config.oidcAudience } : {}),
       });
       const user: AuthUser = {
