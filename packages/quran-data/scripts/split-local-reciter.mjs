@@ -71,7 +71,9 @@ for (const s of surahs) {
   const lowScores = [];
   for (let i = 0; i < n; i++) {
     const it = aln.items[i];
-    const [b0, b1] = bounds[i];
+    let [b0, b1] = bounds[i];
+    // Sıfır/negatif aralık ffmpeg'i düşürür — asgari 200 ms garanti et
+    if (b1 - b0 < 60) { b1 = Math.min(aln.total_ms, b0 + 200); if (b1 - b0 < 60) b0 = Math.max(0, b1 - 200); }
     const [ss, aa] = it.key.split(':').map(Number);
     const dst = `${outDir}/${pad3(ss)}${pad3(aa)}.mp3`;
     execFileSync(FFMPEG, ['-hide_banner', '-loglevel', 'error', '-y',
