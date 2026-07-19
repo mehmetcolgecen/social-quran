@@ -60,6 +60,10 @@ html[data-arfont='amiri-renkli'] { --font-ar: var(--font-amiri-renkli), serif; -
 html[data-arfont='dkhatt'] { --font-ar: var(--font-dkhatt), serif; --ar-boost: 1.06; --ar-lh: 1.75; }
 html[data-arfont='amiri-metin'] { --font-ar: var(--font-amiri-metin), serif; --ar-boost: 1.08; --ar-lh: 1.95; }
 html[data-arfont='harmattan'] { --font-ar: var(--font-harmattan), serif; --ar-boost: 1.1; --ar-lh: 1.85; }
+html[data-arfont='alqalam'] { --font-ar: var(--font-alqalam), serif; --ar-boost: 1.05; --ar-lh: 2.1; }
+html[data-arfont='saleem'] { --font-ar: var(--font-saleem), serif; --ar-boost: 1.1; --ar-lh: 2.15; }
+html[data-arfont='mequran'] { --font-ar: var(--font-mequran), serif; --ar-boost: 1; --ar-lh: 2.1; }
+html[data-arfont='almushaf'] { --font-ar: var(--font-almushaf), serif; --ar-boost: 1.05; --ar-lh: 1.95; }
 
 * { box-sizing: border-box; }
 

@@ -13,7 +13,8 @@ export type Settings = {
   notes: boolean;    // kendi yorumlarının hâşiye (el yazısı not) görünümü
   science: boolean;  // ilim/tefekkür notları (bilimsel işaret hâşiyeleri)
   theme: 'acik' | 'koyu';
-  arFont: 'hafs' | 'amiri' | 'amiri-renkli' | 'dkhatt' | 'amiri-metin' | 'harmattan';
+  arFont: 'hafs' | 'amiri' | 'amiri-renkli' | 'dkhatt' | 'amiri-metin' | 'harmattan'
+    | 'alqalam' | 'saleem' | 'mequran' | 'almushaf';
   imla: 'turkiye' | 'medine'; // Arapça metin imlası — varsayılan Türkiye (imlâî)
   frame: 'klasik' | 'zumrut' | 'gul' | 'gece' | 'firuze' | 'sade';
   uiLang: 'tr' | 'en'; // arayüz kromu dili (menüler); içerik dilleri ayrı
@@ -48,7 +49,7 @@ function migrate(saved: Record<string, unknown>): Partial<Settings> {
     out.meals = saved.meal === 'iki' ? ['tr', 'en'] : saved.meal === 'kapali' ? [] : [saved.meal];
   }
   // Kaldırılan fontlardan göç: husrev (lisans), sheherazade/lateef/ruqaa/noto (mushaf imlası hataları)
-  if (typeof saved.arFont === 'string' && !['hafs', 'amiri', 'amiri-renkli', 'dkhatt', 'amiri-metin', 'harmattan'].includes(saved.arFont)) {
+  if (typeof saved.arFont === 'string' && !['hafs', 'amiri', 'amiri-renkli', 'dkhatt', 'amiri-metin', 'harmattan', 'alqalam', 'saleem', 'mequran', 'almushaf'].includes(saved.arFont)) {
     out.arFont = 'hafs';
   }
   return out;

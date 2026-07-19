@@ -16,6 +16,10 @@ Son doğrulama: 2026-07-06. Değişmez kural: Kur'an metni hiçbir işlemde değ
 | Font: DigitalKhatt Madina (`madina.otf`) | [DigitalKhatt/digitalkhatt.org](https://github.com/DigitalKhatt/digitalkhatt.org) | MIT | MIT bildirimi |
 | Font: Amiri Regular (metin) v1.003 | [aliftype/amiri](https://github.com/aliftype/amiri) | SIL OFL 1.1 | OFL bildirimi |
 | Font: Harmattan v4.400 | [silnrsi/font-harmattan](https://github.com/silnrsi/font-harmattan) | SIL OFL 1.1 | OFL bildirimi; U+0670 + U+06D6-06DA kapsamı fontTools ile doğrulandı |
+| Font: Al Qalam Quran Majeed + PDMS Saleem QuranFont | PDMS (Pakistan Data Management Services); indirme: urdunigaar.com | PDMS EULA — Kur'an yazılımlarıyla ücretsiz dağıtılagelen fontlar | Kapsam doğrulandı; EULA kullanım lisansı verir |
+| Font: Me Quran (Meor Ridzuan) | urdunigaar.com | "Free for non-commercial use" (font içi bildirim) | Site ücretsiz/reklamsız — ticari kullanım yok; ticarileşme hâlinde yazarla iletişim (meory@yahoo.com) |
+| Font: Al_Mushaf (Amjad Hussain Alvi) | urdunigaar.com | Serbest dağıtılan klasik Kur'an fontu; font içinde kısıt yok | Tasarımcı atfı |
+| ~~Font: Neirizi, Nabi, Muhammadi~~ | — | EKLENMEDİ: Neirizi/Nabi "kopyalanamaz-dağıtılamaz" EULA (scict.ir/parsfont), Muhammadi'de dağıtım izni yok | — |
 | ~~Font: Scheherazade New, Lateef, Aref Ruqaa, Noto Naskh~~ | — | Mushaf imlasını yanlış bastıkları için ÜRÜNDEN ÇIKARILDI (2026-07-18): hareke+hançer elif birlikte basılıyor, vasıl hemzesi ve şeddeli esre hatalı görünüyordu | — |
 | Font: Caveat (el yazısı notlar) | [google/fonts](https://github.com/google/fonts/tree/main/ofl/caveat) | SIL OFL 1.1 | OFL bildirimi |
 | ~~Font: Hüsrev Hattı Arapça~~ | — | Kalite yetersiz + lisans belirsiz olduğundan ÜRÜNDEN ÇIKARILDI (2026-07-07). Gerçek Hüsrev hattı fontu için Hayrat Vakfı'ndan resmî lisans gerekir | — |

@@ -43,6 +43,10 @@ const AR_FONTS = [
   ['dkhatt', 'Dijital Hat (Medine)'],
   ['amiri-metin', 'Amiri Metin'],
   ['harmattan', 'Harmattan'],
+  ['alqalam', 'Al Kalem Mecid'],
+  ['saleem', 'PDMS Saleem'],
+  ['mequran', 'Me Quran'],
+  ['almushaf', 'El-Mushaf'],
 ] as const;
 
 function toggleIn(list: string[], code: string): string[] {

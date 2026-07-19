@@ -47,6 +47,32 @@ const harmattan = localFont({
   display: 'swap',
   preload: false,
 });
+// Popüler Kur'an fontları (IndoPak ekolü) — kapsam fontTools ile doğrulandı,
+// lisans notları data/LICENSES.md'de (Neirizi/Nabi/Muhammadi lisans gereği elendi)
+const alQalam = localFont({
+  src: '../fonts/AlQalamQuranMajeed.ttf',
+  variable: '--font-alqalam',
+  display: 'swap',
+  preload: false,
+});
+const pdmsSaleem = localFont({
+  src: '../fonts/PDMSSaleem.ttf',
+  variable: '--font-saleem',
+  display: 'swap',
+  preload: false,
+});
+const meQuran = localFont({
+  src: '../fonts/MeQuran.ttf',
+  variable: '--font-mequran',
+  display: 'swap',
+  preload: false,
+});
+const alMushaf = localFont({
+  src: '../fonts/AlMushaf.ttf',
+  variable: '--font-almushaf',
+  display: 'swap',
+  preload: false,
+});
 // El yazısı not fontu (hâşiye görünümü) — latin-ext, Türkçe karakterleri kapsar
 const caveat = localFont({
   src: '../fonts/Caveat.ttf',
@@ -66,7 +92,7 @@ export const viewport = { themeColor: '#8a6d1d' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${amiriQuranColored.variable} ${digitalKhatt.variable} ${amiriMetin.variable} ${harmattan.variable} ${caveat.variable}`}>
+    <html lang="tr" className={`${hafs.variable} ${amiriQuran.variable} ${amiriQuranColored.variable} ${digitalKhatt.variable} ${amiriMetin.variable} ${harmattan.variable} ${alQalam.variable} ${pdmsSaleem.variable} ${meQuran.variable} ${alMushaf.variable} ${caveat.variable}`}>
       <body>
         <PwaRegister />
         <SettingsProvider>
