@@ -73,6 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <header className="site-header">
             <HeaderMenu />
             <Link href="/" className="brand"><span className="brand-mark">۞</span>Sosyal Kur&rsquo;an</Link>
+            {/* Okuyucu sayfalarında SettingsBar düğme grubunu buraya portallar */}
+            <div id="header-orta" className="header-orta" />
             <HeaderSearch />
             <UserMenu />
             <LangToggle />

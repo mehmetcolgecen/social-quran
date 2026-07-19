@@ -1,7 +1,9 @@
 'use client';
-// Okuyucu başlık satırı: görünüm geçişi + Dinle (+ sayfa görünümünde "okudum" düğmesi).
-// Sayfayla birlikte kayar (yapışkan değil); okuma ayarlarının tamamı hamburger
-// çekmecesindedir (ReaderSettings.tsx). Mahreç lejantı metnin yanında kalır.
+// Okuyucu düğme grubu: görünüm geçişi + Ayarlar + Dinle (+ sayfa görünümünde "okudum").
+// Grup, üst bardaki #header-orta yuvasına PORTALLANIR (kullanıcı isteği: bar ortası);
+// yuva yoksa (SSR/ilk boya) akış içinde kalır. Mahreç lejantı metnin yanında kalır.
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useSettings } from '@/lib/settings';
@@ -13,20 +15,26 @@ export default function SettingsBar({ onPlaySurah, playing, toggleHref, toggleKe
 }) {
   const { settings } = useSettings();
   const t = useT();
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => { setSlot(document.getElementById('header-orta')); }, []);
+
+  const row = (
+    <div className="reader-head">
+      <Link className="view-toggle" href={toggleHref}>{t(toggleKey)}</Link>
+      <button
+        className="view-toggle"
+        onClick={() => window.dispatchEvent(new CustomEvent('sk-open-menu'))}
+      >
+        {t('settingsBtn')}
+      </button>
+      <button className="view-toggle play-btn" onClick={onPlaySurah}>{playing ? t('stop') : t('listen')}</button>
+      {children}
+    </div>
+  );
 
   return (
     <>
-      <div className="reader-head">
-        <Link className="view-toggle" href={toggleHref}>{t(toggleKey)}</Link>
-        <button
-          className="view-toggle"
-          onClick={() => window.dispatchEvent(new CustomEvent('sk-open-menu'))}
-        >
-          {t('settingsBtn')}
-        </button>
-        <button className="view-toggle play-btn" onClick={onPlaySurah}>{playing ? t('stop') : t('listen')}</button>
-        {children}
-      </div>
+      {slot ? createPortal(row, slot) : row}
       {settings.mode === 'mahrec' && (
         <div className="legend">
           {MAHREC_GROUPS.map((g) => (
