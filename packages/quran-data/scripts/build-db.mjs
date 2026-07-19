@@ -80,6 +80,18 @@ for (const c of chaptersEn) {
   row('surahs', vals);
 }
 
+// Türkiye mushafı geleneği: AYET BAŞINDAKİ hemze-i vasıl harekelenir (اَلْحَمْدُ، اِهْدِنَا) —
+// imlâî kaynak bunu boş bırakır. Sesli, kelimenin transliterasyonundaki ilk ünlüden türetilir.
+// Yalnız görüntüleme sürümüne (text_imlaei) dokunur; kanonik Uthmani değişmez.
+const WASL_HAREKE = { a: 'َ', e: 'َ', i: 'ِ', u: 'ُ', o: 'ُ' };
+function vowelizeWasl(textImlaei, translit) {
+  if (!textImlaei?.startsWith('ا')) return textImlaei;            // yalın elif değil
+  if (/[ً-ْٰ]/.test(textImlaei[1] ?? '')) return textImlaei; // zaten harekeli
+  const m = /[aeiou]/i.exec(translit ?? '');
+  const h = m && WASL_HAREKE[m[0].toLowerCase()];
+  return h ? 'ا' + h + textImlaei.slice(1) : textImlaei;
+}
+
 const tanzilByKey = new Map((await parseTanzil()).map((a) => [`${a.surah}:${a.ayah}`, a.text]));
 const insAyah = db.prepare('INSERT INTO ayahs VALUES (?,?,?,?,?,?,?,?,?,?)');
 const insWord = db.prepare('INSERT INTO words VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
@@ -109,13 +121,15 @@ for (let ch = 1; ch <= 114; ch++) {
     const wordsTr = vTr.words.filter((w) => w.char_type_name === 'word');
     if (wordsEn.length !== wordsTr.length) throw new Error(`kelime sayısı uyuşmuyor: ${v.verse_key}`);
     targetLimits.ayahWords[v.verse_key] = wordsEn.length;
-    const aVals = [++ayahId, v.verse_key, s, a, text, vImla.text_imlaei, wordsEn[0].page_number, v.juz_number, v.hizb_number, v.sajdah_number ?? null];
+    const ayahImla = vowelizeWasl(vImla.text_imlaei, wordsEn[0]?.transliteration?.text);
+    const aVals = [++ayahId, v.verse_key, s, a, text, ayahImla, wordsEn[0].page_number, v.juz_number, v.hizb_number, v.sajdah_number ?? null];
     insAyah.run(...aVals); row('ayahs', aVals);
     wordsEn.forEach((w, i) => {
       const en = w.translation?.text ?? null;
       const tr = fixWordTr(wordsTr[i].translation?.text ?? null, en);
-      const imla = imlaWords.get(w.location);
+      let imla = imlaWords.get(w.location);
       if (!imla) throw new Error(`İmlâî kelime yok: ${w.location}`);
+      if (i === 0) imla = vowelizeWasl(imla, w.transliteration?.text);
       const wVals = [++wordId, w.location, s, a, i + 1, w.text_uthmani, imla, w.page_number, w.line_number,
         tr, en, w.transliteration?.text ?? null];
       insWord.run(...wVals); row('words', wVals);

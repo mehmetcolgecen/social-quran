@@ -1007,13 +1007,13 @@ html[data-theme='koyu'] .sharebtn { color: #7fb2d9; }
   background: linear-gradient(135deg, #b8860b, #f3d876 22%, #a97e12 47%, #ffe9a8 72%, #c9a227);
   box-shadow: 0 8px 28px rgba(0, 0, 0, .25);
 }
+/* Çini bandı: İznik paleti (beyaz zemin, kobalt, turkuaz, mercan nokta) — border-image
+   "round" tekrarıyla motifler asla yarım kalmaz. Köşeler gül rozeti, kenarlar lale-papatya-gül. */
 .ogren-band {
-  border: 2px solid #7d5f0e;
-  border-radius: 6px;
-  padding: 14px;
-  background-color: #eef2e0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='48'%3E%3Crect width='96' height='48' fill='%23eef2e0'/%3E%3Cellipse cx='13' cy='31' rx='3' ry='6.5' fill='%233e7d46' transform='rotate(-38 13 31)'/%3E%3Cellipse cx='19' cy='31' rx='3' ry='6.5' fill='%234f9457' transform='rotate(38 19 31)'/%3E%3Ccircle cx='16' cy='20' r='7.5' fill='%23d76a86'/%3E%3Ccircle cx='16' cy='20' r='4.8' fill='%23c14e6e'/%3E%3Ccircle cx='16' cy='20' r='2.3' fill='%238a2340'/%3E%3Cg%3E%3Cellipse cx='48' cy='15' rx='2.8' ry='7' fill='%23ffffff'/%3E%3Cellipse cx='48' cy='15' rx='2.8' ry='7' fill='%23ffffff' transform='rotate(60 48 24)'/%3E%3Cellipse cx='48' cy='15' rx='2.8' ry='7' fill='%23ffffff' transform='rotate(120 48 24)'/%3E%3Cellipse cx='48' cy='15' rx='2.8' ry='7' fill='%23ffffff' transform='rotate(180 48 24)'/%3E%3Cellipse cx='48' cy='15' rx='2.8' ry='7' fill='%23ffffff' transform='rotate(240 48 24)'/%3E%3Cellipse cx='48' cy='15' rx='2.8' ry='7' fill='%23ffffff' transform='rotate(300 48 24)'/%3E%3Ccircle cx='48' cy='24' r='3.6' fill='%23e8b93b'/%3E%3C/g%3E%3Cpath d='M80 30 L80 41' stroke='%233e7d46' stroke-width='2'/%3E%3Cellipse cx='75.5' cy='37' rx='2.2' ry='5' fill='%234f9457' transform='rotate(-42 75.5 37)'/%3E%3Cpath d='M74 19 C74 13 78 11 80 15 C82 11 86 13 86 19 C86 25 83 30 80 30 C77 30 74 25 74 19 Z' fill='%23c23b2e'/%3E%3Cpath d='M78 15 L80 9 L82 15 Z' fill='%23a02a20'/%3E%3Ccircle cx='32' cy='9' r='1.3' fill='%23c9a227'/%3E%3Ccircle cx='64' cy='40' r='1.3' fill='%23c9a227'/%3E%3Ccircle cx='94' cy='10' r='1.3' fill='%23c9a227'/%3E%3C/svg%3E");
-  background-size: 96px 48px;
+  border: 26px solid transparent;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cdefs%3E%3Cg id='l'%3E%3Cpath d='M0 12 L0 7' stroke='%230e6f74' stroke-width='2'/%3E%3Cpath d='M-7 -3 C-7 -10 -3 -12 0 -7 C3 -12 7 -10 7 -3 C7 3 3 7 0 7 C-3 7 -7 3 -7 -3 Z' fill='%231d4e79'/%3E%3Cpath d='M-2.5 -6 L0 -11.5 L2.5 -6 Z' fill='%230e6f74'/%3E%3C/g%3E%3Cg id='p'%3E%3Cellipse cy='-5.5' rx='2.6' ry='6' fill='%23ffffff' stroke='%231d4e79' stroke-width='.8'/%3E%3Cellipse cy='-5.5' rx='2.6' ry='6' fill='%23ffffff' stroke='%231d4e79' stroke-width='.8' transform='rotate(60)'/%3E%3Cellipse cy='-5.5' rx='2.6' ry='6' fill='%23ffffff' stroke='%231d4e79' stroke-width='.8' transform='rotate(120)'/%3E%3Cellipse cy='-5.5' rx='2.6' ry='6' fill='%23ffffff' stroke='%231d4e79' stroke-width='.8' transform='rotate(180)'/%3E%3Cellipse cy='-5.5' rx='2.6' ry='6' fill='%23ffffff' stroke='%231d4e79' stroke-width='.8' transform='rotate(240)'/%3E%3Cellipse cy='-5.5' rx='2.6' ry='6' fill='%23ffffff' stroke='%231d4e79' stroke-width='.8' transform='rotate(300)'/%3E%3Ccircle r='3' fill='%230e6f74'/%3E%3Ccircle r='1.1' fill='%23c23b2e'/%3E%3C/g%3E%3Cg id='g'%3E%3Ccircle r='7' fill='%231d4e79'/%3E%3Ccircle r='4.4' fill='%23f5f9fc'/%3E%3Ccircle r='2.6' fill='%230e6f74'/%3E%3Ccircle r='1' fill='%23c23b2e'/%3E%3C/g%3E%3Cg id='r'%3E%3Cellipse cy='-6.5' rx='2.4' ry='5.5' fill='%231d4e79'/%3E%3Cellipse cy='-6.5' rx='2.4' ry='5.5' fill='%231d4e79' transform='rotate(45)'/%3E%3Cellipse cy='-6.5' rx='2.4' ry='5.5' fill='%231d4e79' transform='rotate(90)'/%3E%3Cellipse cy='-6.5' rx='2.4' ry='5.5' fill='%231d4e79' transform='rotate(135)'/%3E%3Cellipse cy='-6.5' rx='2.4' ry='5.5' fill='%231d4e79' transform='rotate(180)'/%3E%3Cellipse cy='-6.5' rx='2.4' ry='5.5' fill='%231d4e79' transform='rotate(225)'/%3E%3Cellipse cy='-6.5' rx='2.4' ry='5.5' fill='%231d4e79' transform='rotate(270)'/%3E%3Cellipse cy='-6.5' rx='2.4' ry='5.5' fill='%231d4e79' transform='rotate(315)'/%3E%3Ccircle r='3.2' fill='%230e6f74'/%3E%3Ccircle r='1.2' fill='%23c23b2e'/%3E%3C/g%3E%3C/defs%3E%3Crect width='140' height='140' fill='%23f5f9fc'/%3E%3Cuse href='%23r' transform='translate(14 14)'/%3E%3Cuse href='%23r' transform='translate(126 14)'/%3E%3Cuse href='%23r' transform='translate(14 126)'/%3E%3Cuse href='%23r' transform='translate(126 126)'/%3E%3Cuse href='%23l' transform='translate(42 14)'/%3E%3Cuse href='%23p' transform='translate(70 14)'/%3E%3Cuse href='%23g' transform='translate(98 14)'/%3E%3Cuse href='%23g' transform='translate(42 126)'/%3E%3Cuse href='%23p' transform='translate(70 126)'/%3E%3Cuse href='%23l' transform='translate(98 126)'/%3E%3Cuse href='%23l' transform='translate(14 42)'/%3E%3Cuse href='%23p' transform='translate(14 70)'/%3E%3Cuse href='%23g' transform='translate(14 98)'/%3E%3Cuse href='%23g' transform='translate(126 42)'/%3E%3Cuse href='%23p' transform='translate(126 70)'/%3E%3Cuse href='%23l' transform='translate(126 98)'/%3E%3C/svg%3E") 28 round;
+  background: #f5f9fc;
+  padding: 6px;
 }
 .ogren-inner {
   background: var(--paper);
@@ -1030,11 +1030,11 @@ html[data-theme='koyu'] .sharebtn { color: #7fb2d9; }
 .alfabe-lejant { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin: .5rem 0 .7rem; }
 .alfabe-lejant span { display: inline-flex; align-items: center; gap: .35rem; font-size: .82rem; color: var(--ink-soft); }
 .alfabe-lejant i { width: 12px; height: 12px; border-radius: 50%; background: hsl(var(--h) 70% 52%); }
-/* Alfabe SOLDAN SAĞA okunur: elif sol üstte başlar (grid sırası ltr'ye sabitlenir) */
-.alfabe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: .5rem; direction: ltr; }
+/* Alfabe SAĞDAN SOLA akar (Arap yazısı yönü): elif sağ üstte başlar */
+.alfabe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: .5rem; direction: rtl; }
 @media (max-width: 640px) {
   .ogren-frame { padding: 6px; }
-  .ogren-band { padding: 8px; background-size: 72px 36px; }
+  .ogren-band { border-width: 16px; padding: 4px; }
   .ogren-inner { padding: .8rem .7rem; }
 }
 .alfabe-harf {
