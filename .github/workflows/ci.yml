@@ -22,3 +22,31 @@ jobs:
       # db.ts'in import anında DB açmaya dönmesi gibi gerilemeleri erken yakalar.
       - name: Build web (DB'siz)
         run: npm run build -w apps/web
+
+  # UI duman testleri — her kod çıkışının standardı (Playwright).
+  # Gerçek quran.db ile prod build'e karşı koşar; ham veri cache'lenir.
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Kur'an ham verisi önbelleği
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: quran-raw-v2
+      - name: Veri boru hattı (indir + doğrula + DB üret)
+        run: |
+          npm run -w packages/quran-data download
+          npm run -w packages/quran-data validate
+          npm run -w packages/quran-data build-db
+      - name: Playwright tarayıcısı
+        run: npx -w apps/web playwright install --with-deps chromium
+      - name: UI duman testleri
+        run: npm run -w apps/web test:ui
+        env:
+          CI: "true"
