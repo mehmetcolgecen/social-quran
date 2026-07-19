@@ -1,8 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 export default function ContinueCard() {
+  const t = useT();
   const [last, setLast] = useState<{ surah: number; ayah: number; name: string; page?: number } | null>(null);
   useEffect(() => {
     try {
@@ -17,7 +19,7 @@ export default function ContinueCard() {
     : `/sure/${last.surah}#ayet-${last.surah}-${last.ayah}`;
   return (
     <Link className="continue-card" href={href}>
-      📖 Kaldığın yerden devam et: {last.name} {last.surah}:{last.ayah}
+      {t('continueFrom')} {last.name} {last.surah}:{last.ayah}
     </Link>
   );
 }

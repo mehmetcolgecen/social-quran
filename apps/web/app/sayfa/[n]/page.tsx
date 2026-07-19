@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPageContent } from '@/lib/db';
+import { Tt } from '@/lib/i18n';
 import Reader from '@/components/Reader';
 import MemorizeSidebar, { type UniqueWord } from '@/components/MemorizeSidebar';
 import PageReadButton from '@/components/PageReadButton';
@@ -31,9 +32,9 @@ export default async function SayfaPage({ params }: Props) {
   // Sayfa geçişleri hem üstte hem altta (sayfa sonunda yukarı kaydırmadan geçilebilsin)
   const nav = (
     <div className="nav">
-      {n > 1 ? <Link href={`/sayfa/${n - 1}`}>← Sayfa {n - 1}</Link> : <span />}
-      <b>Sayfa {n} / 604</b>
-      {n < 604 ? <Link href={`/sayfa/${n + 1}`}>Sayfa {n + 1} →</Link> : <span />}
+      {n > 1 ? <Link href={`/sayfa/${n - 1}`}>← <Tt k="page" /> {n - 1}</Link> : <span />}
+      <b><Tt k="page" /> {n} / 604</b>
+      {n < 604 ? <Link href={`/sayfa/${n + 1}`}><Tt k="page" /> {n + 1} →</Link> : <span />}
     </div>
   );
 

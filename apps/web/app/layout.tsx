@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import localFont from 'next/font/local';
-import Link from 'next/link';
 import { SettingsProvider } from '@/lib/settings';
 import PwaRegister from '@/components/PwaRegister';
 import ThemeToggle from '@/components/ThemeToggle';
 import UserMenu from '@/components/UserMenu';
 import { HeaderMenu, HeaderSearch, LangToggle } from '@/components/HeaderNav';
+import { Brand, FooterCredits } from '@/components/Chrome';
 import './globals.css';
 
 const hafs = localFont({
@@ -81,12 +82,21 @@ const caveat = localFont({
   preload: false,
 });
 
-export const metadata: Metadata = {
-  title: { default: 'Sosyal Kur’an', template: '%s — Sosyal Kur’an' },
-  description: 'Kelime mealli, renkli, sesli takipli Kur’an-ı Kerim okuma platformu',
-  manifest: '/manifest.webmanifest',
-  icons: { icon: '/icon.svg' },
-};
+// Başlık/açıklama alan adına göre: social-quran.com İngilizce kimlikle sunulur
+export async function generateMetadata(): Promise<Metadata> {
+  const host = (await headers()).get('host') ?? '';
+  const en = host.includes('social-quran');
+  return {
+    title: en
+      ? { default: 'Social Quran', template: '%s — Social Quran' }
+      : { default: 'Sosyal Kur’an', template: '%s — Sosyal Kur’an' },
+    description: en
+      ? 'Word-by-word, colorful Quran reading with audio tracking'
+      : 'Kelime mealli, renkli, sesli takipli Kur’an-ı Kerim okuma platformu',
+    manifest: '/manifest.webmanifest',
+    icons: { icon: '/icon.svg' },
+  };
+}
 
 export const viewport = { themeColor: '#8a6d1d' };
 
@@ -98,7 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SettingsProvider>
           <header className="site-header">
             <HeaderMenu />
-            <Link href="/" className="brand"><span className="brand-mark">۞</span>Sosyal Kur&rsquo;an</Link>
+            <Brand />
             {/* Okuyucu sayfalarında SettingsBar düğme grubunu buraya portallar */}
             <div id="header-orta" className="header-orta" />
             <HeaderSearch />
@@ -108,12 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
           {children}
           <footer className="site-footer">
-            <p>
-              Metin: <a href="https://tanzil.net" rel="noopener">Tanzil Project</a> · Kelime meal &amp; sayfa düzeni:{' '}
-              <a href="https://qul.tarteel.ai" rel="noopener">QUL / quran.com</a> · Meal: Elmalılı Hamdi Yazır, Saheeh International ·
-              Zamanlama: <a href="https://github.com/cpfair/quran-align" rel="noopener">quran-align</a> (CC-BY 4.0) ·
-              Ses: <a href="https://everyayah.com" rel="noopener">everyayah.com</a> · Font: KFGQPC Uthmanic Hafs
-            </p>
+            <FooterCredits />
           </footer>
         </SettingsProvider>
       </body>

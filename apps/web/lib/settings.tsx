@@ -68,7 +68,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setSettings({ ...DEFAULT_SETTINGS, ...migrate(JSON.parse(saved)) });
+      const parsed = saved ? migrate(JSON.parse(saved)) : {};
+      // social-quran.com'da varsayılan arayüz dili İngilizce (kayıtlı tercih baskındır)
+      if (parsed.uiLang === undefined && window.location.hostname.includes('social-quran')) {
+        parsed.uiLang = 'en';
+      }
+      setSettings({ ...DEFAULT_SETTINGS, ...parsed });
     } catch { /* bozuk kayıt yok sayılır */ }
   }, []);
 

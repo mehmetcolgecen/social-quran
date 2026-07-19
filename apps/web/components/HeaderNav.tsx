@@ -82,13 +82,23 @@ export function HeaderSearch() {
 
 export function LangToggle() {
   const { settings, update } = useSettings();
+  // EN ↔ TR seçimi canlıda alan adını da değiştirir: EN → social-quran.com,
+  // TR → sosyal-kuran.com (aynı yol korunur). Yerelde yalnız dil değişir.
+  const onChange = (lang: 'tr' | 'en') => {
+    update({ uiLang: lang });
+    const host = window.location.hostname;
+    const target = lang === 'en' ? 'social-quran.com' : 'sosyal-kuran.com';
+    if ((host.includes('sosyal-kuran') || host.includes('social-quran')) && !host.includes(target)) {
+      window.location.href = `https://${target}${window.location.pathname}${window.location.search}${window.location.hash}`;
+    }
+  };
   return (
     <select
       className="lang-select"
       value={settings.uiLang}
       title={t(settings.uiLang, 'langLabel')}
       aria-label={t(settings.uiLang, 'langLabel')}
-      onChange={(e) => update({ uiLang: e.target.value as 'tr' | 'en' })}
+      onChange={(e) => onChange(e.target.value as 'tr' | 'en')}
     >
       <option value="tr">TR</option>
       <option value="en">EN</option>

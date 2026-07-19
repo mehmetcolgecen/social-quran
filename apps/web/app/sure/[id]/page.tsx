@@ -43,8 +43,8 @@ export default async function SurePage({ params }: Props) {
       <div className="sure-head">
         {nav}
         <p className="meta">
-          {surah.id}. {surah.name_tr} Suresi ({surah.name_en}) · {surah.verses_count} <Tt k="ayahs" /> ·{' '}
-          {surah.revelation_place === 'makkah' ? 'Mekkî' : 'Medenî'}
+          {surah.id}. {surah.name_tr} <Tt k="surahSuffix" /> ({surah.name_en}) · {surah.verses_count} <Tt k="ayahs" /> ·{' '}
+          <Tt k={surah.revelation_place === 'makkah' ? 'mekki' : 'medeni'} />
         </p>
       </div>
       <div className="sayfa-layout">

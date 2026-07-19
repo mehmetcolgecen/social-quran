@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BOOKMARKS_KEY, loadJSON, onStoreChange, type Bookmark } from '@/lib/store';
 import { loadPlan, planStats } from '@/lib/plan';
+import { useT } from '@/lib/i18n';
 
 export default function HomeWidgets() {
+  const t = useT();
   const [plan, setPlan] = useState<{ today: number; goal: number; streak: number; pct: number } | null>(null);
   const [marks, setMarks] = useState<Bookmark[]>([]);
 
@@ -21,7 +23,7 @@ export default function HomeWidgets() {
     <div className="home-widgets">
       {plan && (
         <Link className="continue-card" href="/plan">
-          📅 Bugün {plan.today}/{plan.goal} sayfa{plan.streak > 0 && <> · 🔥 {plan.streak} gün</>} · Hatim %{plan.pct}
+          📅 {t('today')} {plan.today}/{plan.goal} {t('planWidgetPages')}{plan.streak > 0 && <> · 🔥 {plan.streak} {t('planWidgetDays')}</>} · {t('planWidgetKhatm')} %{plan.pct}
         </Link>
       )}
       {marks.map((b) => (
