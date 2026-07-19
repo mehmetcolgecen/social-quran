@@ -67,6 +67,9 @@ for (const cuz of cuzList) {
   for (let i = 0; i < n; i++) {
     let end = aln.items[i].cut_ms ?? aln.total_ms;
     if (end <= start) end = Math.min(aln.items[i].end_ms + 200, aln.total_ms);
+    // Kesimler monoton olmalı (bkz. split-local-reciter 15:76 vakası)
+    end = Math.min(Math.max(end, start + 150), aln.total_ms);
+    if (end <= start) end = aln.total_ms;
     bounds.push([start, end]);
     start = end;
   }
