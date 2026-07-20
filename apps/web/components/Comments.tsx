@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation';
 import { targetLabel, type Target } from '@/lib/target';
 import { useSettings } from '@/lib/settings';
 import { useT } from '@/lib/i18n';
+import { todayStr } from '@/lib/store';
 import { saveNotePos, useDragNote } from '@/lib/useDragNote';
 import type { ReaderGroup } from '@/lib/types';
 
@@ -279,9 +280,11 @@ function RailComposer({ anchor, y, me, onClose, onSaved }: {
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [adabAsk, setAdabAsk] = useState(false);
 
   async function submit() {
     if (!body.trim() || busy) return;
+    if (adabNeeded(visibility)) { setAdabAsk(true); return; }
     setBusy(true); setError('');
     try {
       const res = await fetch('/api/social/comments', {
@@ -299,6 +302,12 @@ function RailComposer({ anchor, y, me, onClose, onSaved }: {
       {me ? (
         <>
           <b>✎ {anchor} {t('noteTo')}</b>
+          {adabAsk && (
+            <AdabNotice
+              onOk={() => { adabApprove(); setAdabAsk(false); void submit(); }}
+              onCancel={() => setAdabAsk(false)}
+            />
+          )}
           <textarea
             autoFocus rows={3} maxLength={2000} value={body}
             placeholder={t('notePh')}
@@ -499,6 +508,29 @@ function CommentList({ items, me, onChanged, onReply, onQuote }: {
   );
 }
 
+// Edep ikazı: gün içindeki İLK herkese açık yorumdan önce bir kez onay istenir
+// (kayıt localStorage'da gün damgasıyla tutulur; özel/hâşiye yorumları muaf).
+const ADAB_KEY = 'sk-adab-onay';
+const adabNeeded = (vis: 'public' | 'private') => {
+  if (vis !== 'public') return false;
+  try { return localStorage.getItem(ADAB_KEY) !== todayStr(); } catch { return false; }
+};
+const adabApprove = () => { try { localStorage.setItem(ADAB_KEY, todayStr()); } catch { /* dolu */ } };
+
+function AdabNotice({ onOk, onCancel }: { onOk: () => void; onCancel: () => void }) {
+  const t = useT();
+  return (
+    <div className="adab-box" role="alertdialog" aria-label={t('adabTitle')}>
+      <b>{t('adabTitle')}</b>
+      <p>{t('adabText')}</p>
+      <div className="cform-row">
+        <button className="csubmit" onClick={onOk}>{t('adabOk')}</button>
+        <button onClick={onCancel}>{t('adabCancel')}</button>
+      </div>
+    </div>
+  );
+}
+
 function CommentForm({ me, onSubmit, replyTo, quote, onCancelReply, onCancelQuote, extra }: {
   me: Me; onSubmit: (body: string, visibility: 'public' | 'private') => Promise<string | null>;
   replyTo: Comment | null; quote: Comment | null;
@@ -509,6 +541,7 @@ function CommentForm({ me, onSubmit, replyTo, quote, onCancelReply, onCancelQuot
   const [body, setBody] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [error, setError] = useState('');
+  const [adabAsk, setAdabAsk] = useState(false);
 
   if (!me) {
     return (
@@ -519,16 +552,26 @@ function CommentForm({ me, onSubmit, replyTo, quote, onCancelReply, onCancelQuot
       </div>
     );
   }
-  async function submit() {
+  async function doSend() {
     setError('');
     const err = await onSubmit(body, visibility);
     if (err) setError(err);
     else setBody('');
   }
+  async function submit() {
+    if (adabNeeded(visibility)) { setAdabAsk(true); return; }
+    await doSend();
+  }
   return (
     <div className="cform">
       {replyTo && <div className="cnote">↩ @{replyTo.username} yanıtlanıyor <button onClick={onCancelReply}>vazgeç</button></div>}
       {quote && <div className="cnote">❝ @{quote.username} alıntılanıyor <button onClick={onCancelQuote}>vazgeç</button></div>}
+      {adabAsk && (
+        <AdabNotice
+          onOk={() => { adabApprove(); setAdabAsk(false); void doSend(); }}
+          onCancel={() => setAdabAsk(false)}
+        />
+      )}
       {extra}
       <textarea
         value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={3}

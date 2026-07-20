@@ -148,6 +148,14 @@ const UI = {
   fTiming: { tr: 'Zamanlama', en: 'Timings' },
   fAudio: { tr: 'Ses', en: 'Audio' },
   fFont: { tr: 'Font', en: 'Fonts' },
+  // Edep ikazı (günde bir kez, ilk herkese açık yorumdan önce)
+  adabTitle: { tr: '🕌 Edep hatırlatması', en: '🕌 A gentle reminder' },
+  adabText: {
+    tr: 'Burası Kur’an ve inanç odaklı bir sitedir. Herkese açık yorumlarınızı, inanan insanların hassasiyetlerini gözeterek saygı ve nezaketle yazmanızı rica ederiz.',
+    en: 'This is a site devoted to the Quran and faith. Please write public comments with respect and courtesy, mindful of the sensitivities of believers.',
+  },
+  adabOk: { tr: 'Anladım, onaylıyorum', en: 'I understand and agree' },
+  adabCancel: { tr: 'Vazgeç', en: 'Cancel' },
 } as const;
 
 export type UiKey = keyof typeof UI;

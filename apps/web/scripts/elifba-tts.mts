@@ -24,13 +24,14 @@ function add(id: string | undefined, text: string, voice = VOICE) {
   }
   items.set(id, { text, voice });
 }
-// TTS bazı tek heceli adları fısıltıya çevirir ("hı" → sessiz çıktı!) — yazım istisnaları:
-const TR_AD_DUZELTME: Record<string, string> = { 'hı': 'hıı' };
+// Harf adları "<ad> harfi" kalıbıyla üretilir: TTS tek heceli adları fısıltıya
+// çevirebiliyor (hı sessiz, be/dal/ra tutarsız çıkmıştı); taşıyıcı kalıp hem
+// telaffuzu netleştirir hem tüm adları aynı kadansa (tek ağız) oturtur.
 const addOrnek = (o: Ornek) => add(o.ses, o.tts ?? o.ar);
 for (const ders of DERSLER) {
   ders.examples?.forEach(addOrnek);
   for (const harf of ders.harfler ?? []) {
-    add(harf.ses, TR_AD_DUZELTME[harf.name] ?? harf.name, VOICE_TR); // Türkçe elifba adı
+    add(harf.ses, `${harf.name} harfi`, VOICE_TR); // Türkçe elifba adı
     harf.ornekler.forEach(addOrnek);
   }
 }
