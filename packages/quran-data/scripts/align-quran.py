@@ -171,35 +171,34 @@ def main():
             roman[0] = romanize_words(it0["words"])
             print("  önek probu: besmele okunmamış varsayıldı", file=sys.stderr)
 
-    # Ayet hizalama geçişi. Tekrarlı metinlerde (Hicr 28-44 "kâle" dizisi gibi) kayma
-    # yaşanabildiğinden: (1) her ayete ÇAPA eklenir — bir sonraki ayetin ilk 2 kelimesi
-    # ayetin hemen ardında hizalanmak zorundadır, sınır kilitlenir; (2) sure ortalama
-    # skoru kötüyse dar pencereli ikinci geçiş yapılır, iyi olan tutulur.
+    # Hizalama çekirdeği: [start_f, end_limit] aralığına HAPSEDİLMİŞ ardışık pencere.
+    # Çapa: sonraki öğenin ilk 3 kelimesi. Elastik sıfırlama yerel hasarı sınırlar.
     start_cursor = cursor
 
-    def align_pass(scale, pad_f):
+    def align_seq(sub_items, sub_roman, start_f, end_limit, scale, pad_f, lead_star_first):
         res = []
-        cur = start_cursor
-        for idx, it in enumerate(items):
-            toks = roman[idx]
-            # 3 kelimelik çapa: tekrarlı açılışlarda (yâ eyyühâ…, innallâhe…) 2 kelime
-            # yanlış tekrara kilitlenebiliyordu (Ahzâb vakası)
-            anchor = roman[idx + 1][:3] if idx + 1 < len(items) else []
+        cur = start_f
+        span = max(1, end_limit - start_f)
+        chars = sum(len("".join(r)) for r in sub_roman) or 1
+        for idx, it in enumerate(sub_items):
+            toks = sub_roman[idx]
+            anchor = sub_roman[idx + 1][:3] if idx + 1 < len(sub_items) else []
             n_all = len("".join(toks)) + len("".join(anchor))
-            est_f = max(2 * FPS, int(T * len("".join(toks)) / char_tot))
+            est_f = max(2 * FPS, int(span * len("".join(toks)) / chars))
             min_win = n_all * 3 + 80
-            win_len = min(T - cur, max(min_win, int(est_f * scale) + pad_f))
-            if T - cur < min_win:
-                cur = max(0, T - min_win)
-                win_len = T - cur
+            win_len = min(end_limit - cur, max(min_win, int(est_f * scale) + pad_f))
+            if end_limit - cur < min_win:
+                cur = max(start_f, end_limit - min_win)
+                win_len = end_limit - cur
             ok = False
+            aligned = scores = aw = None
             for attempt in range(3):
                 win = em[cur: cur + win_len]
                 ids = [DICT[c] for c in "".join(toks)]
                 a_ids = [DICT[c] for c in "".join(anchor)]
-                lead_star = idx == 0 and not out["istiaze_ms"]
-                seq = ([STAR_ID] if lead_star else []) + ids + a_ids
-                use_star = (idx < len(items) - 1) or (cur + win_len < T)
+                lead = lead_star_first and idx == 0
+                seq = ([STAR_ID] if lead else []) + ids + a_ids
+                use_star = (idx < len(sub_items) - 1) or (cur + win_len < end_limit)
                 if use_star:
                     seq = seq + [STAR_ID]
                 aligned, scores = align_tokens(win, seq)
@@ -207,33 +206,31 @@ def main():
                 if use_star and spans and spans[-1][2] == STAR_ID:
                     spans = spans[:-1]
                 wl = [len(t) for t in toks] + [len(t) for t in anchor]
-                words_all = group_words(spans, wl, lead_star)
+                words_all = group_words(spans, wl, lead)
                 aw = words_all[:len(toks)]
                 anw = words_all[len(toks):]
                 ok = (aw and aw[0] is not None and aw[-1] is not None
                       and all(x is not None for x in anw))
                 if ok and use_star:
                     tail = anw[-1][1] if anw else aw[-1][1]
-                    if tail > win_len - 30 and cur + win_len < T:
+                    if tail > win_len - 30 and cur + win_len < end_limit:
                         ok = False  # pencere sonuna dayandı: büyüt
                 if ok:
                     break
-                win_len = min(T - cur, int(win_len * 1.7) + 10 * FPS)
+                win_len = min(end_limit - cur, int(win_len * 1.7) + 10 * FPS)
             if not ok:
                 print(f"UYARI {it['key']}: pencere oturmadı, kaba tahmin", file=sys.stderr)
-                end_f = min(T, cur + est_f)
-                res.append({"key": it["key"], "start_ms": cur * 20,
-                            "end_ms": end_f * 20, "words": [], "score": -99})
+                end_f = min(end_limit, cur + est_f)
+                res.append({"key": it["key"], "start_ms": cur * 20, "end_ms": end_f * 20,
+                            "speech_start_ms": cur * 20, "words": [], "score": -99})
                 cur = end_f
                 continue
             drop = it.get("drop_prefix", 0)
             score = mean_score(aligned, scores)
             first_f = next((sp[0] for sp in aw if sp), 0)
-            # Elastik sıfırlama: kötü skorlu ayet sure temposunun ~2 katından uzun
-            # ses yuttuysa hizalama kaçmıştır — sure-göreli tahminde kes ki kayma
-            # birikmesin, sonraki ayet çapasıyla yeniden kilitlensin
-            if score < -4.5 and (aw[-1][1] - first_f) > est_f * 1.9:
-                end_f = min(T, cur + first_f + int(est_f * 1.25))
+            # Elastik sıfırlama: çok kötü skor + aralık temposunun ~2 katı uzama
+            if score < -5.2 and (aw[-1][1] - first_f) > est_f * 1.9:
+                end_f = min(end_limit, cur + first_f + int(est_f * 1.25))
                 print(f"UYARI {it['key']}: şüpheli uzama (skor {score:.2f}) — elastik kesim", file=sys.stderr)
                 res.append({"key": it["key"], "start_ms": cur * 20, "end_ms": end_f * 20,
                             "speech_start_ms": (cur + first_f) * 20,
@@ -253,13 +250,42 @@ def main():
         good = [x["score"] for x in res if x["score"] > -90]
         return res, (sum(good) / len(good) if good else -99.0)
 
-    res, mean_s = align_pass(2.0, 8 * FPS)
-    if mean_s < -4.4:
-        print(f"  sure ortalama skoru {mean_s:.2f} — dar pencereli ikinci geçiş", file=sys.stderr)
-        res2, mean_s2 = align_pass(1.3, 4 * FPS)
-        if mean_s2 > mean_s:
-            res, mean_s = res2, mean_s2
-            print(f"  ikinci geçiş kazandı ({mean_s:.2f})", file=sys.stderr)
+    # KABA-İNCE: uzun surelerde önce 8'li ayet BLOKLARI hizalanır (uzun blok metni
+    # benzersizdir, sınırı şaşmaz); sonra her blok kendi zaman aralığına hapsedilerek
+    # ayetlere bölünür. Kayma blok sınırını aşamaz (Ahzâb'ın kalitesiz orta bölgesi).
+    B = 8
+    lead0 = not out["istiaze_ms"]
+    if len(items) > B + 4:
+        starts = list(range(0, len(items), B))
+        blocks = [{"key": f"blok{i}", "words": [w for it in items[s:s + B] for w in it["words"]], "drop_prefix": 0}
+                  for i, s in enumerate(starts)]
+        broman = [[t for r in roman[s:s + B] for t in r] for s in starts]
+        bres, bmean = align_seq(blocks, broman, start_cursor, T, 1.6, 6 * FPS, lead0)
+        print(f"  kaba geçiş: {len(blocks)} blok, ort {bmean:.2f}", file=sys.stderr)
+        res = []
+        prev_end = start_cursor
+        for bi, s in enumerate(starts):
+            sub = items[s:s + B]
+            sub_roman = roman[s:s + B]
+            bstart = max(prev_end, bres[bi]["start_ms"] // 20)
+            if bi + 1 < len(bres):
+                bend = min(T, bres[bi + 1].get("speech_start_ms", bres[bi + 1]["start_ms"]) // 20 + 3 * FPS)
+            else:
+                bend = T
+            bend = min(T, max(bend, bstart + 4 * FPS))
+            r_i, _ = align_seq(sub, sub_roman, bstart, bend, 2.0, 8 * FPS, bi == 0 and lead0)
+            res.extend(r_i)
+            prev_end = (r_i[-1]["end_ms"] // 20 - 4) if r_i else bstart
+        good = [x["score"] for x in res if x["score"] > -90]
+        mean_s = sum(good) / len(good) if good else -99.0
+    else:
+        res, mean_s = align_seq(items, roman, start_cursor, T, 2.0, 8 * FPS, lead0)
+        if mean_s < -4.4:
+            print(f"  sure ortalama skoru {mean_s:.2f} — dar pencereli ikinci geçiş", file=sys.stderr)
+            res2, mean_s2 = align_seq(items, roman, start_cursor, T, 1.3, 4 * FPS, lead0)
+            if mean_s2 > mean_s:
+                res, mean_s = res2, mean_s2
+                print(f"  ikinci geçiş kazandı ({mean_s:.2f})", file=sys.stderr)
     out["items"] = res
 
     # Kesim yerleştirme: ayet i'nin son kelime bitişi ile ayet i+1'in ilk kelime
