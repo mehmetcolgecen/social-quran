@@ -182,7 +182,9 @@ def main():
         cur = start_cursor
         for idx, it in enumerate(items):
             toks = roman[idx]
-            anchor = roman[idx + 1][:2] if idx + 1 < len(items) else []
+            # 3 kelimelik çapa: tekrarlı açılışlarda (yâ eyyühâ…, innallâhe…) 2 kelime
+            # yanlış tekrara kilitlenebiliyordu (Ahzâb vakası)
+            anchor = roman[idx + 1][:3] if idx + 1 < len(items) else []
             n_all = len("".join(toks)) + len("".join(anchor))
             est_f = max(2 * FPS, int(T * len("".join(toks)) / char_tot))
             min_win = n_all * 3 + 80
@@ -225,9 +227,21 @@ def main():
                 cur = end_f
                 continue
             drop = it.get("drop_prefix", 0)
+            score = mean_score(aligned, scores)
+            first_f = next((sp[0] for sp in aw if sp), 0)
+            # Elastik sıfırlama: kötü skorlu ayet sure temposunun ~2 katından uzun
+            # ses yuttuysa hizalama kaçmıştır — sure-göreli tahminde kes ki kayma
+            # birikmesin, sonraki ayet çapasıyla yeniden kilitlensin
+            if score < -4.5 and (aw[-1][1] - first_f) > est_f * 1.9:
+                end_f = min(T, cur + first_f + int(est_f * 1.25))
+                print(f"UYARI {it['key']}: şüpheli uzama (skor {score:.2f}) — elastik kesim", file=sys.stderr)
+                res.append({"key": it["key"], "start_ms": cur * 20, "end_ms": end_f * 20,
+                            "speech_start_ms": (cur + first_f) * 20,
+                            "words": [], "score": round(score, 3)})
+                cur = end_f
+                continue
             wlist = [[wi - drop + 1, (cur + sp[0]) * 20, (cur + sp[1]) * 20]
                      for wi, sp in enumerate(aw) if sp is not None and wi >= drop]
-            score = mean_score(aligned, scores)
             end_f = cur + aw[-1][1]
             first_sp = next((sp for sp in aw if sp), None)
             res.append({"key": it["key"], "start_ms": cur * 20, "end_ms": end_f * 20,
@@ -240,9 +254,9 @@ def main():
         return res, (sum(good) / len(good) if good else -99.0)
 
     res, mean_s = align_pass(2.0, 8 * FPS)
-    if mean_s < -4.6:
+    if mean_s < -4.4:
         print(f"  sure ortalama skoru {mean_s:.2f} — dar pencereli ikinci geçiş", file=sys.stderr)
-        res2, mean_s2 = align_pass(1.5, 5 * FPS)
+        res2, mean_s2 = align_pass(1.3, 4 * FPS)
         if mean_s2 > mean_s:
             res, mean_s = res2, mean_s2
             print(f"  ikinci geçiş kazandı ({mean_s:.2f})", file=sys.stderr)
